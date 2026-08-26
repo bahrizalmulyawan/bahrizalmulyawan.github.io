@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Voyager Record // Explanation</title>
+    <style>
+        :root {
+            --bg: #050805;
+            --surface: #080d09;
+            --text: #00ff66;
+            --muted: #79c995;
+            --border: #155c32;
+            --shadow: rgba(0,255,102,.18);
+        }
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            padding: 28px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Courier New", Courier, monospace;
+        }
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 10;
+            background: repeating-linear-gradient(to bottom, rgba(0,255,102,.025) 0, rgba(0,255,102,.025) 1px, transparent 1px, transparent 4px);
+        }
+        .wrap { max-width: 1200px; margin: 0 auto; }
+        .header {
+            border: 1px solid var(--border);
+            background: var(--surface);
+            padding: 14px 18px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 15px var(--shadow);
+        }
+        h1 { margin: 0 0 8px; font-size: 28px; letter-spacing: 1px; }
+        h1::before { content: "> "; }
+        .sub { color: var(--muted); font-size: 13px; }
+        .panel {
+            border: 1px solid var(--border);
+            background: var(--surface);
+            padding: 18px;
+            box-shadow: 0 0 15px var(--shadow);
+        }
+        .image-wrap {
+            overflow: auto;
+            text-align: center;
+        }
+        img {
+            display: block;
+            width: min(100%, 1024px);
+            height: auto;
+            margin: 0 auto;
+        }
+        .back {
+            display: inline-block;
+            margin-top: 18px;
+            padding: 9px 14px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .back:hover { background: var(--text); color: #000; }
+        @media (max-width: 640px) {
+            body { padding: 14px; }
+            h1 { font-size: 21px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="header">
+            <h1>Explanation of Recording Cover Diagram</h1>
+            <div class="sub">Voyager Record // Recording cover diagram reference</div>
+        </div>
+        <div class="panel">
+            <div class="image-wrap">
+                <img src="explanation.png" alt="Explanation of Recording Cover Diagram">
+            </div>
+            <a class="back" href="voyager_index.html">← Back to Decoder</a>
+        </div>
+    </div>
+</body>
+</html>

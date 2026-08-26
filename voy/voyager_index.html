@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+
+    <link rel="icon" type="image/png" href="icon.png">
+    <title>Voyager Record // Decoder</title>
+
+    <style>
+        :root {
+            --bg: #050805;
+            --surface: #080d09;
+            --surface-2: #0d150f;
+            --text: #00ff66;
+            --text-muted: #79c995;
+            --accent: #00ff66;
+            --accent-hover: #66ff99;
+            --border: #155c32;
+            --border-bright: #00ff66;
+            --shadow: rgba(0,255,102,.18);
+        }
+
+        body.light-mode {
+            --bg: #edf5ef;
+            --surface: #ffffff;
+            --surface-2: #e3eee5;
+            --text: #075c2b;
+            --text-muted: #267044;
+            --accent: #087f3e;
+            --accent-hover: #075c2b;
+            --border: #8eb99b;
+            --border-bright: #087f3e;
+            --shadow: rgba(8,127,62,.16);
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Courier New", Courier, monospace;
+            transition: background-color .25s ease, color .25s ease;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 9997;
+            background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,.15) 100%);
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 9998;
+            background: repeating-linear-gradient(
+                to bottom,
+                rgba(0,255,102,.025) 0px,
+                rgba(0,255,102,.025) 1px,
+                transparent 1px,
+                transparent 4px
+            );
+        }
+
+        body.light-mode::after { opacity: .12; }
+
+        ::selection {
+            background: var(--accent);
+            color: #000;
+        }
+
+        h1, h2, h3, h4, h5 {
+            color: var(--accent);
+            text-shadow: 0 0 5px var(--shadow), 0 0 12px var(--shadow);
+        }
+
+        h1::before { content: "> "; }
+        h2::before { content: "// "; }
+        h5::before { content: "[+] "; }
+
+        a {
+            color: var(--accent);
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        a:hover {
+            color: var(--accent-hover);
+            text-shadow: 0 0 7px var(--shadow);
+        }
+
+        hr { border-color: var(--border); }
+
+        mark {
+            background: var(--accent);
+            color: #000;
+            padding: 2px 5px;
+            font-weight: bold;
+        }
+
+        #themeToggle {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 10000;
+            padding: 8px 14px;
+            border: 1px solid var(--border-bright);
+            border-radius: 3px;
+            background: var(--surface);
+            color: var(--accent);
+            font-family: "Courier New", Courier, monospace;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 8px var(--shadow);
+            transition: all .2s ease;
+        }
+
+        #themeToggle:hover {
+            background: var(--accent);
+            color: #000;
+            box-shadow: 0 0 12px var(--accent), 0 0 25px var(--shadow);
+        }
+
+        #themeToggle:active { transform: scale(.96); }
+
+        #explanationBtn {
+            position: fixed;
+            top: 15px;
+            right: 145px;
+            z-index: 10000;
+            padding: 8px 14px;
+            border: 1px solid var(--border-bright);
+            border-radius: 3px;
+            background: var(--surface);
+            color: var(--accent);
+            font-family: "Courier New", Courier, monospace;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 8px var(--shadow);
+            transition: all .2s ease;
+            text-decoration: none;
+        }
+
+        #explanationBtn:hover {
+            background: var(--accent);
+            color: #000;
+            box-shadow: 0 0 12px var(--accent), 0 0 25px var(--shadow);
+        }
+
+        #explanationBtn:active { transform: scale(.96); }
+
+        .terminal-header {
+            border: 1px solid var(--border);
+            background: var(--surface);
+            padding: 10px 15px;
+            margin-top: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 15px var(--shadow);
+            font-size: 13px;
+        }
+
+        .terminal-header .status { color: var(--accent); }
+        .terminal-header .status::before { content: "● "; }
+        .terminal-header .command { color: var(--text-muted); }
+
+        .card, .jumbotron {
+            background: var(--surface) !important;
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            box-shadow: 0 0 15px var(--shadow);
+        }
+
+        .card-body.bg-light { background: var(--surface) !important; }
+
+        .card-title { color: var(--accent); }
+
+        .btn {
+            font-family: "Courier New", Courier, monospace;
+            color: var(--accent) !important;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 2px !important;
+            transition: all .15s ease;
+            cursor: pointer;
+        }
+
+        .btn:hover, .btn:focus {
+            color: #000 !important;
+            background: var(--accent);
+            border-color: var(--accent);
+            box-shadow: 0 0 8px var(--shadow), 0 0 15px var(--shadow);
+        }
+
+        .form-control, .form-control-file {
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 2px;
+        }
+
+        .form-control:focus {
+            background: var(--surface);
+            color: var(--text);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 .15rem var(--shadow);
+        }
+
+        .input-group-text {
+            background: var(--surface-2);
+            color: var(--accent);
+            border-color: var(--border);
+            border-radius: 2px;
+        }
+
+        select option {
+            background: var(--surface);
+            color: var(--text);
+        }
+
+        input[type="file"] { cursor: not-allowed; opacity: .55; }
+
+        #upload_container { opacity: .55; }
+        #upload_container .card { filter: grayscale(1); }
+        #upload_container input[type="file"] { pointer-events: none; }
+
+        input[type="file"]::-webkit-file-upload-button {
+            background: var(--surface-2);
+            color: var(--accent);
+            border: 1px solid var(--border);
+            padding: 6px 10px;
+            font-family: "Courier New", Courier, monospace;
+            cursor: pointer;
+        }
+
+        .plot, .oscilloscope {
+            border: 1px solid var(--border);
+            max-width: 100%;
+            height: auto;
+            box-shadow: 0 0 10px var(--shadow);
+        }
+
+        .oscilloscope {
+            margin: 5px;
+            background: #000;
+        }
+
+        .plot {
+            background: #000;
+        }
+
+        body.light-mode .oscilloscope,
+        body.light-mode .plot {
+            background: #fff;
+        }
+
+        .progress {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 2px;
+        }
+
+        .progress-bar {
+            background: var(--accent);
+            box-shadow: 0 0 10px var(--shadow);
+        }
+
+        .channel-panel {
+            border: 1px solid var(--border);
+            background: var(--surface);
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 0 12px var(--shadow);
+        }
+
+        .channel-title { letter-spacing: 1px; }
+
+        .bookmark-title {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .footer {
+            color: var(--text-muted);
+            font-size: 12px;
+            padding: 15px;
+        }
+
+        @media (max-width: 768px) {
+            #themeToggle, #explanationBtn {
+                position: static;
+                display: block;
+                margin: 10px auto;
+            }
+            h1.display-4 { font-size: 2rem; }
+            .oscilloscope {
+                margin-left: 0;
+                margin-right: 0;
+            }
+            .channel-panel { padding: 8px; }
+        }
+    </style>
+</head>
+
+<body>
+
+<button id="themeToggle" type="button" onclick="toggleTheme()">☀ LIGHT MODE</button>
+
+<button id="explanationBtn" type="button" onclick="window.location.href='explanation.html'">▣ EXPLANATION</button>
+
+<div class="container">
+    <div class="terminal-header">
+        <div class="command">voyager@decoder:~$ ./voyager-record-decoder --sync-audio</div>
+        <div class="status">SYSTEM ONLINE</div>
+    </div>
+
+    <h1 class="display-4" style="text-align:center;">The Voyager Record</h1>
+    <p>
+        This is a demonstration of in-browser live decoding of the Voyager record, now with <strong>synchronized audio feedback</strong>.
+        LIVE DEMO VERSION
+    </p>
+	   <p>
+        WARNING - TOO LOUD 
+    </p>
+    <p><strong>Note:</strong> Klik di mana saja untuk mengizinkan (unmute) browser memutar audio jika belum terdengar.</p>
+</div>
+
+<!-- KONTROL AUDIO GLOBAL -->
+<div class="container mt-2 mb-4" id="audio_controls">
+    <div class="card border-bright">
+        <div class="card-body">
+            <h5 class="card-title">MASTER AUDIO CONTROLS</h5>
+            <div class="d-flex align-items-center flex-wrap">
+                <button id="muteBtn" type="button" class="btn btn-default mr-3 font-weight-bold" onclick="toggleMute()">MUTE</button>
+                <label for="masterVolume" class="mb-0 mr-2 font-weight-bold">Volume:</label>
+                <input type="range" class="form-control-range" id="masterVolume" min="0" max="1" step="0.01" value="0.5" style="max-width: 200px;" oninput="changeVolume(this.value)">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2 mb-2" id="upload_container">
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Upload Local Record</h5>
+            <p class="card-text">
+                Upload file .mp3/wav Voyager Anda sendiri untuk di-decode (pastikan format 44.1 kHz).
+            </p>
+            <div class="form-group mb-0">
+                <input type="file" class="form-control-file" id="audioUpload" accept=".mp3,audio/*" disabled title="Local upload disabled. Using audio/voyager.mp3 by default.">
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr>
+
+<div class="container" id="loading_div">
+    <div class="jumbotron">
+        <h3 style="text-align:center;" id="loading_text">Loading Voyager MP3 file...</h3>
+        <div style="text-align:center;font-size:24px;margin-bottom:15px;">⟳</div>
+        <div class="progress">
+            <div id="load_progress" class="progress-bar progress-bar-striped progress-bar-animated" style="width:10%"></div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div style="text-align:center;" class="row" id="decoder_div">
+
+        <!-- LEFT CHANNEL -->
+        <div class="col-lg">
+            <div class="channel-panel">
+                <h2 class="channel-title">LEFT CHANNEL</h2>
+
+                <div class="btn-group btn-group-justified">
+                    <a onclick="jumpChannel(leftChannel, -256*328);" class="btn btn-default">◀ Jump Back</a>
+                    <a onclick="togglePlay(leftChannel)" class="btn btn-default">▶ Play/Pause</a>
+                    <a onclick="jumpChannel(leftChannel, 256*328);" class="btn btn-default">Jump Forward ▶</a>
+                </div>
+
+                <div class="input-group mt-2 mb-2" style="max-width:300px;margin:0 auto;">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">MODE</span>
+                    </div>
+                    <select class="form-control" onchange="leftChannel.colorMode=this.value">
+                        <option value="mono">Monochrome (BW)</option>
+                        <option value="r">Red Channel</option>
+                        <option value="g">Green Channel</option>
+                        <option value="b">Blue Channel</option>
+                    </select>
+                </div>
+
+                <br>
+                <div class="bookmark-title">[ LEFT CHANNEL BOOKMARKS ]</div>
+                <button type="button" onclick="jumpToBookmark(leftChannel, 1320900)" class="btn btn-default">Callibration Circle</button>
+                <button type="button" onclick="jumpToBookmark(leftChannel, 19813754)" class="btn btn-default">A cell</button>
+                <button type="button" onclick="jumpToBookmark(leftChannel, 17246644)" class="btn btn-default">Organs</button>
+                <button type="button" onclick="jumpToBookmark(leftChannel, 20860305)" class="btn btn-default">Embryo</button>
+                <button type="button" onclick="jumpToBookmark(leftChannel, 23967459)" class="btn btn-default">Dudes</button>
+                <button type="button" onclick="jumpToBookmark(leftChannel, 28481695)" class="btn btn-default">Numbers</button>
+                <button type="button" onclick="jumpToBookmark(leftChannel, 7628908)" class="btn btn-default">Jupiter</button>
+                <button type="button" onclick="jumpToBookmark(leftChannel, 8169155)" class="btn btn-default">Earth</button>
+                <button type="button" onclick="jumpToBookmark(leftChannel, 11165669)" class="btn btn-default">Carbon</button>
+                <button type="button" onclick="jumpToBookmark(leftChannel, 12150593)" class="btn btn-default">DNA</button>
+
+                <br><br>
+                <canvas id="plotLeft" width="700" height="120" class="oscilloscope"></canvas>
+                <canvas id="imgCanvasLeft" width="600" height="700" class="plot"></canvas>
+            </div>
+        </div>
+
+        <!-- RIGHT CHANNEL -->
+        <div class="col-lg">
+            <div class="channel-panel">
+                <h2 class="channel-title">RIGHT CHANNEL</h2>
+
+                <div class="btn-group btn-group-justified">
+                    <a onclick="jumpChannel(rightChannel, -256*328);" class="btn btn-default">◀ Jump Back</a>
+                    <a onclick="togglePlay(rightChannel)" class="btn btn-default">▶ Play/Pause</a>
+                    <a onclick="jumpChannel(rightChannel, 256*328);" class="btn btn-default">Jump Forward ▶</a>
+                </div>
+
+                <div class="input-group mt-2 mb-2" style="max-width:300px;margin:0 auto;">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">MODE</span>
+                    </div>
+                    <select class="form-control" onchange="rightChannel.colorMode=this.value">
+                        <option value="mono">Monochrome (BW)</option>
+                        <option value="r">Red Channel</option>
+                        <option value="g">Green Channel</option>
+                        <option value="b">Blue Channel</option>
+                    </select>
+                </div>
+
+                <br>
+                <div class="bookmark-title">[ RIGHT CHANNEL BOOKMARKS ]</div>
+                <button type="button" onclick="jumpToBookmark(rightChannel, 3584332)" class="btn btn-default">Lizard</button>
+                <button type="button" onclick="jumpToBookmark(rightChannel, 4070813)" class="btn btn-default">Eagle</button>
+                <button type="button" onclick="jumpToBookmark(rightChannel, 4651956)" class="btn btn-default">Zebras</button>
+                <button type="button" onclick="jumpToBookmark(rightChannel, 17257470)" class="btn btn-default">H20</button>
+                <button type="button" onclick="jumpToBookmark(rightChannel, 18204290)" class="btn btn-default">Fisherman</button>
+                <button type="button" onclick="jumpToBookmark(rightChannel, 20785176)" class="btn btn-default">A house</button>
+                <button type="button" onclick="jumpToBookmark(rightChannel, 25833852)" class="btn btn-default">City</button>
+
+                <br><br>
+                <canvas id="plotRight" width="700" height="120" class="oscilloscope"></canvas>
+                <canvas id="imgCanvasRight" width="600" height="700" class="plot"></canvas>
+            </div>
+        </div>
+
+    </div>
+    <hr>
+    <p class="footer" style="text-align:center;">
+       BAHRIZAL HELMI MULYAWAN 2026
+    </p>
+</div>
+
+<script>
+    /* =========================================================
+       AUDIO CONTEXT & MASTER VOLUME/MUTE
+    ========================================================= */
+    window.AudioContext = window.AudioContext || window.webkitAudioContext;
+    let context = new AudioContext();
+
+    // Node untuk Master Volume
+    let masterGain = context.createGain();
+    masterGain.connect(context.destination);
+    
+    let currentVolume = 0.5;
+    let isMuted = false;
+    masterGain.gain.value = currentVolume;
+
+    // Supaya autoplay policy browser (biasanya butuh gesture user) tertangani
+    document.addEventListener('click', () => {
+        if (context.state === 'suspended') {
+            context.resume();
+        }
+    }, { once: true });
+
+    function changeVolume(val) {
+        currentVolume = parseFloat(val);
+        if (!isMuted) {
+            masterGain.gain.value = currentVolume;
+        }
+    }
+
+    function toggleMute() {
+        isMuted = !isMuted;
+        let btn = document.getElementById("muteBtn");
+        if (isMuted) {
+            masterGain.gain.value = 0;
+            btn.innerText = "UNMUTE";
+            btn.style.color = "red";
+            btn.style.borderColor = "red";
+        } else {
+            masterGain.gain.value = currentVolume;
+            btn.innerText = "MUTE";
+            btn.style.color = "";
+            btn.style.borderColor = "";
+        }
+    }
+
+    /* =========================================================
+       AUDIO LOADER
+    ========================================================= */
+    function showAudioError(message) {
+        console.error(message);
+        $("#loading_text").text(message);
+        $("#load_progress").css("width", "100%");
+        $("#load_progress").removeClass("progress-bar-animated");
+    }
+
+    function onError(e) {
+        showAudioError("Gagal membaca audio. Pastikan audio/voyager.mp3 tersedia dan halaman dijalankan lewat web server.");
+    }
+
+    function loadSound(url, onloadCallback, loadingProgressCb) {
+        // Resolve relatif terhadap lokasi HTML, bukan terhadap root domain.
+        const resolvedUrl = new URL(url, document.baseURI).href;
+
+        // XHR/fetch ke file:// biasanya diblokir browser. Tampilkan pesan yang jelas.
+        if (location.protocol === 'file:') {
+            showAudioError("Audio tidak bisa di-XHR saat HTML dibuka langsung (file://). Jalankan lewat HTTP/HTTPS, misalnya Live Server.");
+            return;
+        }
+
+        let request = new XMLHttpRequest();
+        request.open('GET', resolvedUrl, true);
+        request.responseType = 'arraybuffer';
+        request.timeout = 30000;
+
+        request.onprogress = (e) => {
+            let total_filesize = 15164394;
+            if (e.lengthComputable) {
+                loadingProgressCb(0.9 * Math.round(100 * e.loaded / e.total));
+            } else {
+                loadingProgressCb(0.9 * Math.round(100 * e.loaded / total_filesize));
+            }
+        };
+
+        request.onload = function() {
+            if (request.status < 200 || request.status >= 300) {
+                showAudioError("Audio tidak ditemukan (HTTP " + request.status + "): " + resolvedUrl);
+                return;
+            }
+
+            context.decodeAudioData(
+                request.response,
+                function(buffer) {
+                    loadingProgressCb(100);
+                    onloadCallback(buffer);
+                },
+                function(err) {
+                    console.error(err);
+                    showAudioError("File audio ditemukan, tetapi gagal di-decode. Pastikan voyager.mp3 valid.");
+                }
+            );
+        };
+        request.onerror = function() {
+            showAudioError("Tidak bisa mengakses: " + resolvedUrl);
+        };
+        request.ontimeout = function() {
+            showAudioError("Timeout saat memuat: " + resolvedUrl);
+        };
+        request.send();
+    }
+
+    function loadLocalSound(file, onloadCallback, loadingProgressCb) {
+        let reader = new FileReader();
+        reader.onprogress = function(e) {
+            if (e.lengthComputable) {
+                loadingProgressCb(0.9 * Math.round(100 * e.loaded / e.total));
+            }
+        };
+
+        reader.onload = function(e) {
+            context.decodeAudioData(
+                e.target.result,
+                function(buffer) {
+                    loadingProgressCb(100);
+                    onloadCallback(buffer);
+                },
+                onError
+            );
+        };
+        reader.onerror = function(e) { console.error("FileReader error", e); };
+        reader.readAsArrayBuffer(file);
+    }
+
+    /* =========================================================
+       VOYAGER DECODER OBJECTS
+    ========================================================= */
+    let debug = false;
+
+    let leftChannel = {
+        go: true,
+        offset: 3000000,
+        samples: null,
+        audioBuffer: null,
+        haltOnError: false,
+        canvasName: "imgCanvasLeft",
+        plotName: "plotLeft",
+        intervalId: null,
+        colorMode: "mono",
+        
+        // Data untuk sinkronisasi audio
+        source: null,
+        startTime: 0,
+        startOffset: 3000000
+    };
+
+    let rightChannel = {
+        go: true,
+        offset: 3000000,
+        samples: null,
+        audioBuffer: null,
+        haltOnError: false,
+        canvasName: "imgCanvasRight",
+        plotName: "plotRight",
+        intervalId: null,
+        colorMode: "mono",
+        
+        source: null,
+        startTime: 0,
+        startOffset: 3000000
+    };
+
+    /* =========================================================
+       PLAYBACK SYNC CONTROLS
+    ========================================================= */
+    function playChannelAudio(channel) {
+        if (!channel.audioBuffer) return;
+        if (context.state === 'suspended') context.resume();
+
+        if (channel.source) {
+            try { channel.source.stop(); } catch(e){}
+        }
+        
+        channel.source = context.createBufferSource();
+        channel.source.buffer = channel.audioBuffer;
+        channel.source.connect(masterGain);
+        
+        let startSec = channel.offset / context.sampleRate;
+        channel.source.start(0, startSec);
+        
+        // Simpan titik mula dan waktu mula agar loop visual bisa melacaknya
+        channel.startTime = context.currentTime;
+        channel.startOffset = channel.offset;
+    }
+
+    function stopChannelAudio(channel) {
+        if (channel.source) {
+            try { channel.source.stop(); } catch(e){}
+            channel.source = null;
+        }
+        channel.startOffset = channel.offset; // Simpan offset terakhir
+    }
+
+    function togglePlay(channel) {
+        channel.go = !channel.go;
+        if (channel.go) {
+            playChannelAudio(channel);
+        } else {
+            stopChannelAudio(channel);
+        }
+    }
+
+    function jumpChannel(channel, amount) {
+        channel.offset += amount;
+        if (channel.offset < 0) channel.offset = 0;
+        if (channel.samples && channel.offset >= channel.samples.length) {
+            channel.offset = channel.samples.length - 1;
+        }
+        
+        if (channel.go) {
+            stopChannelAudio(channel);
+            playChannelAudio(channel);
+        } else {
+            channel.startOffset = channel.offset;
+        }
+    }
+
+    function jumpToBookmark(channel, targetOffset) {
+        channel.offset = targetOffset;
+        if (channel.go) {
+            stopChannelAudio(channel);
+            playChannelAudio(channel);
+        } else {
+            channel.startOffset = channel.offset;
+        }
+    }
+
+    /* =========================================================
+       OSCILLOSCOPE & IMAGE DRAWING
+    ========================================================= */
+    function updateOscilloscope(channel, scanlineLength, marker0, marker1) {
+        let c = document.getElementById(channel.plotName);
+        let buffer = channel.samples;
+        let offset = channel.offset;
+        let ctx = c.getContext("2d");
+
+        let zoom = 200;
+        let W = c.width; let H = c.height; let center = H / 2;
+        let x = 0; let dx = W / scanlineLength;
+
+        ctx.clearRect(0, 0, W, H);
+
+        const isLight = document.body.classList.contains("light-mode");
+        const waveformColor = isLight ? "#075c2b" : "#00ff66";
+        const markerColor = isLight ? "#267044" : "#00ff66";
+
+        ctx.strokeStyle = waveformColor;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x, center);
+
+        let plotStart = -140;
+        for (let i = 0; i < scanlineLength; i++) {
+            x += dx;
+            // Prevent out of bounds
+            let val = (i + offset + plotStart < buffer.length) ? buffer[i + offset + plotStart] : 0;
+            ctx.lineTo(x, center - val * zoom);
+        }
+        ctx.stroke();
+
+        if (debug) {
+            ctx.strokeStyle = markerColor;
+            ctx.beginPath();
+            ctx.moveTo(0, center - marker0 * zoom); ctx.lineTo(W, center - marker0 * zoom);
+            ctx.moveTo(0, center - marker1 * zoom); ctx.lineTo(W, center - marker1 * zoom);
+            ctx.stroke();
+        }
+    }
+
+    function displayLatestScanline(channel) {
+        let canvas = document.getElementById(channel.canvasName);
+        let ctx = canvas.getContext("2d");
+        let w = canvas.width; let h = canvas.height;
+
+        let scanline_image_data = ctx.createImageData(1, h);
+        let scanline_pixel_col = scanline_image_data.data;
+        let imageData = ctx.getImageData(0, 0, w, h);
+
+        ctx.clearRect(0, 0, w, h);
+        ctx.putImageData(imageData, -2, 0); // Shift left by 2 pixels
+
+        for (let i = 0; i < h; i++) {
+            let sampleVal = (channel.offset + i < channel.samples.length) ? channel.samples[channel.offset + i] : 0;
+            let intensity = 108 - sampleVal * 2555;
+            let r = intensity, g = intensity, b = intensity;
+
+            if (channel.colorMode === "r") { g = 0; b = 0; }
+            else if (channel.colorMode === "g") { r = 0; b = 0; }
+            else if (channel.colorMode === "b") { r = 0; g = 0; }
+
+            scanline_pixel_col[0 + i * 4] = r;
+            scanline_pixel_col[1 + i * 4] = g;
+            scanline_pixel_col[2 + i * 4] = b;
+            scanline_pixel_col[3 + i * 4] = 255;
+        }
+
+        ctx.putImageData(scanline_image_data, w - 2, 0);
+        ctx.putImageData(scanline_image_data, w - 1, 0);
+    }
+
+    /* =========================================================
+       SCANNER ALGORITHM
+    ========================================================= */
+    function nextLine(channel) {
+        let pulseCount = 0;
+        let triggerCount = 2;
+        let lowLevel = 0;
+        let highLevelReachedCounter = 0;
+        channel.offset += 300; // Jump past current sync pulse
+
+        let maxInterimageSamples = 10000;
+        let max = 0;
+        let lookahead = 850;
+
+        for (let i = 0; i < lookahead; i++) {
+            if (channel.offset + i >= channel.samples.length) break;
+            let sample = channel.samples[channel.offset + i];
+            if (sample > max) max = sample;
+        }
+
+        lowLevel = max * 0.1;
+
+        for (let i = -100; i < maxInterimageSamples; i++) {
+            if (channel.offset >= channel.samples.length) break;
+
+            if (channel.samples[channel.offset] === max) {
+                highLevelReachedCounter = 60;
+            }
+            highLevelReachedCounter -= 1;
+
+            if (channel.samples[channel.offset] > lowLevel) {
+                pulseCount++;
+            } else {
+                let pulseIsLongEnough = pulseCount > triggerCount;
+                let maxWasRecent = highLevelReachedCounter > 0;
+
+                if (pulseIsLongEnough && maxWasRecent) {
+                    return channel;
+                }
+                pulseCount = 0;
+                highLevelReachedCounter = 0;
+            }
+            channel.offset += 1;
+        }
+
+        if (channel.haltOnError) channel.go = false;
+        return channel;
+    }
+
+    /* =========================================================
+       SYNCHRONIZED DISPLAY LOOP
+    ========================================================= */
+    function startDisplayingChannel(channel) {
+        if (channel.intervalId) clearInterval(channel.intervalId);
+
+        if (channel.go && !channel.source) {
+            playChannelAudio(channel);
+        }
+
+        channel.intervalId = setInterval(function() {
+            if (!channel.go) {
+                if (channel.source) stopChannelAudio(channel);
+                return;
+            }
+
+            // Hitung posisi audio ideal berdasarkan waktu konteks saat ini
+            let expectedOffset = Math.floor((context.currentTime - channel.startTime) * context.sampleRate) + channel.startOffset;
+
+            let linesDecoded = 0;
+            let didDecode = false;
+
+            // Proses gambar mengejar posisi audio (maks 50 baris per frame agar tak lag)
+            while (channel.offset < expectedOffset && linesDecoded < 50) {
+                if (channel.offset >= channel.samples.length) {
+                    stopChannelAudio(channel);
+                    channel.go = false;
+                    break;
+                }
+                
+                let oldOffset = channel.offset;
+                channel = nextLine(channel);
+                if (channel.offset === oldOffset) break; // Error/EOF protection
+                
+                displayLatestScanline(channel);
+                linesDecoded++;
+                didDecode = true;
+            }
+
+            // Jika posisinya meleset terlalu jauh (misal user pindah tab), paksa reset
+            if (Math.abs(channel.offset - expectedOffset) > context.sampleRate * 2) {
+                channel.offset = expectedOffset;
+            }
+
+            if (didDecode) {
+                updateOscilloscope(channel, 3000, 0);
+            }
+        }, 30);
+    }
+
+    /* =========================================================
+       AUDIO LOADED HANDLING
+    ========================================================= */
+    function onloadCallback(buffer) {
+        setTimeout(() => {
+            $("#loading_div").slideUp("slow");
+
+            // Memisahkan buffer stereo menjadi dua buffer mono terpisah
+            let leftBuffer = context.createBuffer(1, buffer.length, buffer.sampleRate);
+            leftBuffer.getChannelData(0).set(buffer.getChannelData(0));
+            
+            let rightBuffer = context.createBuffer(1, buffer.length, buffer.sampleRate);
+            rightBuffer.getChannelData(0).set(buffer.getChannelData(1));
+
+            leftChannel.audioBuffer = leftBuffer;
+            rightChannel.audioBuffer = rightBuffer;
+
+            leftChannel.samples = leftBuffer.getChannelData(0);
+            rightChannel.samples = rightBuffer.getChannelData(0);
+
+            leftChannel.offset = 3000000;
+            rightChannel.offset = 3000000;
+            leftChannel.startOffset = 3000000;
+            rightChannel.startOffset = 3000000;
+
+            startDisplayingChannel(leftChannel);
+            startDisplayingChannel(rightChannel);
+        }, 400);
+    }
+
+    function loadingProgress(progress) {
+        $("#load_progress").css("width", progress + "%");
+    }
+
+    /* =========================================================
+       DARK / LIGHT MODE
+    ========================================================= */
+    function applyTheme(theme) {
+        const body = document.body;
+        const button = document.getElementById("themeToggle");
+
+        if (theme === "light") {
+            body.classList.add("light-mode");
+            button.textContent = "☾ DARK MODE";
+        } else {
+            body.classList.remove("light-mode");
+            button.textContent = "☀ LIGHT MODE";
+        }
+        localStorage.setItem("voyager-theme", theme);
+
+        if (leftChannel.samples) updateOscilloscope(leftChannel, 3000, 0);
+        if (rightChannel.samples) updateOscilloscope(rightChannel, 3000, 0);
+    }
+
+    function toggleTheme() {
+        const isLight = document.body.classList.contains("light-mode");
+        applyTheme(isLight ? "dark" : "light");
+    }
+
+    (function() {
+        const savedTheme = localStorage.getItem("voyager-theme");
+        applyTheme(savedTheme === "light" ? "light" : "dark");
+    })();
+
+    /* =========================================================
+       LOCAL FILE UPLOAD
+    ========================================================= */
+    $(document).ready(function() {
+        $('#audioUpload').on('change', function(e) {
+            let file = e.target.files[0];
+            if (!file) return;
+
+            // Hentikan audio sebelumnya
+            stopChannelAudio(leftChannel);
+            stopChannelAudio(rightChannel);
+            if (leftChannel.intervalId) clearInterval(leftChannel.intervalId);
+            if (rightChannel.intervalId) clearInterval(rightChannel.intervalId);
+
+            $("#loading_div").slideDown("slow");
+            $("#loading_text").text("Loading local file: " + file.name + " ...");
+            $("#load_progress").css("width", "0%");
+
+            loadLocalSound(file, onloadCallback, loadingProgress);
+        });
+    });
+
+    /* =========================================================
+       DEFAULT LOAD
+    ========================================================= */
+    loadSound("audio/voyager.mp3", onloadCallback, loadingProgress);
+
+</script>
+</body>
+</html>
