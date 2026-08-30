@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Explanation of the Golden Record image/audio decoding process.">
+    <title>Explanation // Golden Record</title>
+    <link rel="shortcut icon" href="src/assets/images/golden_record_icon.webp">
+    <link href="./src/style.css" rel="stylesheet">
+</head>
+<body class="terminal-page">
+<header class="site-header">
+            <a class="brand" href="index.html">&gt; VOYAGER GOLDEN RECORD IMAGE DECODER</a>
+    <nav class="main-menu" aria-label="Main menu">
+        <a class="menu-link" href="index.html">[ MAIN ]</a>
+        <a class="menu-link" href="upload.html">[ UPLOAD AUDIO — DISABLED ]</a>
+        <a class="menu-link active" href="explanation.html">[ EXPLANATION ]</a>
+    </nav>
+</header>
+
+<main class="explanation-main">
+    <section class="terminal-window explanation-window">
+        <div class="terminal-title"><span>root@golden-record</span><span>EXPLANATION</span></div>
+        <div class="terminal-body">
+            <p>&gt; HOW THE DECODER WORKS</p>
+            <p class="muted">The Golden Record images are encoded as two-channel audio. The decoder reads the signal, reconstructs scan lines, and displays the resulting image.</p>
+
+        
+
+            <div class="explanation-image-card">
+                <div class="terminal-title"><span>&gt; PNG REFERENCE</span><span>PROCESS-01</span></div>
+                <img src="src/assets/images/explanation.png" alt="Golden Record decoding process diagram">
+                <p class="muted">Diagram PNG referensi proses pengolahan sinyal menjadi gambar.</p>
+            </div>
+
+            <div class="explanation-grid">
+                <article><span class="step">01</span><h2>Audio input</h2><p>File audio dibaca sebagai data sampel dan dipisahkan menjadi channel kiri dan kanan.</p></article>
+                <article><span class="step">02</span><h2>Scan lines</h2><p>Amplitudo sinyal dipetakan menjadi baris gambar. Setiap baris disusun berurutan untuk membentuk frame.</p></article>
+                <article><span class="step">03</span><h2>Image sync</h2><p>Posisi gambar mengikuti waktu audio, sehingga perubahan frame tetap sinkron ketika diputar.</p></article>
+                <article><span class="step">04</span><h2>Oscilloscope</h2><p>Oscilloscope menampilkan bentuk sinyal</p></article>
+            </div>
+
+            <div class="explanation-gallery">
+                <figure><img src="src/assets/images/1.png" alt="Decoding process step 2"><figcaption>Circle</figcaption></figure>
+                <figure><img src="src/assets/images/2.png" alt="Decoding process step 3"><figcaption>Earth</figcaption></figure>
+				<figure><img src="src/assets/images/3.png" alt="Decoding process step 3"><figcaption>Colour</figcaption></figure>
+                <figure><img src="src/assets/images/4.png" alt="Decoding process step 4"><figcaption>DNA</figcaption></figure>
+			    <figure><img src="src/assets/images/5.png" alt="Decoding process step 4"><figcaption>DETAILED DNA</figcaption></figure>
+							    <figure><img src="src/assets/images/5.png" alt="Decoding process step 4"><figcaption>DETAILED DNA</figcaption></figure>
+			    <figure><img src="src/assets/images/6.png" alt="Decoding process step 4"><figcaption>Math</figcaption></figure>
+			    <figure><img src="src/assets/images/7.png" alt="Decoding process step 4"><figcaption>Some formula</figcaption></figure>
+			    <figure><img src="src/assets/images/8.png" alt="Decoding process step 4"><figcaption>Atmosphere</figcaption></figure>
+			    <figure><img src="src/assets/images/9.png" alt="Decoding process step 4"><figcaption>Pulsars</figcaption></figure>
+							    <figure><img src="src/assets/images/10.png" alt="Decoding process step 4"><figcaption>DNA Base</figcaption></figure>
+															    <figure><img src="src/assets/images/11.png" alt="Decoding process step 4"><figcaption>DNA Base</figcaption></figure>
+
+
+
+
+            </div>
+
+            <div class="terminal-actions">
+                <a href="index.html">&lt; RETURN TO MAIN MENU</a>
+                <span class="muted">[ END OF EXPLANATION ]</span>
+            </div>
+        </div>
+    </section>
+</main>
+</body>
+</html>
