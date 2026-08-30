@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-LK0PB0DJ4X"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-LK0PB0DJ4X');
+        </script>
+        <title>Golden Record Images</title>
+
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="About Real-time decoding and Audio Visualizer of the 116 images present on the Voyager Golden Record using the browser.">
+        <meta name="keywords" content="Golden Record, Golden Record Images, Voyager Golden Record, Voyager Images, Voyager 1, Voyager 2, Voyager GOlden Record Images, ">
+        <meta name="author" content="Marc Baeuerle">
+
+        <link rel="shortcut icon" href="src/assets/images/golden_record_icon.webp">
+        <link href="./src/style.css" rel="stylesheet">
+        <script src="./public/main.js"></script>
+    </head>
+    <body>
+        <header class="site-header">
+            <a class="brand" href="index.html">&gt; VOYAGER GOLDEN RECORD IMAGE DECODER+DOWNLOADER</a>
+            <nav class="main-menu" aria-label="Main menu">
+                <a class="menu-link active" href="index.html">[ MAIN ]</a>
+                <a class="menu-link active" href="upload.html">[ MAIN ]</a>
+                <a class="menu-link" href="explanation.html">[ EXPLANATION ]</a>
+            </nav>
+        </header>
+        <section class="audio-player-panel" aria-label="Audio player">
+            <div class="player-header"><span>&gt; ---</span><span id="audioSourceLabel">[ DEFAULT VOYAGER ]</span></div>
+            <div class="player-body">
+                <div class="player-row player-controls">
+
+                    <div class="time-readout"><span id="audioCurrent">00:00</span> / <span id="audioDuration">00:00</span></div>
+                </div>
+                <progress id="audioProgress" class="audio-progress" value="0" max="100" aria-label="Audio progress"></progress>
+                <div class="player-row secondary">
+                    <span id="audioStatus">[ READY ]</span>
+                </div>
+                <audio id="audioPlayer" preload="metadata"></audio>
+            </div>
+        </section>
+
+        <!-- Batch image compiler / automatic export -->
+        <section class="export-panel" aria-label="Batch image compiler">
+            <div class="player-header"><span>&gt; IMAGE COMPILER</span><span id="compileStatus">[ WAITING FOR AUDIO ]</span></div>
+            <div class="export-body">
+                <div class="export-actions">
+                    <button id="compileAll" class="terminal-button" type="button" disabled>&gt; COMPILE ALL IMAGES + AUTO DOWNLOAD ZIP</button>
+                    <button id="downloadZip" class="terminal-button secondary-button" type="button" disabled>&gt; DOWNLOAD LAST ZIP AGAIN</button>
+                </div>
+                <progress id="imageCompileProgress" class="audio-progress" value="0" max="100" aria-label="Image compilation progress"></progress>
+                <div class="player-row secondary"><span id="compileDetail">[ RGB: ONE IMAGE / RASTER: SEQUENTIAL ]</span></div>
+            </div>
+        </section>
+
+       
+        </section>
+        <!-- Control Menu  -->
+        <div class="sticky">
+            <section class="controls">
+                <div class="buttons">
+                    <img class="svg" id="imgBack" src="src/assets/images/previous_icon.svg" width="50" height="50" alt="Back Image Button">
+                    <img class="svg hide" id="play" src="src/assets/images/play_icon.svg" width="50" height="50" alt="Play Button">
+                    <img class="svg" id="pause" src="src/assets/images/pause_icon.svg" width="50" height="50" alt="Pause Button">
+                    <img class="svg" id="imgNext" src="src/assets/images/next_icon.svg" width="50" height="50" alt="Next Image Button">
+                </div>
+                <input id="imgSelector" type="range" min="0" max="78"> 
+            </section>
+
+            <!-- Image rendering + sound wave visualizer -->
+            <section class="images">
+                <img id="record-background" src="src/assets/images/sounds-of-earth.jpg" alt="Image of Golden Record"></img>
+                <div class="loader">
+                    <p>&gt; INITIALIZING AUDIO DECODER...</p>
+                    <p class="loader-sub">[ SYSTEM ] Loading synchronized image/audio data...</p>
+                </div>
+                <!-- Left Channel -->
+                <div class="channel">
+                    <h2>Left Channel</h2>
+                    <section class="canvas">
+                        <canvas id="leftWaveformCanvas" width="520" height="100">HTML5 Canvas not supported</canvas>
+                        <canvas id="leftChannelImage" class="chnImage" width="520" height="367">HTML5 Canvas not supported</canvas>
+                    </section>
+                    <section id="leftCredits" class="credits">
+                        <h2 id="leftCreditsTitle">&nbsp;</h2>
+                        <p id="leftCreditsPerson">&nbsp;</p>
+                    </section>
+                </div>
+
+                <!-- Right Channel  -->
+                <div class="channel">
+                    <h2>Right Channel</h2>
+                    <section class="canvas">
+                        <canvas id="rightWaveformCanvas" width="520" height="100">HTML5 Canvas not supported</canvas>
+                        <canvas id="rightChannelImage" class="chnImage" width="520" height="367">HTML5 Canvas not supported</canvas>
+                    </section>
+                    <section id="rightCredits" class="credits">
+                        <h2 id="rightCreditsTitle">&nbsp;</h2>
+                        <p id="rightCreditsPerson">&nbsp;</p>
+                    </section>
+                </div>
+            </section>
+        </div>
+
+        <!-- More Information -->
+        <section class="info">
+           
+
+                </p>
+            </ul>
+        </section>
+
+      
+	  
+                </div>
+            </div>
+        </section>
+        <!-- Footer  -->
+ <footer>
+             <p>BAHRIZAL HELMI MULYAWAN</p>
+			<p>My GitHub <a href="https://github.com/bahrizalmulyawan/">Click Here</a></p>
+
+			<p>2026</a></p
+
+        </footer>
+    </body>
+
+</html>
