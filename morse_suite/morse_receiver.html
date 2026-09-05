@@ -1,0 +1,2350 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Morse Receiver</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #090d12;
+    color: #e8edf2;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.container {
+    width: min(1050px, 94%);
+    margin: 28px auto;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    text-align: center;
+    color: #8492a0;
+    margin-bottom: 25px;
+    font-size: 14px;
+}
+
+.card {
+    background: #121820;
+    border: 1px solid #27323e;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 18px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.22);
+}
+
+.card h2 {
+    margin-top: 0;
+    font-size: 18px;
+}
+
+/* =================================
+   STATUS
+================================= */
+
+.status-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #555;
+}
+
+.status-dot.listening {
+    background: #58c878;
+    box-shadow: 0 0 12px rgba(88,200,120,.7);
+}
+
+.status-dot.signal {
+    background: #62c8ff;
+    box-shadow: 0 0 16px rgba(98,200,255,.8);
+}
+
+.status-text {
+    font-weight: bold;
+}
+
+/* =================================
+   RADIO SIGNAL GRAPH
+================================= */
+
+.signal-wrapper {
+    position: relative;
+    margin-top: 18px;
+    border: 1px solid #303b47;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #05080c;
+}
+
+#signalCanvas {
+    display: block;
+    width: 100%;
+    height: 260px;
+}
+
+#waterfallCanvas {
+    display: block;
+    width: 100%;
+    height: 230px;
+}
+
+.graph-overlay {
+    position: absolute;
+    top: 10px;
+    left: 12px;
+    right: 12px;
+
+    display: flex;
+    justify-content: space-between;
+
+    pointer-events: none;
+
+    font-family: monospace;
+    font-size: 12px;
+    color: #7f909f;
+}
+
+.signal-state {
+    position: absolute;
+    bottom: 10px;
+    left: 12px;
+
+    font-family: monospace;
+    font-size: 12px;
+
+    pointer-events: none;
+}
+
+.signal-state.active {
+    color: #8bd7ff;
+}
+
+/* =================================
+   LEVEL
+================================= */
+
+.level-container {
+    margin-top: 18px;
+}
+
+.level-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #9aa8b6;
+    margin-bottom: 7px;
+}
+
+.level-bar {
+    width: 100%;
+    height: 20px;
+    background: #080c11;
+    border: 1px solid #303b47;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.level-fill {
+    width: 0%;
+    height: 100%;
+    background: #5f9dbb;
+    transition: width .05s linear;
+}
+
+/* =================================
+   BUTTONS
+================================= */
+
+.controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+}
+
+button {
+    background: #1a232d;
+    color: #fff;
+    border: 1px solid #3a4856;
+    border-radius: 9px;
+    padding: 11px 18px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+button:hover {
+    background: #263341;
+}
+
+button:active {
+    transform: scale(.97);
+}
+
+.primary {
+    background: #245d82;
+    border-color: #397eaa;
+}
+
+.primary:hover {
+    background: #2e719b;
+}
+
+.danger {
+    background: #682a31;
+    border-color: #883a43;
+}
+
+/* =================================
+   MORSE
+================================= */
+
+.morse-display {
+    background: #080c11;
+    border: 1px solid #303b47;
+    border-radius: 10px;
+    padding: 18px;
+
+    min-height: 90px;
+
+    font-family: monospace;
+    font-size: 25px;
+    line-height: 1.7;
+    letter-spacing: 4px;
+
+    word-break: break-word;
+}
+
+.current-code {
+    color: #8ecff0;
+    font-family: monospace;
+    font-size: 22px;
+    letter-spacing: 4px;
+    margin-top: 10px;
+}
+
+/* =================================
+   RESULT
+================================= */
+
+.result-display {
+    background: #080c11;
+    border: 1px solid #303b47;
+    border-radius: 10px;
+
+    padding: 18px;
+
+    min-height: 100px;
+
+    font-size: 30px;
+    font-weight: bold;
+    line-height: 1.6;
+
+    word-break: break-word;
+}
+
+/* =================================
+   SETTINGS
+================================= */
+
+.setting {
+    margin-bottom: 20px;
+}
+
+.setting:last-child {
+    margin-bottom: 0;
+}
+
+.setting-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.setting-name {
+    color: #d8e0e7;
+}
+
+.setting-value {
+    color: #73c7ef;
+    font-family: monospace;
+}
+
+input[type="range"] {
+    width: 100%;
+}
+
+select {
+    width: 100%;
+    background: #0d131a;
+    color: #fff;
+    border: 1px solid #34404d;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.help {
+    color: #82909e;
+    font-size: 12px;
+    line-height: 1.6;
+    margin-top: 7px;
+}
+
+/* =================================
+   LOG
+================================= */
+
+.log {
+    background: #080c11;
+    border: 1px solid #303b47;
+    border-radius: 10px;
+
+    padding: 14px;
+
+    height: 150px;
+    overflow-y: auto;
+
+    font-family: monospace;
+    font-size: 12px;
+    color: #9eb1c0;
+}
+
+.log-line {
+    margin-bottom: 4px;
+}
+
+/* =================================
+   RESPONSIVE
+================================= */
+
+@media(max-width:600px) {
+
+    .container {
+        width: 96%;
+        margin-top: 15px;
+    }
+
+    .card {
+        padding: 15px;
+    }
+
+    #signalCanvas {
+        height: 210px;
+    }
+
+    .morse-display {
+        font-size: 21px;
+    }
+
+    .result-display {
+        font-size: 25px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🎙️ Morse Receiver</h1>
+
+<div class="subtitle">
+    Microphone Morse Code Receiver
+</div>
+
+
+<!-- =================================
+     RECEIVER
+================================= -->
+
+<div class="card">
+
+    <h2>📡 Receiver</h2>
+
+    <div class="status-row">
+
+        <div
+            id="statusDot"
+            class="status-dot"
+        ></div>
+
+        <div
+            id="statusText"
+            class="status-text"
+        >
+            Ready
+        </div>
+
+    </div>
+
+
+    <!-- =================================
+         RADIO GRAPH
+    ================================= -->
+
+    <div class="signal-wrapper">
+
+        <canvas
+            id="signalCanvas"
+        ></canvas>
+
+        <div class="graph-overlay">
+
+            <span>
+                AUDIO SIGNAL
+            </span>
+
+            <span id="graphFrequency">
+                MIC
+            </span>
+
+        </div>
+
+        <div
+            id="signalState"
+            class="signal-state"
+        >
+            NO SIGNAL
+        </div>
+
+    </div>
+
+    <div class="signal-wrapper" style="margin-top:12px;">
+        <canvas id="waterfallCanvas"></canvas>
+        <div class="graph-overlay">
+            <span>RADIO WATERFALL</span>
+            <span id="waterfallInfo">0–3000 Hz</span>
+        </div>
+        <div class="signal-state" style="color:#7f909f;">
+            LIVE FFT SPECTRUM
+        </div>
+    </div>
+
+
+    <!-- =================================
+         LEVEL
+    ================================= -->
+
+    <div class="level-container">
+
+        <div class="level-label">
+
+            <span>
+                Microphone Level
+            </span>
+
+            <span id="levelValue">
+                0%
+            </span>
+
+        </div>
+
+
+        <div class="level-bar">
+
+            <div
+                id="levelFill"
+                class="level-fill"
+            ></div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =================================
+         BUTTONS
+    ================================= -->
+
+    <div class="controls">
+
+        <button
+            id="startBtn"
+            class="primary"
+        >
+            🎙 Start Receiver
+        </button>
+
+        <button
+            id="stopBtn"
+            class="danger"
+        >
+            ⏹ Stop
+        </button>
+
+        <button
+            id="clearBtn"
+        >
+            🗑 Clear
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- =================================
+     MORSE
+================================= -->
+
+<div class="card">
+
+    <h2>📻 Morse Received</h2>
+
+    <div
+        id="morseDisplay"
+        class="morse-display"
+    >
+        —
+    </div>
+
+
+    <div
+        style="
+        margin-top:15px;
+        color:#8997a4;
+        font-size:13px;
+        "
+    >
+        Current symbol:
+    </div>
+
+
+    <div
+        id="currentCode"
+        class="current-code"
+    >
+        —
+    </div>
+
+</div>
+
+
+<!-- =================================
+     DECODED
+================================= -->
+
+<div class="card">
+
+    <h2>💬 Decoded Message</h2>
+
+    <div
+        id="resultDisplay"
+        class="result-display"
+    >
+        —
+    </div>
+
+</div>
+
+
+<!-- =================================
+     SETTINGS
+================================= -->
+
+<div class="card">
+
+    <h2>⚙️ Receiver Settings</h2>
+
+
+    <!-- SPEED -->
+
+    <div class="setting">
+
+        <div class="setting-header">
+
+            <span class="setting-name">
+                Expected Speed
+            </span>
+
+            <span
+                id="speedValue"
+                class="setting-value"
+            >
+                20 WPM
+            </span>
+
+        </div>
+
+        <input
+            id="speed"
+            type="range"
+            min="5"
+            max="40"
+            value="20"
+        >
+
+        <div class="help">
+            Kecepatan Morse yang diperkirakan diterima.
+        </div>
+
+    </div>
+
+
+    <!-- THRESHOLD -->
+
+    <div class="setting">
+
+        <div class="setting-header">
+
+            <span class="setting-name">
+                Microphone Threshold
+            </span>
+
+            <span
+                id="thresholdValue"
+                class="setting-value"
+            >
+                12%
+            </span>
+
+        </div>
+
+        <input
+            id="threshold"
+            type="range"
+            min="1"
+            max="60"
+            value="12"
+        >
+
+        <div class="help">
+            Level minimum yang dianggap sebagai sinyal Morse.
+        </div>
+
+    </div>
+
+
+    <!-- FILTER -->
+
+    <div class="setting">
+
+        <div class="setting-header">
+
+            <span class="setting-name">
+                Tone Filter
+            </span>
+
+        </div>
+
+        <select id="toneFilter">
+
+            <option value="off">
+                Off
+            </option>
+
+            <option value="low">
+                Low tone
+            </option>
+
+            <option value="mid" selected>
+                Mid tone — recommended
+            </option>
+
+            <option value="high">
+                High tone
+            </option>
+
+        </select>
+
+        <div class="help">
+            Membantu memisahkan bunyi beeper dari noise.
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =================================
+     LOG
+================================= -->
+
+<div class="card">
+
+    <h2>🔎 Receiver Log</h2>
+
+    <div
+        id="log"
+        class="log"
+    ></div>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* =================================================
+   MORSE TABLE
+================================================= */
+
+const MORSE = {
+
+    A: ".-",
+    B: "-...",
+    C: "-.-.",
+    D: "-..",
+    E: ".",
+    F: "..-.",
+    G: "--.",
+    H: "....",
+    I: "..",
+    J: ".---",
+    K: "-.-",
+    L: ".-..",
+    M: "--",
+    N: "-.",
+    O: "---",
+    P: ".--.",
+    Q: "--.-",
+    R: ".-.",
+    S: "...",
+    T: "-",
+    U: "..-",
+    V: "...-",
+    W: ".--",
+    X: "-..-",
+    Y: "-.--",
+    Z: "--..",
+
+    "0": "-----",
+    "1": ".----",
+    "2": "..---",
+    "3": "...--",
+    "4": "....-",
+    "5": ".....",
+    "6": "-....",
+    "7": "--...",
+    "8": "---..",
+    "9": "----.",
+
+    ".": ".-.-.-",
+    ",": "--..--",
+    "?": "..--..",
+    "'": ".----.",
+    "!": "-.-.--",
+    "/": "-..-.",
+    "(": "-.--.",
+    ")": "-.--.-",
+    "&": ".-...",
+    ":": "---...",
+    ";": "-.-.-.",
+    "=": "-...-",
+    "+": ".-.-.",
+    "-": "-....-",
+    "_": "..--.-",
+    '"': ".-..-.",
+    "$": "...-..-",
+    "@": ".--.-."
+};
+
+
+const REVERSE = {};
+
+for (const char in MORSE) {
+    REVERSE[MORSE[char]] = char;
+}
+
+
+/* =================================================
+   DOM
+================================================= */
+
+const canvas =
+    document.getElementById("signalCanvas");
+
+const ctx =
+    canvas.getContext("2d");
+
+const waterfallCanvas =
+    document.getElementById("waterfallCanvas");
+
+const waterfallCtx =
+    waterfallCanvas.getContext("2d");
+
+const waterfallInfo =
+    document.getElementById("waterfallInfo");
+
+const statusDot =
+    document.getElementById("statusDot");
+
+const statusText =
+    document.getElementById("statusText");
+
+const signalState =
+    document.getElementById("signalState");
+
+const graphFrequency =
+    document.getElementById("graphFrequency");
+
+const levelFill =
+    document.getElementById("levelFill");
+
+const levelValue =
+    document.getElementById("levelValue");
+
+const morseDisplay =
+    document.getElementById("morseDisplay");
+
+const currentCode =
+    document.getElementById("currentCode");
+
+const resultDisplay =
+    document.getElementById("resultDisplay");
+
+const speed =
+    document.getElementById("speed");
+
+const speedValue =
+    document.getElementById("speedValue");
+
+const threshold =
+    document.getElementById("threshold");
+
+const thresholdValue =
+    document.getElementById("thresholdValue");
+
+const toneFilter =
+    document.getElementById("toneFilter");
+
+const logElement =
+    document.getElementById("log");
+
+
+/* =================================================
+   AUDIO STATE
+================================================= */
+
+let audioContext = null;
+let analyser = null;
+let microphone = null;
+let stream = null;
+
+let receiving = false;
+
+let animationFrame = null;
+
+let signalOn = false;
+
+let signalStart = 0;
+let lastSignalEnd = 0;
+
+let currentMorse = "";
+
+let receivedMorse = "";
+
+let decodedText = "";
+
+
+/* =================================================
+   GRAPH
+================================================= */
+
+let graphData = [];
+
+const GRAPH_POINTS = 700;
+
+let waterfallPalette = null;
+const WATERFALL_MAX_HZ = 3000;
+const waterfallBinBuffer = new Uint8Array(2048);
+
+function buildWaterfallPalette() {
+    const p = new Uint8ClampedArray(256 * 4);
+    for (let i = 0; i < 256; i++) {
+        const v = i / 255;
+        let r, g, b;
+        if (v < .18) {
+            const t = v / .18; r = 0; g = Math.round(8 + 30*t); b = Math.round(18 + 65*t);
+        } else if (v < .42) {
+            const t = (v-.18)/.24; r = 0; g = Math.round(38 + 120*t); b = Math.round(85 + 120*t);
+        } else if (v < .68) {
+            const t = (v-.42)/.26; r = Math.round(10 + 235*t); g = Math.round(150 + 90*t); b = Math.round(220 - 160*t);
+        } else {
+            const t = (v-.68)/.32; r = 255; g = 245; b = Math.round(60 + 195*t);
+        }
+        p[i*4] = r; p[i*4+1] = g; p[i*4+2] = b; p[i*4+3] = 255;
+    }
+    return p;
+}
+waterfallPalette = buildWaterfallPalette();
+
+function clearWaterfall() {
+    waterfallCtx.fillStyle = "#010304";
+    waterfallCtx.fillRect(0, 0, waterfallCanvas.width, waterfallCanvas.height);
+}
+
+
+/*
+   Resize canvas supaya tajam
+*/
+
+function resizeCanvas() {
+
+    const rect =
+        canvas.getBoundingClientRect();
+
+    const dpr =
+        window.devicePixelRatio || 1;
+
+    canvas.width =
+        rect.width * dpr;
+
+    canvas.height =
+        rect.height * dpr;
+
+    ctx.setTransform(
+        dpr,
+        0,
+        0,
+        dpr,
+        0,
+        0
+    );
+
+    const wfRect = waterfallCanvas.getBoundingClientRect();
+    waterfallCanvas.width = Math.max(1, Math.floor(wfRect.width * dpr));
+    waterfallCanvas.height = Math.max(1, Math.floor(wfRect.height * dpr));
+    waterfallCtx.setTransform(1, 0, 0, 1, 0, 0);
+    clearWaterfall();
+}
+
+
+window.addEventListener(
+    "resize",
+    resizeCanvas
+);
+
+resizeCanvas();
+
+
+/* =================================================
+   DRAW GRAPH
+================================================= */
+
+function drawGrid(
+    width,
+    height
+) {
+
+    ctx.clearRect(
+        0,
+        0,
+        width,
+        height
+    );
+
+
+    /*
+       Background
+    */
+
+    ctx.fillStyle =
+        "#05080c";
+
+    ctx.fillRect(
+        0,
+        0,
+        width,
+        height
+    );
+
+
+    /*
+       Horizontal grid
+    */
+
+    ctx.strokeStyle =
+        "rgba(100,130,150,.14)";
+
+    ctx.lineWidth =
+        1;
+
+
+    for (
+        let i = 1;
+        i < 8;
+        i++
+    ) {
+
+        const y =
+            (height / 8) * i;
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            0,
+            y
+        );
+
+        ctx.lineTo(
+            width,
+            y
+        );
+
+        ctx.stroke();
+
+    }
+
+
+    /*
+       Vertical grid
+    */
+
+    for (
+        let i = 1;
+        i < 12;
+        i++
+    ) {
+
+        const x =
+            (width / 12) * i;
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            x,
+            0
+        );
+
+        ctx.lineTo(
+            x,
+            height
+        );
+
+        ctx.stroke();
+
+    }
+
+
+    /*
+       Center line
+    */
+
+    ctx.strokeStyle =
+        "rgba(130,160,180,.25)";
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        0,
+        height / 2
+    );
+
+    ctx.lineTo(
+        width,
+        height / 2
+    );
+
+    ctx.stroke();
+
+}
+
+
+/*
+   Waveform
+*/
+
+function drawWaveform() {
+
+    const width =
+        canvas.clientWidth;
+
+    const height =
+        canvas.clientHeight;
+
+
+    drawGrid(
+        width,
+        height
+    );
+
+
+    if (!graphData.length) {
+        return;
+    }
+
+
+    /*
+       Threshold visualization
+    */
+
+    const thresholdLevel =
+        Number(threshold.value) / 100;
+
+
+    const thresholdY =
+        height -
+        (
+            thresholdLevel *
+            height
+        );
+
+
+    ctx.setLineDash([
+        6,
+        5
+    ]);
+
+    ctx.strokeStyle =
+        "rgba(255,255,255,.35)";
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        0,
+        thresholdY
+    );
+
+    ctx.lineTo(
+        width,
+        thresholdY
+    );
+
+    ctx.stroke();
+
+    ctx.setLineDash([]);
+
+
+    /*
+       Signal waveform
+    */
+
+    ctx.beginPath();
+
+    for (
+        let i = 0;
+        i < graphData.length;
+        i++
+    ) {
+
+        const x =
+            i /
+            (graphData.length - 1) *
+            width;
+
+
+        const value =
+            graphData[i];
+
+
+        const y =
+            height / 2 -
+            value *
+            height *
+            .42;
+
+
+        if (i === 0) {
+
+            ctx.moveTo(
+                x,
+                y
+            );
+
+        } else {
+
+            ctx.lineTo(
+                x,
+                y
+            );
+
+        }
+
+    }
+
+
+    ctx.strokeStyle =
+        "#72c8ed";
+
+    ctx.lineWidth =
+        1.6;
+
+    ctx.stroke();
+
+
+    /*
+       Glow kecil
+    */
+
+    ctx.globalAlpha =
+        .16;
+
+    ctx.lineWidth =
+        5;
+
+    ctx.stroke();
+
+    ctx.globalAlpha =
+        1;
+
+
+    /*
+       SIGNAL ON indicator
+    */
+
+    if (signalOn) {
+
+        ctx.fillStyle =
+            "rgba(100,200,255,.07)";
+
+        ctx.fillRect(
+            0,
+            0,
+            width,
+            height
+        );
+
+    }
+
+}
+
+
+function drawWaterfall() {
+    if (!analyser || !audioContext) return;
+
+    const w = waterfallCanvas.width;
+    const h = waterfallCanvas.height;
+    if (!w || !h) return;
+
+    // Shift existing waterfall down by one row.
+    if (h > 1) {
+        waterfallCtx.drawImage(waterfallCanvas, 0, 0, w, h - 1, 0, 1, w, h - 1);
+    }
+
+    analyser.getByteFrequencyData(waterfallBinBuffer);
+    const row = waterfallCtx.createImageData(Math.max(1, Math.floor(w)), 1);
+    const nyquist = audioContext.sampleRate / 2;
+    const maxBin = Math.min(waterfallBinBuffer.length - 1, Math.floor(WATERFALL_MAX_HZ / nyquist * waterfallBinBuffer.length));
+
+    for (let x = 0; x < row.width; x++) {
+        const bin = Math.min(maxBin, Math.floor(x / Math.max(1, row.width - 1) * maxBin));
+        // Noise floor suppression keeps the waterfall readable.
+        let energy = Math.max(0, (waterfallBinBuffer[bin] - 18) / 237);
+        energy = Math.pow(energy, 1.15);
+        const idx = Math.min(255, Math.floor(energy * 255)) * 4;
+        const p = x * 4;
+        row.data[p] = waterfallPalette[idx];
+        row.data[p+1] = waterfallPalette[idx+1];
+        row.data[p+2] = waterfallPalette[idx+2];
+        row.data[p+3] = 255;
+    }
+
+    waterfallCtx.putImageData(row, 0, 0);
+
+    // Frequency grid and marker.
+    waterfallCtx.save();
+    waterfallCtx.font = "10px Arial";
+    for (const f of [0, 500, 1000, 1500, 2000, 2500, 3000]) {
+        const x = f / WATERFALL_MAX_HZ * w;
+        waterfallCtx.strokeStyle = "rgba(220,240,245,.14)";
+        waterfallCtx.lineWidth = 1;
+        waterfallCtx.beginPath();
+        waterfallCtx.moveTo(x, 0);
+        waterfallCtx.lineTo(x, h);
+        waterfallCtx.stroke();
+        waterfallCtx.fillStyle = "rgba(225,242,248,.65)";
+        waterfallCtx.fillText(f >= 1000 ? (f/1000)+"k" : String(f), Math.min(x+4, w-32), h-7);
+    }
+
+    // Highlight the currently selected tone band when Mid/Low/High is used.
+    let markerHz = null;
+    if (toneFilter.value === "low") markerHz = 400;
+    else if (toneFilter.value === "mid") markerHz = 700;
+    else if (toneFilter.value === "high") markerHz = 1400;
+
+    if (markerHz !== null) {
+        const x = markerHz / WATERFALL_MAX_HZ * w;
+        waterfallCtx.strokeStyle = "#ffe34f";
+        waterfallCtx.lineWidth = 1.5;
+        waterfallCtx.setLineDash([7,5]);
+        waterfallCtx.beginPath();
+        waterfallCtx.moveTo(x,0); waterfallCtx.lineTo(x,h); waterfallCtx.stroke();
+        waterfallCtx.setLineDash([]);
+        waterfallCtx.fillStyle = "#ffe34f";
+        waterfallCtx.font = "bold 11px Arial";
+        waterfallCtx.fillText(Math.round(markerHz)+" Hz", Math.min(x+5, w-55), 18);
+    }
+    waterfallCtx.restore();
+}
+
+/* =================================================
+   SETTINGS
+================================================= */
+
+function getUnit() {
+
+    const wpm =
+        Number(speed.value);
+
+    return 60000 /
+        (
+            wpm * 50
+        );
+
+}
+
+
+speed.addEventListener(
+    "input",
+    () => {
+
+        speedValue.textContent =
+            speed.value + " WPM";
+
+    }
+);
+
+
+threshold.addEventListener(
+    "input",
+    () => {
+
+        thresholdValue.textContent =
+            threshold.value + "%";
+
+    }
+);
+
+
+/* =================================================
+   LOG
+================================================= */
+
+function log(message) {
+
+    const div =
+        document.createElement("div");
+
+    div.className =
+        "log-line";
+
+    const time =
+        new Date().toLocaleTimeString();
+
+    div.textContent =
+        "[" +
+        time +
+        "] " +
+        message;
+
+    logElement.appendChild(div);
+
+    logElement.scrollTop =
+        logElement.scrollHeight;
+
+}
+
+
+/* =================================================
+   STATUS
+================================================= */
+
+function setStatus(
+    text,
+    type = ""
+) {
+
+    statusText.textContent =
+        text;
+
+    statusDot.className =
+        "status-dot " +
+        type;
+
+}
+
+
+/* =================================================
+   RMS
+================================================= */
+
+const timeData =
+    new Float32Array(2048);
+
+
+function getRMS() {
+
+    analyser.getFloatTimeDomainData(
+        timeData
+    );
+
+
+    let sum = 0;
+
+
+    for (
+        let i = 0;
+        i < timeData.length;
+        i++
+    ) {
+
+        sum +=
+            timeData[i] *
+            timeData[i];
+
+    }
+
+
+    return Math.sqrt(
+        sum /
+        timeData.length
+    );
+
+}
+
+
+/* =================================================
+   GRAPH DATA
+================================================= */
+
+function updateGraph() {
+
+    /*
+       Downsample waveform.
+    */
+
+    const step =
+        Math.max(
+            1,
+            Math.floor(
+                timeData.length /
+                180
+            )
+        );
+
+
+    for (
+        let i = 0;
+        i < timeData.length;
+        i += step
+    ) {
+
+        graphData.push(
+            timeData[i]
+        );
+
+    }
+
+
+    /*
+       Keep last N points.
+    */
+
+    if (
+        graphData.length >
+        GRAPH_POINTS
+    ) {
+
+        graphData.splice(
+            0,
+            graphData.length -
+            GRAPH_POINTS
+        );
+
+    }
+
+
+    drawWaveform();
+
+}
+
+
+/* =================================================
+   TONE DETECTION
+================================================= */
+
+function getToneStrength() {
+
+    if (
+        toneFilter.value === "off"
+    ) {
+
+        return 1;
+
+    }
+
+
+    const frequencyData =
+        new Uint8Array(
+            analyser.frequencyBinCount
+        );
+
+
+    analyser.getByteFrequencyData(
+        frequencyData
+    );
+
+
+    const nyquist =
+        audioContext.sampleRate / 2;
+
+
+    let minFreq;
+    let maxFreq;
+
+
+    if (
+        toneFilter.value === "low"
+    ) {
+
+        minFreq = 300;
+        maxFreq = 500;
+
+    }
+
+    else if (
+        toneFilter.value === "mid"
+    ) {
+
+        minFreq = 500;
+        maxFreq = 1000;
+
+    }
+
+    else {
+
+        minFreq = 1000;
+        maxFreq = 1800;
+
+    }
+
+
+    const minBin =
+        Math.floor(
+            minFreq /
+            nyquist *
+            frequencyData.length
+        );
+
+
+    const maxBin =
+        Math.min(
+            frequencyData.length - 1,
+            Math.ceil(
+                maxFreq /
+                nyquist *
+                frequencyData.length
+            )
+        );
+
+
+    let sum = 0;
+    let count = 0;
+
+
+    for (
+        let i = minBin;
+        i <= maxBin;
+        i++
+    ) {
+
+        sum +=
+            frequencyData[i];
+
+        count++;
+
+    }
+
+
+    return count
+        ? (
+            sum / count
+        ) / 255
+        : 0;
+
+}
+
+
+/* =================================================
+   START RECEIVER
+================================================= */
+
+async function startReceiver() {
+
+    if (receiving) {
+        return;
+    }
+
+
+    if (
+        !navigator.mediaDevices ||
+        !navigator.mediaDevices.getUserMedia
+    ) {
+
+        alert(
+            "Browser ini tidak mendukung microphone."
+        );
+
+        return;
+
+    }
+
+
+    try {
+
+        stream =
+            await navigator.mediaDevices.getUserMedia({
+
+                audio: {
+
+                    echoCancellation: false,
+                    noiseSuppression: false,
+                    autoGainControl: false
+
+                }
+
+            });
+
+
+        audioContext =
+            new (
+                window.AudioContext ||
+                window.webkitAudioContext
+            )();
+
+
+        await audioContext.resume();
+
+
+        analyser =
+            audioContext.createAnalyser();
+
+        analyser.fftSize =
+            2048;
+
+        analyser.smoothingTimeConstant =
+            0.03;
+
+
+        microphone =
+            audioContext.createMediaStreamSource(
+                stream
+            );
+
+
+        microphone.connect(
+            analyser
+        );
+
+
+        receiving = true;
+
+        signalOn = false;
+
+        graphData = [];
+
+
+        setStatus(
+            "Listening...",
+            "listening"
+        );
+
+
+        log(
+            "Microphone aktif."
+        );
+
+
+        log(
+            "Waveform monitor aktif."
+        );
+
+
+        processAudio();
+
+    }
+
+    catch(error) {
+
+        console.error(error);
+
+        log(
+            "Microphone error: " +
+            error.message
+        );
+
+        setStatus(
+            "Microphone unavailable"
+        );
+
+
+        alert(
+            "Microphone tidak dapat diakses.\n\n" +
+            "Berikan izin microphone pada browser."
+        );
+
+    }
+
+}
+
+
+/* =================================================
+   STOP
+================================================= */
+
+function stopReceiver() {
+
+    receiving = false;
+
+
+    if (animationFrame) {
+
+        cancelAnimationFrame(
+            animationFrame
+        );
+
+        animationFrame = null;
+
+    }
+
+
+    if (stream) {
+
+        stream
+            .getTracks()
+            .forEach(
+                track => track.stop()
+            );
+
+        stream = null;
+
+    }
+
+
+    if (microphone) {
+
+        microphone.disconnect();
+
+        microphone = null;
+
+    }
+
+
+    if (audioContext) {
+
+        audioContext.close();
+
+        audioContext = null;
+
+    }
+
+
+    analyser = null;
+
+    signalOn = false;
+
+
+    setStatus(
+        "Stopped"
+    );
+
+
+    levelFill.style.width =
+        "0%";
+
+    levelValue.textContent =
+        "0%";
+
+    signalState.textContent =
+        "NO SIGNAL";
+
+    signalState.classList.remove(
+        "active"
+    );
+
+
+    drawWaveform();
+
+
+    log(
+        "Receiver dihentikan."
+    );
+
+}
+
+
+/* =================================================
+   AUDIO PROCESSING
+================================================= */
+
+function processAudio() {
+
+    if (!receiving) {
+        return;
+    }
+
+
+    const rms =
+        getRMS();
+
+
+    /*
+       Visual level.
+    */
+
+    const level =
+        Math.min(
+            100,
+            rms * 500
+        );
+
+
+    levelFill.style.width =
+        level + "%";
+
+    levelValue.textContent =
+        Math.round(level) +
+        "%";
+
+
+    /*
+       Update waveform.
+    */
+
+    updateGraph();
+
+    // Update the live FFT waterfall every animation frame.
+    drawWaterfall();
+
+
+    /*
+       Detection threshold.
+    */
+
+    const thresholdLevel =
+        Number(threshold.value);
+
+
+    const baseThreshold =
+        thresholdLevel / 500;
+
+
+    let isSignal =
+        rms > baseThreshold;
+
+
+    /*
+       Tone filter.
+    */
+
+    if (
+        isSignal &&
+        toneFilter.value !== "off"
+    ) {
+
+        const tone =
+            getToneStrength();
+
+
+        if (
+            tone < .08
+        ) {
+
+            isSignal = false;
+
+        }
+
+    }
+
+
+    const now =
+        performance.now();
+
+
+    /* ================================
+       SIGNAL START
+    ================================= */
+
+    if (
+        isSignal &&
+        !signalOn
+    ) {
+
+        signalOn = true;
+
+        signalStart =
+            now;
+
+
+        setStatus(
+            "SIGNAL",
+            "signal"
+        );
+
+
+        signalState.textContent =
+            "● SIGNAL";
+
+        signalState.classList.add(
+            "active"
+        );
+
+
+        /*
+           Proses gap sebelum beep.
+        */
+
+        if (
+            lastSignalEnd > 0
+        ) {
+
+            const gap =
+                signalStart -
+                lastSignalEnd;
+
+            processGap(gap);
+
+        }
+
+    }
+
+
+    /* ================================
+       SIGNAL END
+    ================================= */
+
+    if (
+        !isSignal &&
+        signalOn
+    ) {
+
+        signalOn = false;
+
+        const duration =
+            now -
+            signalStart;
+
+
+        lastSignalEnd =
+            now;
+
+
+        processSignal(
+            duration
+        );
+
+
+        setStatus(
+            "Listening...",
+            "listening"
+        );
+
+
+        signalState.textContent =
+            "NO SIGNAL";
+
+        signalState.classList.remove(
+            "active"
+        );
+
+    }
+
+
+    animationFrame =
+        requestAnimationFrame(
+            processAudio
+        );
+
+}
+
+
+/* =================================================
+   SIGNAL → DOT / DASH
+================================================= */
+
+function processSignal(
+    duration
+) {
+
+    const unit =
+        getUnit();
+
+
+    let symbol;
+
+
+    /*
+       < 2 unit = DOT
+       >= 2 unit = DASH
+    */
+
+    if (
+        duration <
+        unit * 2
+    ) {
+
+        symbol = ".";
+
+    }
+
+    else {
+
+        symbol = "-";
+
+    }
+
+
+    currentMorse +=
+        symbol;
+
+
+    currentCode.textContent =
+        currentMorse;
+
+
+    updateMorseDisplay();
+
+
+    log(
+        "Signal " +
+        Math.round(duration) +
+        " ms → " +
+        symbol
+    );
+
+}
+
+
+/* =================================================
+   GAP
+================================================= */
+
+function processGap(
+    gap
+) {
+
+    const unit =
+        getUnit();
+
+
+    /*
+       >= 5 unit = WORD
+       >= 2 unit = LETTER
+       < 2 unit = SYMBOL
+    */
+
+    if (
+        gap >= unit * 5
+    ) {
+
+        finalizeLetter();
+
+        addWordSpace();
+
+    }
+
+    else if (
+        gap >= unit * 2
+    ) {
+
+        finalizeLetter();
+
+    }
+
+}
+
+
+/* =================================================
+   FINALIZE LETTER
+================================================= */
+
+function finalizeLetter() {
+
+    if (!currentMorse) {
+        return;
+    }
+
+
+    const code =
+        currentMorse;
+
+
+    const letter =
+        REVERSE[code] || "�";
+
+
+    decodedText +=
+        letter;
+
+
+    /*
+       Simpan Morse yang sudah selesai.
+    */
+
+    if (receivedMorse) {
+
+        receivedMorse +=
+            " ";
+
+    }
+
+
+    receivedMorse +=
+        code;
+
+
+    currentMorse = "";
+
+
+    currentCode.textContent =
+        "—";
+
+
+    updateMorseDisplay();
+
+    updateResult();
+
+
+    log(
+        code +
+        " → " +
+        letter
+    );
+
+}
+
+
+/* =================================================
+   WORD
+================================================= */
+
+function addWordSpace() {
+
+    if (
+        decodedText &&
+        !decodedText.endsWith(" ")
+    ) {
+
+        decodedText +=
+            " ";
+
+    }
+
+
+    if (receivedMorse) {
+
+        receivedMorse +=
+            "   ";
+
+    }
+
+
+    updateMorseDisplay();
+
+    updateResult();
+
+}
+
+
+/* =================================================
+   MORSE DISPLAY
+================================================= */
+
+function updateMorseDisplay() {
+
+    let output =
+        receivedMorse;
+
+
+    if (currentMorse) {
+
+        if (output) {
+            output += " ";
+        }
+
+        output +=
+            currentMorse;
+
+    }
+
+
+    morseDisplay.textContent =
+        output || "—";
+
+}
+
+
+/* =================================================
+   RESULT
+================================================= */
+
+function updateResult() {
+
+    resultDisplay.textContent =
+        decodedText || "—";
+
+}
+
+
+/* =================================================
+   CLEAR
+================================================= */
+
+function clearReceiver() {
+
+    currentMorse = "";
+
+    receivedMorse = "";
+
+    decodedText = "";
+
+    lastSignalEnd = 0;
+
+    currentCode.textContent =
+        "—";
+
+    morseDisplay.textContent =
+        "—";
+
+    resultDisplay.textContent =
+        "—";
+
+    graphData = [];
+
+    clearWaterfall();
+    drawWaveform();
+
+    logElement.innerHTML = "";
+
+    log(
+        "Receiver display dibersihkan."
+    );
+
+}
+
+
+/* =================================================
+   END-OF-MESSAGE FLUSH
+================================================= */
+
+setInterval(
+    () => {
+
+        if (
+            !receiving ||
+            signalOn ||
+            !lastSignalEnd ||
+            !currentMorse
+        ) {
+
+            return;
+
+        }
+
+
+        const gap =
+            performance.now() -
+            lastSignalEnd;
+
+
+        const unit =
+            getUnit();
+
+
+        /*
+           Setelah 3 unit tanpa signal,
+           anggap huruf selesai.
+        */
+
+        if (
+            gap >= unit * 3
+        ) {
+
+            finalizeLetter();
+
+        }
+
+    },
+    40
+);
+
+
+/* =================================================
+   BUTTONS
+================================================= */
+
+document
+    .getElementById("startBtn")
+    .addEventListener(
+        "click",
+        startReceiver
+    );
+
+
+document
+    .getElementById("stopBtn")
+    .addEventListener(
+        "click",
+        stopReceiver
+    );
+
+
+document
+    .getElementById("clearBtn")
+    .addEventListener(
+        "click",
+        clearReceiver
+    );
+
+
+/* =================================================
+   INITIAL GRAPH
+================================================= */
+
+drawWaveform();
+clearWaterfall();
+
+speedValue.textContent =
+    speed.value + " WPM";
+
+
+thresholdValue.textContent =
+    threshold.value + "%";
+
+
+log(
+    "Morse Receiver siap."
+);
+
+log(
+    "Grafik sinyal akan muncul saat microphone aktif."
+);
+
+
+/* =================================================
+   CLEANUP
+================================================= */
+
+window.addEventListener(
+    "beforeunload",
+    () => {
+
+        stopReceiver();
+
+    }
+);
+
+</script>
+
+</body>
+</html>

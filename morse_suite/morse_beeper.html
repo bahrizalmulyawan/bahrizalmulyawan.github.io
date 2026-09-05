@@ -1,0 +1,2430 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Morse Beeper</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #0b0f14;
+    color: #e8edf2;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.container {
+    width: min(1000px, 94%);
+    margin: 30px auto;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #fff;
+}
+
+.card {
+    background: #121820;
+    border: 1px solid #26313d;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.25);
+}
+
+.card h2 {
+    margin-top: 0;
+    font-size: 18px;
+}
+
+/* =========================
+   MANUAL PREVIEW
+========================= */
+
+.manual-preview {
+    background: #080c11;
+    border: 1px solid #34404d;
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 18px;
+}
+
+.manual-label {
+    color: #8fa0b2;
+    font-size: 13px;
+    margin-bottom: 7px;
+}
+
+.manual-morse {
+    min-height: 52px;
+    padding: 12px 15px;
+    background: #111821;
+    border-radius: 9px;
+    border: 1px solid #293542;
+    font-family: monospace;
+    font-size: 25px;
+    letter-spacing: 5px;
+    color: #fff;
+    word-break: break-all;
+}
+
+.manual-result {
+    margin-top: 12px;
+    min-height: 58px;
+    padding: 10px 15px;
+    border-radius: 9px;
+    background: #111821;
+    border: 1px solid #293542;
+    font-size: 30px;
+    font-weight: bold;
+    color: #fff;
+}
+
+.manual-result span {
+    color: #7fd1ff;
+}
+
+.manual-input {
+    width: 100%;
+    margin-top: 14px;
+    background: #0d131a;
+    color: #fff;
+    border: 1px solid #34404d;
+    border-radius: 9px;
+    padding: 12px;
+    font-family: monospace;
+    font-size: 18px;
+    outline: none;
+}
+
+.manual-input:focus {
+    border-color: #5c9dcc;
+}
+
+.manual-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.morse-key {
+    height: 70px;
+    font-size: 32px;
+    font-weight: bold;
+    font-family: monospace;
+}
+
+.manual-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.manual-hint {
+    margin-top: 12px;
+    font-size: 12px;
+    color: #7e8c99;
+    line-height: 1.5;
+}
+
+/* =========================
+   FORM
+========================= */
+
+textarea {
+    width: 100%;
+    min-height: 130px;
+    resize: vertical;
+    background: #0d131a;
+    color: #fff;
+    border: 1px solid #34404d;
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 16px;
+    outline: none;
+}
+
+textarea:focus {
+    border-color: #5c9dcc;
+}
+
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+button {
+    border: 1px solid #3a4856;
+    background: #1a232d;
+    color: #fff;
+    border-radius: 9px;
+    padding: 11px 18px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: .15s;
+}
+
+button:hover {
+    background: #263341;
+}
+
+button:active {
+    transform: scale(.97);
+}
+
+.primary {
+    background: #245d82;
+    border-color: #397eaa;
+}
+
+.primary:hover {
+    background: #2e719b;
+}
+
+.danger {
+    background: #6a2930;
+    border-color: #873941;
+}
+
+.danger:hover {
+    background: #80323a;
+}
+
+.pause {
+    background: #5e4e20;
+    border-color: #78652b;
+}
+
+.download-btn {
+    background: #194d5a;
+    border-color: #2d7788;
+}
+
+.download-btn:hover {
+    background: #236879;
+}
+
+/* =========================
+   SETTINGS
+========================= */
+
+.mode-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+select {
+    background: #0d131a;
+    color: #fff;
+    border: 1px solid #34404d;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+}
+
+.setting {
+    margin-bottom: 18px;
+}
+
+.setting-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 7px;
+}
+
+.setting-name {
+    color: #dbe3ea;
+}
+
+.setting-value {
+    color: #79c5f0;
+    font-family: monospace;
+}
+
+input[type="range"] {
+    width: 100%;
+}
+
+.setting.disabled {
+    opacity: .4;
+}
+
+.setting.disabled input[type="range"] {
+    cursor: not-allowed;
+}
+
+/* =========================
+   TEXT DISPLAY
+========================= */
+
+.display {
+    background: #090d12;
+    border: 1px solid #28333f;
+    border-radius: 10px;
+    padding: 15px;
+    min-height: 55px;
+    line-height: 1.8;
+    word-break: break-word;
+}
+
+.char {
+    padding: 3px 4px;
+    border-radius: 4px;
+}
+
+.char.active {
+    background: #316987;
+    color: white;
+}
+
+/* =========================
+   MORSE OUTPUT
+========================= */
+
+.morse-output {
+    background: #090d12;
+    border: 1px solid #28333f;
+    border-radius: 10px;
+    padding: 15px;
+    min-height: 80px;
+    font-family: monospace;
+    line-height: 1.8;
+    word-break: break-word;
+    color: #c9d8e5;
+}
+
+/* =========================
+   CHECKBOX
+========================= */
+
+.checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 15px;
+    color: #b9c4ce;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 600px) {
+    .container {
+        width: 96%;
+        margin-top: 15px;
+    }
+
+    .card {
+        padding: 15px;
+    }
+
+    .manual-buttons {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    button {
+        padding: 10px 13px;
+    }
+}
+
+/* =========================
+   TX SIGNAL VISUALIZER
+========================= */
+.signal-visualizer {
+    background: #090d12;
+    border: 1px solid #28333f;
+    border-radius: 10px;
+    padding: 15px;
+    min-height: 100px;
+}
+
+.signal-header {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:8px;
+}
+
+.signal-header span:first-child {
+    color:#dbe3ea;
+    font-size:13px;
+    letter-spacing:1px;
+    font-weight:bold;
+}
+
+.tx-status {
+    color:#6c8592;
+    font-size:12px;
+    font-family:monospace;
+}
+
+.tx-canvas-wrap {
+    position:relative;
+    background:#020506;
+    border:1px solid #263640;
+    border-radius:8px;
+    overflow:hidden;
+    margin-top:8px;
+}
+
+.tx-canvas-wrap canvas {
+    display:block;
+    width:100%;
+}
+
+#txWaveform {
+    height:170px;
+}
+
+#txWaterfall {
+    height:230px;
+}
+
+.tx-overlay {
+    position:absolute;
+    top:7px;
+    left:9px;
+    right:9px;
+    display:flex;
+    justify-content:space-between;
+    pointer-events:none;
+    color:rgba(220,240,248,.62);
+    font-size:11px;
+    letter-spacing:.5px;
+}
+
+.tx-legend {
+    display:flex;
+    gap:14px;
+    flex-wrap:wrap;
+    margin-top:10px;
+    color:#78909c;
+    font-size:11px;
+}
+
+.tx-legend b {
+    color:#7fdfff;
+}
+
+.tx-live-row {
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+    margin:8px 0 10px;
+}
+
+.tx-live-item {
+    background:#05080b;
+    border:1px solid #202c34;
+    border-radius:8px;
+    padding:8px 10px;
+}
+
+.tx-live-item span {
+    display:block;
+    color:#6f8490;
+    font-size:9px;
+    letter-spacing:1px;
+    margin-bottom:4px;
+}
+
+.tx-live-item strong {
+    color:#dcecf2;
+    font-family:monospace;
+    font-size:13px;
+}
+
+@media (max-width:600px) {
+    .tx-live-row {
+        grid-template-columns:1fr;
+    }
+}
+
+@media (max-width:600px) {
+    #txWaveform { height:140px; }
+    #txWaterfall { height:190px; }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>📻 Morse Beeper</h1>
+
+<!-- =====================================
+     MANUAL MORSE PREVIEW
+====================================== -->
+
+<div class="card">
+
+    <h2>⌨️ Preview Manual</h2>
+
+    <div class="manual-preview">
+
+        <div class="manual-label">
+            Morse Code
+        </div>
+
+        <div id="manualMorse" class="manual-morse">
+            _
+        </div>
+
+        <div class="manual-label" style="margin-top:12px;">
+            Hasil
+        </div>
+
+        <div id="manualResult" class="manual-result">
+            <span>—</span>
+        </div>
+
+    </div>
+
+    <!-- Bisa diketik langsung -->
+    <input
+        id="manualInput"
+        class="manual-input"
+        type="text"
+        placeholder="Ketik Morse di sini, contoh: ... --- ..."
+        autocomplete="off"
+        spellcheck="false"
+    >
+
+    <!-- Tombol Morse -->
+    <div class="manual-buttons">
+
+        <button
+            id="dotBtn"
+            class="morse-key primary"
+            type="button"
+            title="Dot"
+        >
+            .
+        </button>
+
+        <button
+            id="dashBtn"
+            class="morse-key primary"
+            type="button"
+            title="Dash"
+        >
+            -
+        </button>
+
+    </div>
+
+    <!-- Tombol tambahan -->
+    <div class="manual-actions">
+
+        <button
+            id="backspaceBtn"
+            type="button"
+        >
+            ⌫ Backspace
+        </button>
+
+        <button
+            id="spaceBtn"
+            type="button"
+        >
+            Space
+        </button>
+
+    </div>
+
+    <div class="manual-hint">
+        Ketik atau tekan <b>.</b> / <b>-</b> untuk memasukkan Morse.
+        <b>Space</b> digunakan untuk memisahkan huruf.
+        Dua atau lebih spasi dapat digunakan untuk memisahkan kata.
+        Setiap <b>.</b> dan <b>-</b> akan menghasilkan suara beep.
+    </div>
+
+</div>
+
+
+<!-- =====================================
+     INPUT PESAN
+====================================== -->
+
+<div class="card">
+
+    <h2>📝 Ketik Pesan</h2>
+
+    <textarea
+        id="message"
+        placeholder="Ketik pesan yang ingin dikirim..."
+    ></textarea>
+
+    <div class="controls">
+
+        <button
+            id="sendBtn"
+            class="primary"
+        >
+            ▶ Kirim
+        </button>
+
+        <button
+            id="pauseBtn"
+            class="pause"
+        >
+            ⏸ Pause
+        </button>
+
+        <button
+            id="stopBtn"
+            class="danger"
+        >
+            ⏹ Stop
+        </button>
+
+        <button
+            id="downloadWavBtn"
+            type="button"
+            class="download-btn"
+            title="Download pesan Morse sebagai WAV"
+        >
+            ⬇ Download WAV
+        </button>
+
+    </div>
+
+    <label class="checkbox-row">
+        <input
+            type="checkbox"
+            id="repeatMode"
+        >
+        Repeat Mode
+    </label>
+
+</div>
+
+
+<!-- =====================================
+     SETTINGS
+====================================== -->
+
+<div class="card">
+
+    <h2>⚙️ Pengaturan</h2>
+
+    <div class="mode-row">
+
+        <label for="mode">
+            Mode:
+        </label>
+
+        <select id="mode">
+
+            <option value="real">
+                Real
+            </option>
+
+            <option value="custom">
+                Custom
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <div
+        id="speedSetting"
+        class="setting disabled"
+    >
+
+        <div class="setting-header">
+
+            <span class="setting-name">
+                Kecepatan
+            </span>
+
+            <span
+                id="speedValue"
+                class="setting-value"
+            >
+                20 WPM
+            </span>
+
+        </div>
+
+        <input
+            id="speed"
+            type="range"
+            min="5"
+            max="40"
+            value="20"
+            disabled
+        >
+
+    </div>
+
+
+    <div
+        id="frequencySetting"
+        class="setting disabled"
+    >
+
+        <div class="setting-header">
+
+            <span class="setting-name">
+                Frekuensi
+            </span>
+
+            <span
+                id="frequencyValue"
+                class="setting-value"
+            >
+                700 Hz
+            </span>
+
+        </div>
+
+        <input
+            id="frequency"
+            type="range"
+            min="300"
+            max="1200"
+            value="700"
+            step="10"
+            disabled
+        >
+
+    </div>
+
+
+    <div
+        id="volumeSetting"
+        class="setting disabled"
+    >
+
+        <div class="setting-header">
+
+            <span class="setting-name">
+                Volume
+            </span>
+
+            <span
+                id="volumeValue"
+                class="setting-value"
+            >
+                16%
+            </span>
+
+        </div>
+
+        <input
+            id="volume"
+            type="range"
+            min="1"
+            max="50"
+            value="16"
+            disabled
+        >
+
+    </div>
+
+</div>
+
+
+<!-- =====================================
+     CURRENT TEXT
+====================================== -->
+
+<div class="card">
+
+    <h2>📜 Pesan</h2>
+
+    <div
+        id="textDisplay"
+        class="display"
+    >
+        —
+    </div>
+
+</div>
+
+
+<!-- =====================================
+     MORSE OUTPUT
+====================================== -->
+
+<!-- =====================================
+     TX SIGNAL VISUALIZER
+====================================== -->
+
+<div class="card">
+
+    <h2>📶 Sinyal Beeper</h2>
+
+    <div class="signal-visualizer">
+
+        <div class="signal-header">
+            <span>TRANSMITTER SIGNAL</span>
+            <span id="txStatus" class="tx-status">IDLE</span>
+        </div>
+
+        <div class="tx-live-row">
+            <div class="tx-live-item">
+                <span>STATE</span>
+                <strong id="txToneState">OFF</strong>
+            </div>
+            <div class="tx-live-item">
+                <span>FREQUENCY</span>
+                <strong id="txLiveFreq">700 Hz</strong>
+            </div>
+            <div class="tx-live-item">
+                <span>SYMBOL</span>
+                <strong id="txLiveSymbol">—</strong>
+            </div>
+        </div>
+
+        <div class="tx-canvas-wrap">
+            <div class="tx-overlay">
+                <span>WAVEFORM</span>
+                <span id="txWaveInfo">700 Hz • OFF</span>
+            </div>
+            <canvas id="txWaveform"></canvas>
+        </div>
+
+        <div class="tx-canvas-wrap">
+            <div class="tx-overlay">
+                <span>RADIO WATERFALL</span>
+                <span id="txFreqLabel">TARGET 700 Hz</span>
+            </div>
+            <canvas id="txWaterfall"></canvas>
+        </div>
+
+        <div class="tx-legend">
+            <span><b>●</b> Waveform = bentuk gelombang carrier</span>
+            <span><b>●</b> Waterfall = jejak energi frekuensi</span>
+            <span><b>●</b> Garis kuning = target carrier</span>
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="card">
+
+    <h2>📡 Morse Code</h2>
+
+    <div
+        id="morseOutput"
+        class="morse-output"
+    >
+        —
+    </div>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* =====================================
+   MORSE TABLE
+====================================== */
+
+const MORSE = {
+
+    A: ".-",
+    B: "-...",
+    C: "-.-.",
+    D: "-..",
+    E: ".",
+    F: "..-.",
+    G: "--.",
+    H: "....",
+    I: "..",
+    J: ".---",
+    K: "-.-",
+    L: ".-..",
+    M: "--",
+    N: "-.",
+    O: "---",
+    P: ".--.",
+    Q: "--.-",
+    R: ".-.",
+    S: "...",
+    T: "-",
+    U: "..-",
+    V: "...-",
+    W: ".--",
+    X: "-..-",
+    Y: "-.--",
+    Z: "--..",
+
+    "0": "-----",
+    "1": ".----",
+    "2": "..---",
+    "3": "...--",
+    "4": "....-",
+    "5": ".....",
+    "6": "-....",
+    "7": "--...",
+    "8": "---..",
+    "9": "----.",
+
+    ".": ".-.-.-",
+    ",": "--..--",
+    "?": "..--..",
+    "'": ".----.",
+    "!": "-.-.--",
+    "/": "-..-.",
+    "(": "-.--.",
+    ")": "-.--.-",
+    "&": ".-...",
+    ":": "---...",
+    ";": "-.-.-.",
+    "=": "-...-",
+    "+": ".-.-.",
+    "-": "-....-",
+    "_": "..--.-",
+    '"': ".-..-.",
+    "$": "...-..-",
+    "@": ".--.-."
+};
+
+
+/* Reverse Morse */
+const REVERSE_MORSE = {};
+
+for (const char in MORSE) {
+    REVERSE_MORSE[MORSE[char]] = char;
+}
+
+
+/* =====================================
+   REAL SETTINGS
+====================================== */
+
+/*
+   Morse timing:
+   20 WPM = sekitar 60 ms per unit.
+   
+   Tone frequency dan volume dibuat tetap
+   pada mode Real agar user tidak mengubahnya.
+*/
+
+const REAL_SETTINGS = {
+
+    wpm: 20,
+    frequency: 700,
+    volume: 16
+
+};
+
+
+/* =====================================
+   AUDIO
+====================================== */
+
+let audioContext = null;
+
+function getAudioContext() {
+
+    if (!audioContext) {
+
+        audioContext =
+            new (window.AudioContext ||
+                 window.webkitAudioContext)();
+
+    }
+
+    if (audioContext.state === "suspended") {
+        audioContext.resume();
+    }
+
+    return audioContext;
+}
+
+
+/*
+   Beeper dengan karakter telegraph/radio:
+   - square oscillator
+   - filter
+   - attack sangat cepat
+   - release sangat cepat
+*/
+
+function beep(duration) {
+
+    const currentSymbol = window.__morseCurrentSymbol || "";
+    if (typeof txSetSignal === "function") {
+        txSetSignal(currentSymbol || "•", duration * 1000);
+    }
+
+    const ctx = getAudioContext();
+
+    const frequency =
+        Number(document.getElementById("frequency").value);
+
+    const volume =
+        Number(document.getElementById("volume").value) / 100;
+
+    const oscillator =
+        ctx.createOscillator();
+
+    const gain =
+        ctx.createGain();
+
+    const filter =
+        ctx.createBiquadFilter();
+
+
+    oscillator.type = "square";
+
+    oscillator.frequency.setValueAtTime(
+        frequency,
+        ctx.currentTime
+    );
+
+
+    filter.type = "lowpass";
+
+    filter.frequency.setValueAtTime(
+        2500,
+        ctx.currentTime
+    );
+
+
+    const now = ctx.currentTime;
+
+    const attack = 0.004;
+    const release = 0.008;
+
+
+    gain.gain.setValueAtTime(
+        0.0001,
+        now
+    );
+
+    gain.gain.exponentialRampToValueAtTime(
+        Math.max(volume, 0.001),
+        now + attack
+    );
+
+    gain.gain.setValueAtTime(
+        Math.max(volume, 0.001),
+        now + Math.max(attack, duration - release)
+    );
+
+    gain.gain.exponentialRampToValueAtTime(
+        0.0001,
+        now + duration
+    );
+
+
+    oscillator.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+
+    oscillator.start(now);
+    oscillator.stop(now + duration + 0.02);
+}
+
+
+/* =====================================
+   MANUAL MORSE
+====================================== */
+
+let manualCode = "";
+
+
+/*
+   Ambil kode Morse terakhir yang sedang diketik.
+   
+   Contoh:
+   ...
+   
+   hasil = S
+*/
+
+function decodeManual() {
+
+    const value =
+        manualInput.value;
+
+    if (!value.trim()) {
+
+        manualMorse.textContent = "_";
+        manualResult.innerHTML = "<span>—</span>";
+
+        return;
+    }
+
+
+    /*
+       Single space = antar huruf
+       Double space = antar kata
+    */
+
+    const words =
+        value.trimEnd().split(/\s{2,}/);
+
+
+    const decodedWords =
+        words.map(word => {
+
+            const letters =
+                word.trim().split(/\s+/);
+
+            return letters.map(code => {
+
+                return REVERSE_MORSE[code] || "�";
+
+            }).join("");
+
+        });
+
+
+    manualResult.innerHTML =
+        "<span>" +
+        decodedWords.join(" ") +
+        "</span>";
+
+
+    manualMorse.textContent =
+        value || "_";
+}
+
+
+/*
+   Tambahkan dot/dash
+*/
+
+function addManualSymbol(symbol) {
+
+    getAudioContext();
+
+    manualCode += symbol;
+
+    manualInput.value =
+        manualCode;
+
+    decodeManual();
+
+    /*
+       Suara manual:
+       dot  = 1 unit
+       dash = 3 unit
+    */
+
+    const unit =
+        getUnit();
+
+    if (symbol === ".") {
+
+        window.__morseCurrentSymbol = ".";
+        beep(unit / 1000);
+        window.__morseCurrentSymbol = "";
+
+    } else {
+
+        window.__morseCurrentSymbol = "-";
+        beep((unit * 3) / 1000);
+        window.__morseCurrentSymbol = "";
+
+    }
+
+}
+
+
+/*
+   Backspace
+*/
+
+function manualBackspace() {
+
+    manualCode =
+        manualInput.value.slice(0, -1);
+
+    manualInput.value =
+        manualCode;
+
+    decodeManual();
+
+}
+
+
+/*
+   Space
+*/
+
+function manualSpace() {
+
+    /*
+       Jangan tambahkan space jika
+       sudah ada space di belakang.
+    */
+
+    if (manualInput.value.length === 0) {
+        return;
+    }
+
+    if (
+        manualInput.value.endsWith("  ")
+    ) {
+        return;
+    }
+
+    manualCode =
+        manualInput.value + " ";
+
+    manualInput.value =
+        manualCode;
+
+    decodeManual();
+
+}
+
+
+/* Tombol manual */
+
+const manualInput =
+    document.getElementById("manualInput");
+
+const manualMorse =
+    document.getElementById("manualMorse");
+
+const manualResult =
+    document.getElementById("manualResult");
+
+
+document
+    .getElementById("dotBtn")
+    .addEventListener(
+        "click",
+        () => addManualSymbol(".")
+    );
+
+
+document
+    .getElementById("dashBtn")
+    .addEventListener(
+        "click",
+        () => addManualSymbol("-")
+    );
+
+
+document
+    .getElementById("backspaceBtn")
+    .addEventListener(
+        "click",
+        manualBackspace
+    );
+
+
+document
+    .getElementById("spaceBtn")
+    .addEventListener(
+        "click",
+        manualSpace
+    );
+
+
+/*
+   Ketik Morse langsung.
+*/
+
+manualInput.addEventListener(
+    "input",
+    () => {
+
+        manualCode =
+            manualInput.value;
+
+        decodeManual();
+
+    }
+);
+
+
+/*
+   Keyboard:
+   . = dot
+   - = dash
+   Space = separator
+   Backspace = hapus
+*/
+
+manualInput.addEventListener(
+    "keydown",
+    event => {
+
+        if (event.key === ".") {
+
+            getAudioContext();
+
+            setTimeout(() => {
+                window.__morseCurrentSymbol = ".";
+                beep(getUnit() / 1000);
+                window.__morseCurrentSymbol = "";
+            }, 0);
+
+        }
+
+        else if (event.key === "-") {
+
+            getAudioContext();
+
+            setTimeout(() => {
+                window.__morseCurrentSymbol = "-";
+                beep((getUnit() * 3) / 1000);
+                window.__morseCurrentSymbol = "";
+            }, 0);
+
+        }
+
+    }
+);
+
+
+/* =====================================
+   SETTINGS
+====================================== */
+
+const mode =
+    document.getElementById("mode");
+
+const speed =
+    document.getElementById("speed");
+
+const frequency =
+    document.getElementById("frequency");
+
+const volume =
+    document.getElementById("volume");
+
+const speedValue =
+    document.getElementById("speedValue");
+
+const frequencyValue =
+    document.getElementById("frequencyValue");
+
+const volumeValue =
+    document.getElementById("volumeValue");
+
+
+function updateLabels() {
+
+    speedValue.textContent =
+        speed.value + " WPM";
+
+    frequencyValue.textContent =
+        frequency.value + " Hz";
+
+    volumeValue.textContent =
+        volume.value + "%";
+
+}
+
+
+/*
+   Unit Morse berdasarkan WPM.
+
+   Standard PARIS:
+   1 word = 50 units
+
+   Jadi:
+   unit(ms) = 60000 / (WPM * 50)
+*/
+
+function getUnit() {
+
+    const wpm =
+        Number(speed.value);
+
+    return 60000 / (wpm * 50);
+
+}
+
+
+/*
+   Apply Real / Custom
+*/
+
+function applyMode() {
+
+    const isReal =
+        mode.value === "real";
+
+
+    speed.disabled =
+        isReal;
+
+    frequency.disabled =
+        isReal;
+
+    volume.disabled =
+        isReal;
+
+
+    document
+        .getElementById("speedSetting")
+        .classList.toggle(
+            "disabled",
+            isReal
+        );
+
+    document
+        .getElementById("frequencySetting")
+        .classList.toggle(
+            "disabled",
+            isReal
+        );
+
+    document
+        .getElementById("volumeSetting")
+        .classList.toggle(
+            "disabled",
+            isReal
+        );
+
+
+    if (isReal) {
+
+        speed.value =
+            REAL_SETTINGS.wpm;
+
+        frequency.value =
+            REAL_SETTINGS.frequency;
+
+        volume.value =
+            REAL_SETTINGS.volume;
+
+    }
+
+
+    updateLabels();
+
+}
+
+
+/*
+   Jika slider Custom digerakkan,
+   label diperbarui.
+*/
+
+speed.addEventListener(
+    "input",
+    updateLabels
+);
+
+frequency.addEventListener(
+    "input",
+    updateLabels
+);
+
+volume.addEventListener(
+    "input",
+    updateLabels
+);
+
+
+mode.addEventListener(
+    "change",
+    applyMode
+);
+
+
+applyMode();
+
+
+
+
+/* =====================================
+   TRANSMITTER SIGNAL VISUALIZER
+====================================== */
+
+const txWaveCanvas = document.getElementById("txWaveform");
+const txWaveCtx = txWaveCanvas.getContext("2d");
+const txWaterfallCanvas = document.getElementById("txWaterfall");
+const txWaterfallCtx = txWaterfallCanvas.getContext("2d");
+
+const txStatusEl = document.getElementById("txStatus");
+const txWaveInfoEl = document.getElementById("txWaveInfo");
+const txFreqLabelEl = document.getElementById("txFreqLabel");
+const txToneStateEl = document.getElementById("txToneState");
+const txLiveFreqEl = document.getElementById("txLiveFreq");
+const txLiveSymbolEl = document.getElementById("txLiveSymbol");
+
+let txSignalOn = false;
+let txSignalFrequency = REAL_SETTINGS.frequency;
+let txSignalSymbol = "";
+let txSignalUntil = 0;
+let txVisualizerStarted = false;
+let txVisualAnimation = null;
+let txWaterfallPalette = null;
+
+function txResizeCanvas(canvas) {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+    canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+}
+
+function txResizeAll() {
+    txResizeCanvas(txWaveCanvas);
+    txResizeCanvas(txWaterfallCanvas);
+    txClearWaterfall();
+}
+
+function txBuildPalette() {
+    const p = new Uint8ClampedArray(256 * 4);
+    for (let i = 0; i < 256; i++) {
+        const v = i / 255;
+        let r, g, b;
+        if (v < .18) {
+            const t = v / .18;
+            r = 0; g = Math.round(8 + 30*t); b = Math.round(18 + 65*t);
+        } else if (v < .42) {
+            const t = (v-.18)/.24;
+            r = 0; g = Math.round(38 + 120*t); b = Math.round(85 + 120*t);
+        } else if (v < .68) {
+            const t = (v-.42)/.26;
+            r = Math.round(10 + 235*t); g = Math.round(150 + 90*t); b = Math.round(220 - 160*t);
+        } else {
+            const t = (v-.68)/.32;
+            r = 255; g = 245; b = Math.round(60 + 195*t);
+        }
+        p[i*4] = r;
+        p[i*4+1] = g;
+        p[i*4+2] = b;
+        p[i*4+3] = 255;
+    }
+    return p;
+}
+
+txWaterfallPalette = txBuildPalette();
+
+function txClearWaterfall() {
+    txWaterfallCtx.fillStyle = "#010304";
+    txWaterfallCtx.fillRect(0, 0, txWaterfallCanvas.width, txWaterfallCanvas.height);
+}
+
+function txDrawWaveform(now) {
+    const w = txWaveCanvas.width;
+    const h = txWaveCanvas.height;
+
+    txWaveCtx.fillStyle = "#020506";
+    txWaveCtx.fillRect(0, 0, w, h);
+
+    txWaveCtx.strokeStyle = "rgba(100,150,165,.14)";
+    txWaveCtx.lineWidth = 1;
+
+    for (let x = 0; x <= w; x += w/10) {
+        txWaveCtx.beginPath();
+        txWaveCtx.moveTo(x,0);
+        txWaveCtx.lineTo(x,h);
+        txWaveCtx.stroke();
+    }
+
+    for (let y = 0; y <= h; y += h/6) {
+        txWaveCtx.beginPath();
+        txWaveCtx.moveTo(0,y);
+        txWaveCtx.lineTo(w,y);
+        txWaveCtx.stroke();
+    }
+
+    txWaveCtx.strokeStyle = "rgba(170,200,210,.25)";
+    txWaveCtx.beginPath();
+    txWaveCtx.moveTo(0,h/2);
+    txWaveCtx.lineTo(w,h/2);
+    txWaveCtx.stroke();
+
+    const freq = txSignalFrequency || REAL_SETTINGS.frequency;
+    const timeWindow = 0.012;
+    const tEnd = now / 1000;
+    const tStart = tEnd - timeWindow;
+
+    txWaveCtx.beginPath();
+    for (let x = 0; x < w; x++) {
+        const t = tStart + (x/w) * (tEnd - tStart);
+        const y = txSignalOn
+            ? h/2 - Math.sin(2*Math.PI*freq*t) * h*0.30
+            : h/2;
+        if (x === 0) txWaveCtx.moveTo(x,y);
+        else txWaveCtx.lineTo(x,y);
+    }
+
+    txWaveCtx.strokeStyle = txSignalOn ? "#4be4ff" : "#355761";
+    txWaveCtx.lineWidth = 1.7;
+    txWaveCtx.stroke();
+
+    if (txSignalOn) {
+        txWaveCtx.fillStyle = "rgba(50,220,170,.07)";
+        txWaveCtx.fillRect(0,0,w,h);
+        txWaveCtx.strokeStyle = "rgba(50,220,170,.65)";
+        txWaveCtx.strokeRect(2,2,w-4,h-4);
+    }
+}
+
+function txDrawWaterfall() {
+    const w = txWaterfallCanvas.width;
+    const h = txWaterfallCanvas.height;
+
+    if (h > 1) {
+        txWaterfallCtx.drawImage(
+            txWaterfallCanvas,
+            0,0,w,h-1,
+            0,1,w,h-1
+        );
+    }
+
+    const row = txWaterfallCtx.createImageData(w,1);
+    const target = txSignalFrequency || REAL_SETTINGS.frequency;
+    const maxFreq = 3000;
+
+    for (let x=0; x<w; x++) {
+        const freq = x / Math.max(1,w-1) * maxFreq;
+        const distance = Math.abs(freq-target);
+        let energy = txSignalOn
+            ? Math.max(0, 1 - distance/75)
+            : 0.025;
+
+        /* Receiver-inspired radio floor + a few weak carrier harmonics. */
+        if (txSignalOn) {
+            const harmonic1 = Math.abs(freq - target * 2);
+            const harmonic2 = Math.abs(freq - target * 3);
+            energy = Math.max(energy, Math.max(0, 1 - harmonic1/95) * 0.22);
+            energy = Math.max(energy, Math.max(0, 1 - harmonic2/115) * 0.10);
+        }
+
+        /* faint moving noise floor for a radio-like display */
+        energy += (((x*17) + Math.floor(performance.now()/55)*7) % 23) / 23 * 0.02;
+        energy = Math.min(1, energy);
+
+        const idx = Math.floor(energy*255)*4;
+        const p = x*4;
+        row.data[p] = txWaterfallPalette[idx];
+        row.data[p+1] = txWaterfallPalette[idx+1];
+        row.data[p+2] = txWaterfallPalette[idx+2];
+        row.data[p+3] = 255;
+    }
+
+    txWaterfallCtx.putImageData(row,0,0);
+
+    /* frequency grid */
+    txWaterfallCtx.save();
+    txWaterfallCtx.font = Math.max(10,w/115) + "px Arial";
+    for (const f of [0,500,1000,1500,2000,2500,3000]) {
+        const x = f/maxFreq*w;
+        txWaterfallCtx.strokeStyle = "rgba(220,240,245,.14)";
+        txWaterfallCtx.beginPath();
+        txWaterfallCtx.moveTo(x,0);
+        txWaterfallCtx.lineTo(x,h);
+        txWaterfallCtx.stroke();
+        txWaterfallCtx.fillStyle = "rgba(225,242,248,.6)";
+        txWaterfallCtx.fillText(f >= 1000 ? (f/1000)+"k" : String(f), Math.min(x+4,w-32), h-7);
+    }
+
+    const tx = target/maxFreq*w;
+    txWaterfallCtx.strokeStyle = "#ffe34f";
+    txWaterfallCtx.lineWidth = 1.5;
+    txWaterfallCtx.setLineDash([7,5]);
+    txWaterfallCtx.beginPath();
+    txWaterfallCtx.moveTo(tx,0);
+    txWaterfallCtx.lineTo(tx,h);
+    txWaterfallCtx.stroke();
+    txWaterfallCtx.setLineDash([]);
+    txWaterfallCtx.fillStyle = "#ffe34f";
+    txWaterfallCtx.font = "bold 11px Arial";
+    txWaterfallCtx.fillText(Math.round(target)+" Hz", Math.min(tx+5,w-55), 18);
+    txWaterfallCtx.restore();
+}
+
+function txVisualizerLoop() {
+    const now = performance.now();
+
+    if (txSignalOn && now >= txSignalUntil) {
+        txSignalOn = false;
+        txSignalSymbol = "";
+        txToneStateEl.textContent = "OFF";
+        txLiveSymbolEl.textContent = "—";
+        txStatusEl.textContent = "IDLE";
+        txWaveInfoEl.textContent = Math.round(txSignalFrequency)+" Hz • OFF";
+    }
+
+    txDrawWaveform(now);
+    txDrawWaterfall();
+
+    if (txVisualizerStarted) {
+        txVisualAnimation = requestAnimationFrame(txVisualizerLoop);
+    }
+}
+
+function txStartVisualizer() {
+    if (txVisualizerStarted) return;
+    txVisualizerStarted = true;
+    txVisualizerLoop();
+}
+
+function txSetSignal(symbol, durationMs) {
+    const customFreq = Number(document.getElementById("frequency").value) || REAL_SETTINGS.frequency;
+    txSignalFrequency = customFreq;
+    txSignalSymbol = symbol;
+    txSignalOn = true;
+    txSignalUntil = performance.now() + durationMs + 30;
+    txToneStateEl.textContent = "ON";
+    txLiveFreqEl.textContent = Math.round(customFreq)+" Hz";
+    txLiveSymbolEl.textContent = symbol;
+    txStatusEl.textContent = "TRANSMITTING";
+    txWaveInfoEl.textContent = Math.round(customFreq)+" Hz • ON";
+    txFreqLabelEl.textContent = "TARGET "+Math.round(customFreq)+" Hz";
+    txStartVisualizer();
+}
+
+function txStopSignal() {
+    txSignalOn = false;
+    txSignalUntil = 0;
+    txSignalSymbol = "";
+    txToneStateEl.textContent = "OFF";
+    txLiveSymbolEl.textContent = "—";
+    txStatusEl.textContent = "IDLE";
+    txWaveInfoEl.textContent = Math.round(txSignalFrequency)+" Hz • OFF";
+}
+
+window.addEventListener("resize", txResizeAll);
+txResizeAll();
+txStartVisualizer();
+
+/* =====================================
+   TEXT -> MORSE
+====================================== */
+
+const message =
+    document.getElementById("message");
+
+const textDisplay =
+    document.getElementById("textDisplay");
+
+const morseOutput =
+    document.getElementById("morseOutput");
+
+
+function textToMorse(text) {
+
+    return text
+        .toUpperCase()
+        .split("")
+        .map(char => {
+
+            if (char === " ") {
+                return "/";
+            }
+
+            return MORSE[char] || "";
+
+        })
+        .join(" ");
+
+}
+
+
+/*
+   Update Morse preview
+*/
+
+function updateMessagePreview() {
+
+    const text =
+        message.value;
+
+    if (!text) {
+
+        textDisplay.textContent = "—";
+        morseOutput.textContent = "—";
+
+        return;
+    }
+
+
+    textDisplay.innerHTML =
+        "";
+
+
+    [...text].forEach(
+        (char, index) => {
+
+            const span =
+                document.createElement("span");
+
+            span.className =
+                "char";
+
+            span.dataset.index =
+                index;
+
+            span.textContent =
+                char === " "
+                    ? " "
+                    : char;
+
+            textDisplay.appendChild(span);
+
+        }
+    );
+
+
+    morseOutput.textContent =
+        textToMorse(text);
+
+}
+
+
+message.addEventListener(
+    "input",
+    updateMessagePreview
+);
+
+
+/* =====================================
+   PLAYER
+====================================== */
+
+let playing = false;
+let paused = false;
+let stopRequested = false;
+
+let currentTimeout = null;
+
+let currentSequence = 0;
+
+
+/*
+   Delay yang bisa dihentikan / pause.
+*/
+
+function wait(ms) {
+
+    return new Promise(resolve => {
+
+        const start =
+            performance.now();
+
+        function check() {
+
+            if (stopRequested) {
+
+                resolve(false);
+                return;
+
+            }
+
+
+            if (paused) {
+
+                setTimeout(
+                    check,
+                    30
+                );
+
+                return;
+
+            }
+
+
+            const elapsed =
+                performance.now() - start;
+
+            if (elapsed >= ms) {
+
+                resolve(true);
+
+            } else {
+
+                currentTimeout =
+                    setTimeout(
+                        check,
+                        Math.min(
+                            20,
+                            ms - elapsed
+                        )
+                    );
+
+            }
+
+        }
+
+        check();
+
+    });
+
+}
+
+
+/*
+   Main Morse player
+*/
+
+async function playMessage(text, sequence) {
+
+    const unit =
+        getUnit();
+
+    const chars =
+        [...text];
+
+
+    for (
+        let i = 0;
+        i < chars.length;
+        i++
+    ) {
+
+        if (
+            stopRequested ||
+            sequence !== currentSequence
+        ) {
+
+            return false;
+
+        }
+
+
+        /*
+           Highlight karakter
+        */
+
+        document
+            .querySelectorAll(".char")
+            .forEach(el => {
+
+                el.classList.remove("active");
+
+            });
+
+
+        const active =
+            document.querySelector(
+                `.char[data-index="${i}"]`
+            );
+
+
+        if (active) {
+            active.classList.add("active");
+        }
+
+
+        const char =
+            chars[i].toUpperCase();
+
+
+        /*
+           Spasi = word gap
+        */
+
+        if (char === " ") {
+
+            const ok =
+                await wait(unit * 7);
+
+            if (!ok) {
+                return false;
+            }
+
+            continue;
+
+        }
+
+
+        const code =
+            MORSE[char];
+
+
+        if (!code) {
+            continue;
+        }
+
+
+        /*
+           Mainkan tiap simbol
+        */
+
+        for (
+            let j = 0;
+            j < code.length;
+            j++
+        ) {
+
+            if (
+                stopRequested ||
+                sequence !== currentSequence
+            ) {
+
+                return false;
+
+            }
+
+
+            const symbol =
+                code[j];
+
+
+            const duration =
+                symbol === "."
+                    ? unit
+                    : unit * 3;
+
+            window.__morseCurrentSymbol = symbol;
+            beep(duration / 1000);
+            window.__morseCurrentSymbol = "";
+
+
+            const ok =
+                await wait(duration);
+
+            if (!ok) {
+                return false;
+            }
+
+
+            /*
+               Gap antar simbol
+            */
+
+            if (j < code.length - 1) {
+
+                const gapOK =
+                    await wait(unit);
+
+                if (!gapOK) {
+                    return false;
+                }
+
+            }
+
+        }
+
+
+        /*
+           Gap antar huruf
+           
+           3 unit total.
+           Karena setelah simbol tidak ada gap,
+           maka kita tunggu 3 unit penuh.
+        */
+
+        if (i < chars.length - 1) {
+
+            if (
+                chars[i + 1] !== " "
+            ) {
+
+                const ok =
+                    await wait(unit * 3);
+
+                if (!ok) {
+                    return false;
+                }
+
+            }
+
+        }
+
+    }
+
+
+    return true;
+
+}
+
+
+/* =====================================
+   DOWNLOAD WAV
+====================================== */
+
+function downloadWavFile() {
+
+    const text = message.value;
+
+    if (!text.trim()) {
+        alert("Ketik pesan terlebih dahulu sebelum membuat file WAV.");
+        return;
+    }
+
+    const unit = getUnit();
+    const sampleRate = 44100;
+    const selectedFrequency =
+        Number(frequency.value) || REAL_SETTINGS.frequency;
+    const selectedVolume =
+        (Number(volume.value) || REAL_SETTINGS.volume) / 100;
+
+    /* Bangun urutan audio: tone dan silence mengikuti timing Morse. */
+    const segments = [];
+
+    function addSilence(ms) {
+        if (ms > 0) segments.push({ tone: false, ms });
+    }
+
+    function addTone(ms) {
+        if (ms > 0) segments.push({ tone: true, ms });
+    }
+
+    const chars = [...text.toUpperCase()];
+
+    for (let i = 0; i < chars.length; i++) {
+        const ch = chars[i];
+
+        if (ch === " ") {
+            /* playMessage memakai 7 unit untuk word gap, setelah huruf sebelumnya
+               sudah menerima 3 unit letter gap. Tambahan efektif = 4 unit. */
+            addSilence(unit * 4);
+            continue;
+        }
+
+        const code = MORSE[ch];
+        if (!code) continue;
+
+        for (let j = 0; j < code.length; j++) {
+            addTone(code[j] === "." ? unit : unit * 3);
+            if (j < code.length - 1) addSilence(unit);
+        }
+
+        if (i < chars.length - 1) {
+            addSilence(chars[i + 1] === " " ? unit * 3 : unit * 3);
+        }
+    }
+
+    /* Tambahkan sedikit tail silence agar release terakhir tidak terpotong. */
+    addSilence(Math.max(30, unit));
+
+    const totalSamples = Math.max(1, segments.reduce(
+        (sum, seg) => sum + Math.round(seg.ms / 1000 * sampleRate),
+        0
+    ));
+
+    const samples = new Float32Array(totalSamples);
+    let offset = 0;
+    let phase = 0;
+
+    for (const seg of segments) {
+        const count = Math.round(seg.ms / 1000 * sampleRate);
+
+        if (!seg.tone) {
+            offset += count;
+            continue;
+        }
+
+        const attackSamples = Math.max(1, Math.round(sampleRate * 0.004));
+        const releaseSamples = Math.max(1, Math.round(sampleRate * 0.008));
+
+        for (let n = 0; n < count && offset + n < samples.length; n++) {
+            let env = 1;
+            if (n < attackSamples) env = n / attackSamples;
+            const remain = count - n;
+            if (remain < releaseSamples) env = Math.min(env, remain / releaseSamples);
+
+            const value = Math.sign(Math.sin(phase)) * selectedVolume * env;
+            samples[offset + n] = value;
+            phase += 2 * Math.PI * selectedFrequency / sampleRate;
+            if (phase >= 2 * Math.PI) phase -= 2 * Math.PI;
+        }
+
+        offset += count;
+    }
+
+    const wav = encodeWavPCM16(samples, sampleRate);
+    const blob = new Blob([wav], { type: "audio/wav" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+    a.href = url;
+    a.download = `morse-${stamp}.wav`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+    console.log("File WAV dibuat:", a.download);
+}
+
+function encodeWavPCM16(samples, sampleRate) {
+
+    const buffer = new ArrayBuffer(44 + samples.length * 2);
+    const view = new DataView(buffer);
+
+    function writeString(offset, text) {
+        for (let i = 0; i < text.length; i++) {
+            view.setUint8(offset + i, text.charCodeAt(i));
+        }
+    }
+
+    writeString(0, "RIFF");
+    view.setUint32(4, 36 + samples.length * 2, true);
+    writeString(8, "WAVE");
+    writeString(12, "fmt ");
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, 1, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * 2, true);
+    view.setUint16(32, 2, true);
+    view.setUint16(34, 16, true);
+    writeString(36, "data");
+    view.setUint32(40, samples.length * 2, true);
+
+    let pos = 44;
+    for (let i = 0; i < samples.length; i++, pos += 2) {
+        const s = Math.max(-1, Math.min(1, samples[i]));
+        view.setInt16(pos, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+    }
+
+    return buffer;
+}
+
+const downloadWavBtn =
+    document.getElementById("downloadWavBtn");
+
+downloadWavBtn.addEventListener(
+    "click",
+    downloadWavFile
+);
+
+
+const sendBtn =
+    document.getElementById("sendBtn");
+
+const pauseBtn =
+    document.getElementById("pauseBtn");
+
+const stopBtn =
+    document.getElementById("stopBtn");
+
+const repeatMode =
+    document.getElementById("repeatMode");
+
+
+async function startPlaying() {
+
+    const text =
+        message.value;
+
+
+    if (!text.trim()) {
+        return;
+    }
+
+
+    getAudioContext();
+
+
+    /*
+       Stop playback sebelumnya
+    */
+
+    stopRequested = true;
+
+    currentSequence++;
+
+    await wait(30);
+
+
+    stopRequested = false;
+    paused = false;
+    playing = true;
+
+    pauseBtn.textContent =
+        "⏸ Pause";
+
+
+    const mySequence =
+        currentSequence;
+
+
+    do {
+
+        stopRequested = false;
+
+        const completed =
+            await playMessage(
+                text,
+                mySequence
+            );
+
+
+        if (!completed) {
+            break;
+        }
+
+
+        /*
+           Hilangkan highlight
+        */
+
+        document
+            .querySelectorAll(".char")
+            .forEach(el => {
+
+                el.classList.remove("active");
+
+            });
+
+
+        if (
+            repeatMode.checked &&
+            !stopRequested
+        ) {
+
+            await wait(400);
+
+        } else {
+
+            break;
+
+        }
+
+    } while (
+        repeatMode.checked &&
+        !stopRequested
+    );
+
+
+    playing = false;
+
+    if (typeof txStopSignal === "function") txStopSignal();
+
+}
+
+
+/* =====================================
+   PAUSE
+====================================== */
+
+function togglePause() {
+
+    if (!playing) {
+        return;
+    }
+
+
+    paused =
+        !paused;
+
+
+    pauseBtn.textContent =
+        paused
+            ? "▶ Resume"
+            : "⏸ Pause";
+
+}
+
+
+/* =====================================
+   STOP
+====================================== */
+
+function stopPlaying() {
+
+    if (typeof txStopSignal === "function") txStopSignal();
+
+    stopRequested = true;
+
+    paused = false;
+
+    playing = false;
+
+    currentSequence++;
+
+
+    if (currentTimeout) {
+
+        clearTimeout(
+            currentTimeout
+        );
+
+        currentTimeout = null;
+
+    }
+
+
+    pauseBtn.textContent =
+        "⏸ Pause";
+
+
+    document
+        .querySelectorAll(".char")
+        .forEach(el => {
+
+            el.classList.remove("active");
+
+        });
+
+}
+
+
+/* =====================================
+   EVENTS
+====================================== */
+
+sendBtn.addEventListener(
+    "click",
+    startPlaying
+);
+
+pauseBtn.addEventListener(
+    "click",
+    togglePause
+);
+
+stopBtn.addEventListener(
+    "click",
+    stopPlaying
+);
+
+
+/*
+   Ctrl + Enter = Kirim
+*/
+
+message.addEventListener(
+    "keydown",
+    event => {
+
+        if (
+            event.ctrlKey &&
+            event.key === "Enter"
+        ) {
+
+            event.preventDefault();
+
+            startPlaying();
+
+        }
+
+    }
+);
+
+
+/* =====================================
+   INIT
+====================================== */
+
+updateMessagePreview();
+decodeManual();
+
+</script>
+
+</body>
+</html>
+```
