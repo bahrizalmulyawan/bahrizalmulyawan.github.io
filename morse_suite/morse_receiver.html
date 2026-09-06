@@ -1,0 +1,3140 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Morse Receiver</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #090d12;
+    color: #e8edf2;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.container {
+    width: min(1050px, 94%);
+    margin: 28px auto;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    text-align: center;
+    color: #8492a0;
+    margin-bottom: 25px;
+    font-size: 14px;
+}
+
+.card {
+    background: #121820;
+    border: 1px solid #27323e;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 18px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.22);
+}
+
+.card h2 {
+    margin-top: 0;
+    font-size: 18px;
+}
+
+/* =================================
+   STATUS
+================================= */
+
+.status-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #555;
+}
+
+.status-dot.listening {
+    background: #58c878;
+    box-shadow: 0 0 12px rgba(88,200,120,.7);
+}
+
+.status-dot.signal {
+    background: #62c8ff;
+    box-shadow: 0 0 16px rgba(98,200,255,.8);
+}
+
+.status-text {
+    font-weight: bold;
+}
+
+/* =================================
+   RADIO SIGNAL GRAPH
+================================= */
+
+.signal-wrapper {
+    position: relative;
+    margin-top: 18px;
+    border: 1px solid #303b47;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #05080c;
+}
+
+#signalCanvas {
+    display: block;
+    width: 100%;
+    height: 260px;
+}
+
+.waterfall-wrapper {
+    position: relative;
+    border-top: 1px solid #26313d;
+    background: #030608;
+}
+
+#waterfallCanvas {
+    display: block;
+    width: 100%;
+    height: 150px;
+}
+
+.waterfall-overlay {
+    position: absolute;
+    top: 9px;
+    left: 12px;
+    right: 12px;
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none;
+    font-family: monospace;
+    font-size: 11px;
+    color: #7f909f;
+    letter-spacing: .03em;
+}
+
+.graph-overlay {
+    position: absolute;
+    top: 10px;
+    left: 12px;
+    right: 12px;
+
+    display: flex;
+    justify-content: space-between;
+
+    pointer-events: none;
+
+    font-family: monospace;
+    font-size: 12px;
+    color: #7f909f;
+}
+
+.signal-state {
+    position: absolute;
+    bottom: 10px;
+    left: 12px;
+
+    font-family: monospace;
+    font-size: 12px;
+
+    pointer-events: none;
+}
+
+.signal-state.active {
+    color: #8bd7ff;
+}
+
+/* =================================
+   LEVEL
+================================= */
+
+.level-container {
+    margin-top: 18px;
+}
+
+.level-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #9aa8b6;
+    margin-bottom: 7px;
+}
+
+.level-bar {
+    width: 100%;
+    height: 20px;
+    background: #080c11;
+    border: 1px solid #303b47;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.level-fill {
+    width: 0%;
+    height: 100%;
+    background: #5f9dbb;
+    transition: width .05s linear;
+}
+
+/* =================================
+   BUTTONS
+================================= */
+
+.controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+}
+
+button {
+    background: #1a232d;
+    color: #fff;
+    border: 1px solid #3a4856;
+    border-radius: 9px;
+    padding: 11px 18px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+button:hover {
+    background: #263341;
+}
+
+button:active {
+    transform: scale(.97);
+}
+
+.primary {
+    background: #245d82;
+    border-color: #397eaa;
+}
+
+.primary:hover {
+    background: #2e719b;
+}
+
+.danger {
+    background: #682a31;
+    border-color: #883a43;
+}
+
+/* =================================
+   MORSE
+================================= */
+
+.morse-display {
+    background: #080c11;
+    border: 1px solid #303b47;
+    border-radius: 10px;
+    padding: 18px;
+
+    min-height: 90px;
+
+    font-family: monospace;
+    font-size: 25px;
+    line-height: 1.7;
+    letter-spacing: 4px;
+
+    word-break: break-word;
+}
+
+.current-code {
+    color: #8ecff0;
+    font-family: monospace;
+    font-size: 22px;
+    letter-spacing: 4px;
+    margin-top: 10px;
+}
+
+/* =================================
+   RESULT
+================================= */
+
+.result-display {
+    background: #080c11;
+    border: 1px solid #303b47;
+    border-radius: 10px;
+
+    padding: 18px;
+
+    min-height: 100px;
+
+    font-size: 30px;
+    font-weight: bold;
+    line-height: 1.6;
+
+    word-break: break-word;
+}
+
+/* =================================
+   SETTINGS
+================================= */
+
+.setting {
+    margin-bottom: 20px;
+}
+
+.setting:last-child {
+    margin-bottom: 0;
+}
+
+.setting-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.setting-name {
+    color: #d8e0e7;
+}
+
+.setting-value {
+    color: #73c7ef;
+    font-family: monospace;
+}
+
+input[type="range"] {
+    width: 100%;
+}
+
+select {
+    width: 100%;
+    background: #0d131a;
+    color: #fff;
+    border: 1px solid #34404d;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.help {
+    color: #82909e;
+    font-size: 12px;
+    line-height: 1.6;
+    margin-top: 7px;
+}
+
+/* =================================
+   LOG
+================================= */
+
+.log {
+    background: #080c11;
+    border: 1px solid #303b47;
+    border-radius: 10px;
+
+    padding: 14px;
+
+    height: 150px;
+    overflow-y: auto;
+
+    font-family: monospace;
+    font-size: 12px;
+    color: #9eb1c0;
+}
+
+.log-line {
+    margin-bottom: 4px;
+}
+
+/* =================================
+   4 x 4 TILE LAYOUT
+================================= */
+.tile-grid{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    grid-template-rows:repeat(4,minmax(0,1fr));
+    gap:16px;
+    align-items:stretch;
+}
+.tile{
+    min-width:0;
+    min-height:0;
+    margin:0;
+}
+.tile-receiver{grid-column:1 / 3; grid-row:1 / 3;}
+.tile-morse{grid-column:3 / 5; grid-row:1 / 2;}
+.tile-decoded{grid-column:3 / 5; grid-row:2 / 4;}
+.tile-settings{grid-column:1 / 3; grid-row:3 / 5;}
+.tile-log{grid-column:3 / 5; grid-row:4 / 5;}
+.tile-receiver .signal-wrapper{height:auto;}
+.tile-receiver #signalCanvas{height:110px!important;}
+.tile-receiver #waterfallCanvas{height:62px!important;}
+.tile-receiver .level-container{margin-top:9px;}
+.tile-receiver .controls{margin-top:10px;}
+@media(max-width:900px){
+    .tile-grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:none;}
+    .tile-receiver,.tile-morse,.tile-decoded,.tile-settings,.tile-log{grid-column:auto;grid-row:auto;}
+    .tile-receiver{grid-column:1 / -1;}
+}
+@media(max-width:600px){
+    .tile-grid{grid-template-columns:1fr;gap:12px;}
+    .tile-receiver,.tile-morse,.tile-decoded,.tile-settings,.tile-log{grid-column:1;grid-row:auto;}
+}
+
+/* =================================
+   RESPONSIVE
+================================= */
+
+@media(max-width:600px) {
+
+    .container {
+        width: 96%;
+        margin-top: 15px;
+    }
+
+    .card {
+        padding: 15px;
+    }
+
+    #signalCanvas {
+        height: 210px;
+    }
+
+    #waterfallCanvas {
+        height: 125px;
+    }
+
+    .morse-display {
+        font-size: 21px;
+    }
+
+    .result-display {
+        font-size: 25px;
+    }
+}
+
+/* ===== RADIO UI / THEMES ===== */
+:root[data-theme="ham"]{--bg:#07120d;--card:#0d1b14;--field:#08110d;--border:#244232;--text:#e8fff1;--muted:#91ad9a;--accent:#6ee7a3;--accent2:#3fbf78}
+:root[data-theme="amateur"]{--bg:#0a0b12;--card:#17151e;--field:#0e0d14;--border:#3b3150;--text:#f4edff;--muted:#a79db6;--accent:#c99cff;--accent2:#9b63d6}
+:root[data-theme="light"]{--bg:#f2f2f2;--card:#ffffff;--field:#ffffff;--border:#bdbdbd;--text:#000000;--muted:#222222;--accent:#000000;--accent2:#222222}
+:root[data-theme="dark"]{--bg:#090d12;--card:#121820;--field:#0b1016;--border:#27323e;--text:#f1f5f8;--muted:#97a5b2;--accent:#67c9ff;--accent2:#3b91c0}
+:root[data-theme="mono"]{--bg:#090704;--card:#17130b;--field:#0b0905;--border:#4d3a10;--text:#ffe85a;--muted:#c9b84a;--accent:#ffe34f;--accent2:#c9ad20}
+body{background:var(--bg);color:var(--text)}
+.card{background:var(--card);border-color:var(--border)}
+.card h2,.status-text,.setting-name{color:var(--text)}
+.subtitle,.help,.level-label,.log{color:var(--muted)}
+select{background:var(--field);color:var(--text);border-color:var(--border)}
+.signal-wrapper,.waterfall-wrapper,.morse-display,.result-display,.level-bar,.log{background:var(--field);border-color:var(--border)}
+.current-code{color:var(--accent)}
+button{color:var(--text)}
+.theme-bar{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.theme-bar label{font-size:12px;font-weight:700;color:var(--text)}
+.theme-bar select{margin-top:6px}
+.receiver-extra{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.scope-box,.ometer-box{border:1px solid var(--border);background:var(--field);border-radius:10px;padding:9px}
+.scope-title{display:flex;justify-content:space-between;font:700 10px monospace;letter-spacing:.08em;color:var(--text);margin-bottom:6px}
+#scopeCanvas{display:block;width:100%;height:72px;background:#050607;border-radius:7px}
+.meter-track{height:14px;border:1px solid var(--border);border-radius:999px;overflow:hidden;background:#050607}
+.meter-fill{height:100%;width:3%;background:linear-gradient(90deg,#3dcc80 0 55%,#e6c64a 55% 80%,#e05c65 80% 100%)}
+.meter-scale{display:flex;justify-content:space-between;font:9px monospace;color:var(--muted);margin-top:4px}
+.meter-readout{font:10px monospace;color:var(--text);text-align:right;margin-top:3px}
+.tile-receiver{grid-column:1 / 5;grid-row:1 / 3}
+@media(max-width:900px){.tile-receiver{grid-column:1/-1;grid-row:auto}.receiver-extra{grid-template-columns:1fr}}
+@media(max-width:600px){.theme-bar{grid-template-columns:1fr}.receiver-extra{grid-template-columns:1fr}}
+
+
+
+/* ===== RECEIVER + RESULTS MERGED ===== */
+@media (min-width: 901px){
+    .tile-grid{
+        grid-template-columns:repeat(4,minmax(0,1fr));
+        grid-template-rows:auto auto auto;
+        gap:16px;
+        align-items:stretch;
+    }
+    .tile-receiver{
+        grid-column:1 / 5 !important;
+        grid-row:1 / 3 !important;
+    }
+    .tile-settings{
+        grid-column:1 / 3 !important;
+        grid-row:3 !important;
+    }
+    .tile-log{
+        grid-column:3 / 5 !important;
+        grid-row:3 !important;
+    }
+    .receiver-results{
+        display:grid;
+        grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+        gap:12px;
+        margin-top:14px;
+    }
+    .receiver-result{
+        min-width:0;
+        margin:0;
+        padding:12px;
+        border:1px solid var(--border);
+        border-radius:12px;
+        background:var(--field);
+    }
+    .receiver-result h2{
+        margin:0 0 9px;
+        font-size:13px;
+    }
+    .receiver-result .morse-display{
+        min-height:76px;
+        max-height:150px;
+        padding:12px;
+        font-size:19px;
+    }
+    .receiver-result .result-display{
+        min-height:76px;
+        max-height:150px;
+        padding:12px;
+        font-size:23px;
+    }
+    .current-symbol-label{
+        margin-top:9px;
+        color:var(--muted);
+        font-size:11px;
+    }
+    .receiver-result .current-code{
+        margin-top:4px;
+        font-size:17px;
+    }
+    .tile-receiver .signal-wrapper{margin-top:10px;}
+}
+@media (max-width: 900px){
+    .receiver-results{
+        display:grid;
+        grid-template-columns:1fr;
+        gap:10px;
+        margin-top:12px;
+    }
+    .receiver-result{
+        min-width:0;
+        padding:11px;
+        border:1px solid var(--border);
+        border-radius:11px;
+        background:var(--field);
+    }
+    .receiver-result h2{margin:0 0 8px;font-size:13px;}
+    .current-symbol-label{margin-top:8px;color:var(--muted);font-size:11px;}
+}
+
+</style>
+
+<style id="compact-audio-signal-fix">
+.signal-wrapper{margin-top:10px;}
+.signal-wrapper #signalCanvas{height:120px!important;}
+.signal-wrapper .waterfall-canvas{height:70px!important;}
+.signal-wrapper + .level-container{margin-top:10px;}
+</style>
+
+<style id="desktop-grid-fix-v2">
+/* ===== DESKTOP 4x4 TILE REBALANCE ===== */
+@media (min-width:901px){
+    .container{
+        width:min(1320px,calc(100% - 48px));
+    }
+    .tile-grid{
+        display:grid;
+        grid-template-columns:repeat(4,minmax(0,1fr));
+        grid-template-rows:repeat(4,minmax(145px,auto));
+        gap:16px;
+        align-items:stretch;
+    }
+    .tile{
+        min-width:0;
+        min-height:0;
+        margin:0 !important;
+    }
+    /* Fill the 4x4 matrix completely: 9 + 1 + 3 + 2 + 1 = 16 cells */
+    .tile-receiver{
+        grid-column:1 / 4 !important;
+        grid-row:1 / 4 !important;
+    }
+    .tile-morse{
+        grid-column:4 / 5 !important;
+        grid-row:1 / 2 !important;
+    }
+    .tile-decoded{
+        grid-column:4 / 5 !important;
+        grid-row:2 / 5 !important;
+    }
+    .tile-settings{
+        grid-column:1 / 3 !important;
+        grid-row:4 / 5 !important;
+    }
+    .tile-log{
+        grid-column:3 / 4 !important;
+        grid-row:4 / 5 !important;
+    }
+
+    /* Keep the receiver/audio tile visually balanced inside its larger area. */
+    .tile-receiver{
+        display:flex;
+        flex-direction:column;
+    }
+    .tile-receiver .signal-wrapper{
+        flex:1 1 auto;
+        min-height:0;
+    }
+    .tile-receiver .signal-wrapper #signalCanvas{
+        height:118px !important;
+    }
+    .tile-receiver .signal-wrapper #waterfallCanvas{
+        height:76px !important;
+    }
+    .tile-receiver .receiver-extra{
+        flex:0 0 auto;
+    }
+    .tile-receiver .level-container{
+        margin-top:10px;
+    }
+
+    .tile-morse .morse-display,
+    .tile-decoded .result-display,
+    .tile-settings,
+    .tile-log{
+        overflow:hidden;
+    }
+    .tile-morse .morse-display,
+    .tile-decoded .result-display{
+        max-height:calc(100% - 54px);
+        overflow:auto;
+    }
+    .tile-log .log{
+        height:calc(100% - 52px);
+        min-height:90px;
+    }
+}
+
+/* LIGHT MODE: hard black text everywhere outside canvas graphics */
+:root[data-theme="light"] body,
+:root[data-theme="light"] .card,
+:root[data-theme="light"] .card h2,
+:root[data-theme="light"] .status-text,
+:root[data-theme="light"] .setting-name,
+:root[data-theme="light"] .theme-bar label,
+:root[data-theme="light"] .mode-row label,
+:root[data-theme="light"] .callsign-label,
+:root[data-theme="light"] .callsign-input,
+:root[data-theme="light"] .manual-input,
+:root[data-theme="light"] textarea,
+:root[data-theme="light"] select,
+:root[data-theme="light"] button,
+:root[data-theme="light"] .help,
+:root[data-theme="light"] .subtitle,
+:root[data-theme="light"] .level-label,
+:root[data-theme="light"] .log,
+:root[data-theme="light"] .current-code,
+:root[data-theme="light"] .meter-readout,
+:root[data-theme="light"] .scope-title,
+:root[data-theme="light"] .scope-readout,
+:root[data-theme="light"] .meter-scale,
+:root[data-theme="light"] .waterfall-overlay,
+:root[data-theme="light"] .graph-overlay{
+    color:#000 !important;
+}
+:root[data-theme="light"] input::placeholder,
+:root[data-theme="light"] textarea::placeholder{
+    color:#000 !important;
+    opacity:.65;
+}
+</style>
+
+<style id="final-desktop-layout-fix">
+/* FINAL DESKTOP TILE LAYOUT — prevent nested tile rules from breaking the grid */
+@media (min-width: 901px){
+  .tile-grid{
+    display:grid !important;
+    grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+    grid-template-rows:repeat(4,minmax(0,1fr)) !important;
+    gap:16px !important;
+    align-items:stretch !important;
+  }
+
+  .tile-receiver{
+    grid-column:1 / 5 !important;
+    grid-row:1 / 4 !important;
+    min-width:0 !important;
+    min-height:0 !important;
+    margin:0 !important;
+    overflow:hidden !important;
+  }
+
+  .tile-settings{
+    grid-column:1 / 3 !important;
+    grid-row:4 / 5 !important;
+    min-width:0 !important;
+    margin:0 !important;
+  }
+
+  .tile-log{
+    grid-column:3 / 5 !important;
+    grid-row:4 / 5 !important;
+    min-width:0 !important;
+    margin:0 !important;
+  }
+
+  /* Nested result blocks are content sections, not grid tiles. */
+  .receiver-results{
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:12px !important;
+    margin-top:14px !important;
+  }
+  .receiver-results .receiver-result,
+  .receiver-results .tile-morse,
+  .receiver-results .tile-decoded{
+    grid-column:auto !important;
+    grid-row:auto !important;
+    margin:0 !important;
+    min-width:0 !important;
+  }
+
+  .receiver-results .receiver-result{
+    padding:12px !important;
+    border:1px solid var(--border) !important;
+    border-radius:12px !important;
+    background:var(--field) !important;
+  }
+
+  .receiver-results h2{
+    margin:0 0 10px !important;
+    font-size:13px !important;
+  }
+
+  .receiver-results .morse-display{
+    min-height:76px !important;
+    max-height:150px !important;
+    padding:12px !important;
+    font-size:20px !important;
+  }
+
+  .receiver-results .result-display{
+    min-height:76px !important;
+    max-height:150px !important;
+    padding:12px !important;
+    font-size:24px !important;
+  }
+
+  .receiver-results .current-symbol-label{
+    margin-top:8px !important;
+    color:var(--muted) !important;
+    font-size:11px !important;
+  }
+
+  .tile-receiver .signal-wrapper{
+    margin-top:12px !important;
+  }
+
+  .tile-receiver #signalCanvas{height:120px !important;}
+  .tile-receiver #waterfallCanvas{height:76px !important;}
+  .tile-receiver .receiver-extra{
+    grid-template-columns:1fr 1fr !important;
+    gap:10px !important;
+    margin-top:10px !important;
+  }
+  .tile-receiver #scopeCanvas{height:60px !important;}
+  .tile-receiver .level-container{margin-top:10px !important;}
+  .tile-receiver .controls{margin-top:10px !important;}
+}
+
+@media (max-width: 900px){
+  .tile-grid{display:grid !important;grid-template-columns:1fr !important;grid-template-rows:none !important;gap:12px !important;}
+  .tile-receiver,.tile-settings,.tile-log{grid-column:1 !important;grid-row:auto !important;}
+  .receiver-results{display:grid !important;grid-template-columns:1fr !important;gap:10px !important;}
+}
+</style>
+
+<style id="final-mobile-signal-fix">
+/* FINAL MOBILE FIX: keep Receiver compact and make signal mode visible */
+@media (max-width: 900px){
+  .tile-receiver{
+    display:block !important;
+    overflow:visible !important;
+    height:auto !important;
+    min-height:0 !important;
+  }
+  .tile-receiver .signal-wrapper{
+    display:block !important;
+    flex:none !important;
+    height:auto !important;
+    min-height:0 !important;
+  }
+  .tile-receiver #signalCanvas{
+    display:block !important;
+    width:100% !important;
+    height:92px !important;
+    max-height:92px !important;
+  }
+  .tile-receiver .waterfall-wrapper{
+    height:58px !important;
+    max-height:58px !important;
+  }
+  .tile-receiver #waterfallCanvas{
+    height:58px !important;
+    max-height:58px !important;
+  }
+  .tile-receiver .receiver-extra{
+    grid-template-columns:1fr 1fr !important;
+    gap:8px !important;
+    margin-top:9px !important;
+  }
+  .tile-receiver #scopeCanvas{
+    height:52px !important;
+  }
+  .tile-receiver .level-container{
+    margin-top:9px !important;
+  }
+  .tile-receiver .controls{
+    margin-top:9px !important;
+  }
+  .graph-overlay{
+    z-index:5 !important;
+    color:var(--text) !important;
+    display:flex !important;
+    visibility:visible !important;
+    opacity:1 !important;
+  }
+  .graph-overlay::after{
+    content:"MODE: SIGNAL";
+    font-weight:800;
+    margin-left:auto;
+    padding-left:10px;
+  }
+  .signal-state{
+    z-index:6 !important;
+    display:block !important;
+    visibility:visible !important;
+    opacity:1 !important;
+    bottom:8px !important;
+    left:10px !important;
+    background:rgba(0,0,0,.35);
+    padding:2px 6px;
+    border-radius:5px;
+  }
+}
+@media (max-width:600px){
+  .tile-receiver .receiver-extra{grid-template-columns:1fr !important;}
+  .tile-receiver #signalCanvas{height:82px !important;max-height:82px !important;}
+  .tile-receiver .waterfall-wrapper,
+  .tile-receiver #waterfallCanvas{height:52px !important;max-height:52px !important;}
+}
+</style>
+
+
+<style id="responsive-size-final-fix">
+/* Responsive sizing: desktop follows viewport without oversized receiver */
+@media (min-width: 901px){
+  .container{
+    width: min(1120px, calc(100% - 40px)) !important;
+    padding: 28px 0 40px !important;
+  }
+  .page-header{margin-bottom:20px !important;}
+  .page-header h1{font-size:clamp(26px,3vw,34px) !important;}
+  .tile-grid{
+    grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+    grid-template-rows:auto auto !important;
+    gap:12px !important;
+    align-items:start !important;
+  }
+  .tile-receiver{
+    grid-column:1 / 5 !important;
+    grid-row:1 !important;
+    height:auto !important;
+    min-height:0 !important;
+    overflow:visible !important;
+    padding:16px !important;
+  }
+  .tile-settings{
+    grid-column:1 / 3 !important;
+    grid-row:2 !important;
+  }
+  .tile-log{
+    grid-column:3 / 5 !important;
+    grid-row:2 !important;
+  }
+  .tile-receiver .signal-wrapper{margin-top:8px !important;}
+  .tile-receiver #signalCanvas{height:clamp(78px,10vw,100px) !important;max-height:100px !important;}
+  .tile-receiver #waterfallCanvas{height:clamp(48px,6vw,64px) !important;max-height:64px !important;}
+  .tile-receiver .receiver-extra{margin-top:8px !important;gap:8px !important;}
+  .tile-receiver #scopeCanvas{height:clamp(50px,6vw,62px) !important;max-height:62px !important;}
+  .tile-receiver .level-container{margin-top:8px !important;}
+  .tile-receiver .controls{margin-top:8px !important;}
+  .receiver-results{margin-top:10px !important;gap:8px !important;}
+  .receiver-results .receiver-result{padding:10px !important;}
+  .receiver-results .morse-display{min-height:60px !important;max-height:110px !important;font-size:clamp(16px,1.8vw,20px) !important;padding:10px !important;}
+  .receiver-results .result-display{min-height:60px !important;max-height:110px !important;font-size:clamp(18px,2.2vw,24px) !important;padding:10px !important;}
+  .tile-settings,.tile-log{min-height:0 !important;}
+  .tile-log .log{height:120px !important;min-height:0 !important;}
+}
+@media (max-width: 900px){
+  .container{width:min(100% - 24px,760px) !important;}
+  .tile-receiver{height:auto !important;min-height:0 !important;}
+}
+@media (max-width:600px){
+  .container{width:calc(100% - 20px) !important;padding:18px 0 28px !important;}
+  .card{padding:13px !important;}
+  .tile-receiver #signalCanvas{height:80px !important;max-height:80px !important;}
+  .tile-receiver #waterfallCanvas{height:50px !important;max-height:50px !important;}
+}
+</style>
+
+
+<style id="final-log-signal-fix-v2">
+/* Desktop: receiver on top, compact controls below, wide receiver log. */
+@media (min-width: 901px){
+  /* Bottom row: Settings and Receiver Log are perfectly symmetric. */
+  .tile-settings{
+    grid-column:1 / 3 !important;
+    grid-row:3 !important;
+    min-width:0 !important;
+    margin:0 !important;
+  }
+  .tile-log{
+    grid-column:3 / 5 !important;
+    grid-row:3 !important;
+    min-width:0 !important;
+    margin:0 !important;
+    align-self:stretch !important;
+  }
+  .tile-settings,.tile-log{
+    width:100% !important;
+  }
+  .tile-log .log{
+    width:100% !important;
+    min-height:118px !important;
+    height:118px !important;
+    max-height:118px !important;
+  }
+}
+
+/* SIGNAL / NO SIGNAL must stay visible and must not be pushed down by the waterfall. */
+.signal-wrapper{
+  position:relative !important;
+}
+.signal-state{
+  z-index:50 !important;
+  display:block !important;
+  visibility:visible !important;
+  opacity:1 !important;
+  top:9px !important;
+  bottom:auto !important;
+  left:9px !important;
+  padding:4px 8px !important;
+  border-radius:6px !important;
+  background:rgba(0,0,0,.58) !important;
+  border:1px solid rgba(255,255,255,.12) !important;
+  color:#d7e4ea !important;
+  font-family:monospace !important;
+  font-size:11px !important;
+  font-weight:800 !important;
+  letter-spacing:.04em !important;
+  line-height:1.2 !important;
+  text-shadow:0 1px 2px rgba(0,0,0,.75);
+}
+.signal-state.active{
+  color:#8bd7ff !important;
+  border-color:rgba(139,215,255,.28) !important;
+}
+@media(max-width:900px){
+  .signal-state{
+    top:8px !important;
+    left:8px !important;
+    font-size:10px !important;
+  }
+  .tile-log .log{
+    height:110px !important;
+    max-height:110px !important;
+  }
+}
+</style>
+
+
+<style id="waterfall-large-final">
+/* Larger full-width waterfall */
+.waterfall-wrapper{width:100% !important; margin-top:0 !important;}
+#waterfallCanvas{display:block !important; width:100% !important; height:150px !important; max-width:none !important;}
+@media (min-width:901px){
+  .tile-receiver #waterfallCanvas{height:150px !important; min-height:150px !important;}
+}
+@media (max-width:900px){
+  .tile-receiver #waterfallCanvas{height:105px !important; min-height:105px !important;}
+  .tile-receiver .waterfall-wrapper{height:105px !important; min-height:105px !important;}
+}
+@media (max-width:600px){
+  .tile-receiver #waterfallCanvas{height:92px !important; min-height:92px !important;}
+  .tile-receiver .waterfall-wrapper{height:92px !important; min-height:92px !important;}
+}
+</style>
+
+<style id="equal-audio-waterfall-final">
+/* Audio Signal dan Waterfall dibuat sama besar pada setiap perangkat. */
+.signal-wrapper{display:block !important;}
+.signal-wrapper > #signalCanvas{width:100% !important;display:block !important;}
+.signal-wrapper .waterfall-wrapper{width:100% !important;display:block !important;}
+.signal-wrapper #waterfallCanvas{width:100% !important;display:block !important;}
+
+@media (min-width:901px){
+  .tile-receiver .signal-wrapper > #signalCanvas,
+  .tile-receiver .signal-wrapper .waterfall-wrapper,
+  .tile-receiver .signal-wrapper #waterfallCanvas{
+    height:clamp(90px,8vw,120px) !important;
+    min-height:90px !important;
+    max-height:120px !important;
+  }
+  .tile-receiver .signal-wrapper .waterfall-wrapper{height:clamp(90px,8vw,120px) !important;}
+}
+
+@media (max-width:900px){
+  .tile-receiver .signal-wrapper > #signalCanvas,
+  .tile-receiver .signal-wrapper .waterfall-wrapper,
+  .tile-receiver .signal-wrapper #waterfallCanvas{
+    height:90px !important;
+    min-height:90px !important;
+    max-height:90px !important;
+  }
+}
+
+@media (max-width:600px){
+  .tile-receiver .signal-wrapper > #signalCanvas,
+  .tile-receiver .signal-wrapper .waterfall-wrapper,
+  .tile-receiver .signal-wrapper #waterfallCanvas{
+    height:78px !important;
+    min-height:78px !important;
+    max-height:78px !important;
+  }
+}
+</style>
+
+<style id="signal-state-no-overlap">
+/* Keep SIGNAL / NO SIGNAL on its own line so it never overlaps graph labels. */
+.signal-wrapper{position:relative !important;}
+.signal-wrapper .graph-overlay{z-index:8 !important; top:8px !important; left:10px !important; right:10px !important;}
+.signal-wrapper .signal-state{
+  z-index:9 !important;
+  top:34px !important;
+  bottom:auto !important;
+  left:10px !important;
+  right:auto !important;
+  display:block !important;
+  visibility:visible !important;
+  opacity:1 !important;
+  padding:3px 7px !important;
+  line-height:1.2 !important;
+  background:rgba(0,0,0,.55) !important;
+  border-radius:5px !important;
+  white-space:nowrap !important;
+  pointer-events:none !important;
+}
+@media (max-width:900px){
+  .signal-wrapper .graph-overlay{top:7px !important;}
+  .signal-wrapper .signal-state{top:31px !important;left:8px !important;font-size:10px !important;}
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🎙️ Morse Receiver</h1>
+
+<div class="subtitle">
+    Microphone Morse Code Receiver
+</div>
+
+<main class="tile-grid">
+
+<!-- =================================
+     RECEIVER
+================================= -->
+
+<section class="card tile tile-receiver">
+
+    <h2>📡 Receiver</h2>
+
+    <div class="status-row">
+
+        <div
+            id="statusDot"
+            class="status-dot"
+        ></div>
+
+        <div
+            id="statusText"
+            class="status-text"
+        >
+            Ready
+        </div>
+
+    </div>
+
+
+    <!-- =================================
+         RADIO GRAPH
+    ================================= -->
+
+    <div class="signal-wrapper">
+
+        <canvas
+            id="signalCanvas"
+        ></canvas>
+
+        <div class="graph-overlay">
+
+            <span>
+                AUDIO SIGNAL
+            </span>
+
+            <span id="graphFrequency">
+                MIC
+            </span>
+
+        </div>
+
+        <div
+            id="signalState"
+            class="signal-state"
+        >
+            NO SIGNAL
+        </div>
+
+        <div class="waterfall-wrapper">
+            <canvas id="waterfallCanvas" aria-label="Audio spectrum waterfall"></canvas>
+            <div class="waterfall-overlay">
+                <span>WATERFALL</span>
+                <span id="waterfallInfo">MIC SPECTRUM</span>
+            </div>
+        </div>
+
+    </div>
+
+
+    <div class="receiver-extra">
+        <div class="scope-box">
+            <div class="scope-title"><span>OSCILLOSCOPE</span><span id="scopeReadout">0.00 Vp</span></div>
+            <canvas id="scopeCanvas" aria-label="Oscilloscope"></canvas>
+        </div>
+        <div class="ometer-box">
+            <div class="scope-title"><span>O-METER</span><span id="meterReadout">S0 · -120 dBm</span></div>
+            <div class="meter-track"><div id="meterFill" class="meter-fill"></div></div>
+            <div class="meter-scale"><span>S0</span><span>S3</span><span>S5</span><span>S7</span><span>S9</span><span>+20</span><span>+40</span></div>
+            <div id="meterValue" class="meter-readout">-120 dBm</div>
+        </div>
+    </div>
+
+    <!-- =================================
+         LEVEL
+    ================================= -->
+
+    <div class="level-container">
+
+        <div class="level-label">
+
+            <span>
+                Microphone Level
+            </span>
+
+            <span id="levelValue">
+                0%
+            </span>
+
+        </div>
+
+
+        <div class="level-bar">
+
+            <div
+                id="levelFill"
+                class="level-fill"
+            ></div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =================================
+         BUTTONS
+    ================================= -->
+
+    <div class="controls">
+
+        <button
+            id="startBtn"
+            class="primary"
+        >
+            🎙 Start Receiver
+        </button>
+
+        <button
+            id="stopBtn"
+            class="danger"
+        >
+            ⏹ Stop
+        </button>
+
+        <button
+            id="clearBtn"
+        >
+            🗑 Clear
+        </button>
+
+    </div>
+
+
+<!-- =================================
+     RECEIVED / DECODED (inside receiver)
+================================= -->
+
+<div class="receiver-results">
+
+    <div class="receiver-result tile-morse">
+        <h2>📻 Morse Received</h2>
+
+        <div id="morseDisplay" class="morse-display">—</div>
+
+        <div class="current-symbol-label">Current symbol:</div>
+
+        <div id="currentCode" class="current-code">—</div>
+    </div>
+
+    <div class="receiver-result tile-decoded">
+        <h2>💬 Decoded Message</h2>
+
+        <div id="resultDisplay" class="result-display">—</div>
+    </div>
+
+</div>
+
+
+</section>
+
+
+
+
+<!-- =================================
+     SETTINGS
+================================= -->
+
+<section class="card tile tile-settings">
+
+    <h2>⚙️ Receiver Settings</h2>
+
+
+    <div class="theme-bar">
+        <div><label for="themeSelect">Theme</label><select id="themeSelect">
+            <option value="ham">HAM RADIO</option>
+            <option value="amateur">AMATEUR RADIO</option>
+            <option value="light">LIGHT MODE</option>
+            <option value="dark">DARK MODE</option>
+            <option value="mono">MONOCHROME · YELLOW / BLACK</option>
+        </select></div>
+        <div><label for="languageSelect">Language / Bahasa</label><select id="languageSelect">
+            <option value="id">Indonesia</option><option value="en">English</option>
+        </select></div>
+    </div>
+
+    <!-- SPEED -->
+
+    <div class="setting">
+
+        <div class="setting-header">
+
+            <span class="setting-name">
+                Expected Speed
+            </span>
+
+            <span
+                id="speedValue"
+                class="setting-value"
+            >
+                20 WPM
+            </span>
+
+        </div>
+
+        <input
+            id="speed"
+            type="range"
+            min="5"
+            max="40"
+            value="20"
+        >
+
+        <div class="help">
+            Kecepatan Morse yang diperkirakan diterima.
+        </div>
+
+    </div>
+
+
+    <!-- THRESHOLD -->
+
+    <div class="setting">
+
+        <div class="setting-header">
+
+            <span class="setting-name">
+                Microphone Threshold
+            </span>
+
+            <span
+                id="thresholdValue"
+                class="setting-value"
+            >
+                12%
+            </span>
+
+        </div>
+
+        <input
+            id="threshold"
+            type="range"
+            min="1"
+            max="60"
+            value="12"
+        >
+
+        <div class="help">
+            Level minimum yang dianggap sebagai sinyal Morse.
+        </div>
+
+    </div>
+
+
+    <!-- FILTER -->
+
+    <div class="setting">
+
+        <div class="setting-header">
+
+            <span class="setting-name">
+                Tone Filter
+            </span>
+
+        </div>
+
+        <select id="toneFilter">
+
+            <option value="off">
+                Off
+            </option>
+
+            <option value="low">
+                Low tone
+            </option>
+
+            <option value="mid" selected>
+                Mid tone — recommended
+            </option>
+
+            <option value="high">
+                High tone
+            </option>
+
+        </select>
+
+        <div class="help">
+            Membantu memisahkan bunyi beeper dari noise.
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =================================
+     LOG
+================================= -->
+
+<section class="card tile tile-log">
+
+    <h2>🔎 Receiver Log</h2>
+
+    <div
+        id="log"
+        class="log"
+    ></div>
+
+</section>
+
+</main>
+</div>
+
+
+<script>
+
+/* =================================================
+   MORSE TABLE
+================================================= */
+
+const MORSE = {
+
+    A: ".-",
+    B: "-...",
+    C: "-.-.",
+    D: "-..",
+    E: ".",
+    F: "..-.",
+    G: "--.",
+    H: "....",
+    I: "..",
+    J: ".---",
+    K: "-.-",
+    L: ".-..",
+    M: "--",
+    N: "-.",
+    O: "---",
+    P: ".--.",
+    Q: "--.-",
+    R: ".-.",
+    S: "...",
+    T: "-",
+    U: "..-",
+    V: "...-",
+    W: ".--",
+    X: "-..-",
+    Y: "-.--",
+    Z: "--..",
+
+    "0": "-----",
+    "1": ".----",
+    "2": "..---",
+    "3": "...--",
+    "4": "....-",
+    "5": ".....",
+    "6": "-....",
+    "7": "--...",
+    "8": "---..",
+    "9": "----.",
+
+    ".": ".-.-.-",
+    ",": "--..--",
+    "?": "..--..",
+    "'": ".----.",
+    "!": "-.-.--",
+    "/": "-..-.",
+    "(": "-.--.",
+    ")": "-.--.-",
+    "&": ".-...",
+    ":": "---...",
+    ";": "-.-.-.",
+    "=": "-...-",
+    "+": ".-.-.",
+    "-": "-....-",
+    "_": "..--.-",
+    '"': ".-..-.",
+    "$": "...-..-",
+    "@": ".--.-."
+};
+
+
+const REVERSE = {};
+
+for (const char in MORSE) {
+    REVERSE[MORSE[char]] = char;
+}
+
+
+/* =================================================
+   DOM
+================================================= */
+
+const canvas =
+    document.getElementById("signalCanvas");
+
+const ctx =
+    canvas.getContext("2d");
+
+const scopeCanvas = document.getElementById("scopeCanvas");
+const scopeCtx = scopeCanvas.getContext("2d");
+const scopeReadout = document.getElementById("scopeReadout");
+const meterFill = document.getElementById("meterFill");
+const meterReadout = document.getElementById("meterReadout");
+const meterValue = document.getElementById("meterValue");
+const themeSelect = document.getElementById("themeSelect");
+const languageSelect = document.getElementById("languageSelect");
+
+const waterfallCanvas =
+    document.getElementById("waterfallCanvas");
+
+const waterfallCtx =
+    waterfallCanvas.getContext("2d");
+
+const waterfallInfo =
+    document.getElementById("waterfallInfo");
+
+const statusDot =
+    document.getElementById("statusDot");
+
+const statusText =
+    document.getElementById("statusText");
+
+const signalState =
+    document.getElementById("signalState");
+
+const graphFrequency =
+    document.getElementById("graphFrequency");
+
+const levelFill =
+    document.getElementById("levelFill");
+
+const levelValue =
+    document.getElementById("levelValue");
+
+const morseDisplay =
+    document.getElementById("morseDisplay");
+
+const currentCode =
+    document.getElementById("currentCode");
+
+const resultDisplay =
+    document.getElementById("resultDisplay");
+
+const speed =
+    document.getElementById("speed");
+
+const speedValue =
+    document.getElementById("speedValue");
+
+const threshold =
+    document.getElementById("threshold");
+
+const thresholdValue =
+    document.getElementById("thresholdValue");
+
+const toneFilter =
+    document.getElementById("toneFilter");
+
+const logElement =
+    document.getElementById("log");
+
+
+/* =================================================
+   AUDIO STATE
+================================================= */
+
+let audioContext = null;
+let analyser = null;
+let microphone = null;
+let stream = null;
+
+let receiving = false;
+
+let animationFrame = null;
+
+let signalOn = false;
+
+let signalStart = 0;
+let lastSignalEnd = 0;
+
+let currentMorse = "";
+
+let receivedMorse = "";
+
+let decodedText = "";
+
+
+/* =================================================
+   GRAPH
+================================================= */
+
+let graphData = [];
+
+const GRAPH_POINTS = 700;
+
+
+/*
+   Resize canvas supaya tajam
+*/
+
+function resizeCanvas() {
+
+    const rect =
+        canvas.getBoundingClientRect();
+
+    const dpr =
+        window.devicePixelRatio || 1;
+
+    canvas.width =
+        Math.max(1, Math.floor(rect.width * dpr));
+
+    canvas.height =
+        Math.max(1, Math.floor(rect.height * dpr));
+
+    ctx.setTransform(
+        dpr,
+        0,
+        0,
+        dpr,
+        0,
+        0
+    );
+
+    const waterfallRect =
+        waterfallCanvas.getBoundingClientRect();
+
+    waterfallCanvas.width =
+        Math.max(1, Math.floor(waterfallRect.width * dpr));
+
+    waterfallCanvas.height =
+        Math.max(1, Math.floor(waterfallRect.height * dpr));
+
+    waterfallCtx.setTransform(
+        dpr,
+        0,
+        0,
+        dpr,
+        0,
+        0
+    );
+    const sr = scopeCanvas.getBoundingClientRect();
+    scopeCanvas.width = Math.max(1, Math.floor(sr.width*dpr));
+    scopeCanvas.height = Math.max(1, Math.floor(sr.height*dpr));
+    scopeCtx.setTransform(dpr,0,0,dpr,0,0);
+
+    drawWaterfallBase();
+}
+
+
+window.addEventListener(
+    "resize",
+    resizeCanvas
+);
+
+resizeCanvas();
+
+
+/* =================================================
+   DRAW GRAPH
+================================================= */
+
+function drawGrid(
+    width,
+    height
+) {
+
+    ctx.clearRect(
+        0,
+        0,
+        width,
+        height
+    );
+
+
+    /*
+       Background
+    */
+
+    ctx.fillStyle =
+        "#05080c";
+
+    ctx.fillRect(
+        0,
+        0,
+        width,
+        height
+    );
+
+
+    /*
+       Horizontal grid
+    */
+
+    ctx.strokeStyle =
+        "rgba(100,130,150,.14)";
+
+    ctx.lineWidth =
+        1;
+
+
+    for (
+        let i = 1;
+        i < 8;
+        i++
+    ) {
+
+        const y =
+            (height / 8) * i;
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            0,
+            y
+        );
+
+        ctx.lineTo(
+            width,
+            y
+        );
+
+        ctx.stroke();
+
+    }
+
+
+    /*
+       Vertical grid
+    */
+
+    for (
+        let i = 1;
+        i < 12;
+        i++
+    ) {
+
+        const x =
+            (width / 12) * i;
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            x,
+            0
+        );
+
+        ctx.lineTo(
+            x,
+            height
+        );
+
+        ctx.stroke();
+
+    }
+
+
+    /*
+       Center line
+    */
+
+    ctx.strokeStyle =
+        "rgba(130,160,180,.25)";
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        0,
+        height / 2
+    );
+
+    ctx.lineTo(
+        width,
+        height / 2
+    );
+
+    ctx.stroke();
+
+}
+
+
+/*
+   Waveform
+*/
+
+function drawWaveform() {
+
+    const width =
+        canvas.clientWidth;
+
+    const height =
+        canvas.clientHeight;
+
+
+    drawGrid(
+        width,
+        height
+    );
+
+
+    if (!graphData.length) {
+        return;
+    }
+
+
+    /*
+       Threshold visualization
+    */
+
+    const thresholdLevel =
+        Number(threshold.value) / 100;
+
+
+    const thresholdY =
+        height -
+        (
+            thresholdLevel *
+            height
+        );
+
+
+    ctx.setLineDash([
+        6,
+        5
+    ]);
+
+    ctx.strokeStyle =
+        "rgba(255,255,255,.35)";
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        0,
+        thresholdY
+    );
+
+    ctx.lineTo(
+        width,
+        thresholdY
+    );
+
+    ctx.stroke();
+
+    ctx.setLineDash([]);
+
+
+    /*
+       Signal waveform
+    */
+
+    ctx.beginPath();
+
+    for (
+        let i = 0;
+        i < graphData.length;
+        i++
+    ) {
+
+        const x =
+            i /
+            (graphData.length - 1) *
+            width;
+
+
+        const value =
+            graphData[i];
+
+
+        const y =
+            height / 2 -
+            value *
+            height *
+            .42;
+
+
+        if (i === 0) {
+
+            ctx.moveTo(
+                x,
+                y
+            );
+
+        } else {
+
+            ctx.lineTo(
+                x,
+                y
+            );
+
+        }
+
+    }
+
+
+    ctx.strokeStyle =
+        "#72c8ed";
+
+    ctx.lineWidth =
+        1.6;
+
+    ctx.stroke();
+
+
+    /*
+       Glow kecil
+    */
+
+    ctx.globalAlpha =
+        .16;
+
+    ctx.lineWidth =
+        5;
+
+    ctx.stroke();
+
+    ctx.globalAlpha =
+        1;
+
+
+    /*
+       SIGNAL ON indicator
+    */
+
+    if (signalOn) {
+
+        ctx.fillStyle =
+            "rgba(100,200,255,.07)";
+
+        ctx.fillRect(
+            0,
+            0,
+            width,
+            height
+        );
+
+    }
+
+}
+
+
+/* =================================================
+   WATERFALL
+================================================= */
+
+const waterfallHistory = [];
+const WATERFALL_ROWS = 90;
+
+function drawWaterfallBase() {
+    const width = waterfallCanvas.clientWidth;
+    const height = waterfallCanvas.clientHeight;
+
+    waterfallCtx.clearRect(0, 0, width, height);
+    waterfallCtx.fillStyle = "#030608";
+    waterfallCtx.fillRect(0, 0, width, height);
+
+    waterfallCtx.strokeStyle = "rgba(120,150,165,.12)";
+    waterfallCtx.lineWidth = 1;
+
+    for (let i = 1; i < 10; i++) {
+        const x = (width / 10) * i;
+        waterfallCtx.beginPath();
+        waterfallCtx.moveTo(x, 0);
+        waterfallCtx.lineTo(x, height);
+        waterfallCtx.stroke();
+    }
+
+    for (let i = 1; i < 5; i++) {
+        const y = (height / 5) * i;
+        waterfallCtx.beginPath();
+        waterfallCtx.moveTo(0, y);
+        waterfallCtx.lineTo(width, y);
+        waterfallCtx.stroke();
+    }
+
+    waterfallCtx.fillStyle = "rgba(225,242,248,.55)";
+    waterfallCtx.font = "10px Arial";
+
+    const labels = ["0", "2k", "4k", "6k", "8k", "10k"];
+    labels.forEach((label, i) => {
+        const x = (width - 28) * (i / (labels.length - 1));
+        waterfallCtx.fillText(label + " Hz", Math.min(x + 4, width - 38), height - 7);
+    });
+}
+
+function waterfallColor(value) {
+    const v = Math.max(0, Math.min(1, value));
+    if (v < 0.18) {
+        const t = v / 0.18;
+        return [0, Math.round(10 + 22 * t), Math.round(18 + 50 * t)];
+    }
+    if (v < 0.42) {
+        const t = (v - 0.18) / 0.24;
+        return [0, Math.round(32 + 100 * t), Math.round(68 + 110 * t)];
+    }
+    if (v < 0.68) {
+        const t = (v - 0.42) / 0.26;
+        return [Math.round(15 + 220 * t), Math.round(130 + 100 * t), Math.round(180 - 125 * t)];
+    }
+    const t = (v - 0.68) / 0.32;
+    return [255, Math.round(235 + 15 * t), Math.round(55 + 150 * t)];
+}
+
+function drawWaterfall() {
+    const width = waterfallCanvas.clientWidth;
+    const height = waterfallCanvas.clientHeight;
+
+    if (!width || !height) return;
+
+    if (!analyser) {
+        drawWaterfallBase();
+        return;
+    }
+
+    const frequencyData =
+        new Uint8Array(analyser.frequencyBinCount);
+
+    analyser.getByteFrequencyData(frequencyData);
+
+    const bins = Math.max(32, Math.min(220, Math.floor(width)));
+    const row = new Array(bins);
+
+    for (let x = 0; x < bins; x++) {
+        const start = Math.floor(
+            x / bins * frequencyData.length
+        );
+        const end = Math.max(
+            start + 1,
+            Math.floor((x + 1) / bins * frequencyData.length)
+        );
+
+        let peak = 0;
+        for (let i = start; i < end && i < frequencyData.length; i++) {
+            peak = Math.max(peak, frequencyData[i]);
+        }
+
+        row[x] = Math.pow(peak / 255, 0.75);
+    }
+
+    waterfallHistory.unshift(row);
+    if (waterfallHistory.length > WATERFALL_ROWS) {
+        waterfallHistory.pop();
+    }
+
+    drawWaterfallBase();
+
+    const rowHeight =
+        height / WATERFALL_ROWS;
+
+    for (let r = 0; r < waterfallHistory.length; r++) {
+        const historyRow = waterfallHistory[r];
+        const y = r * rowHeight;
+
+        for (let x = 0; x < bins; x++) {
+            const [red, green, blue] =
+                waterfallColor(historyRow[x]);
+
+            waterfallCtx.fillStyle =
+                `rgb(${red},${green},${blue})`;
+
+            const x0 = x / bins * width;
+            const x1 = (x + 1) / bins * width;
+
+            waterfallCtx.fillRect(
+                x0,
+                y,
+                Math.max(1, x1 - x0 + 0.5),
+                Math.ceil(rowHeight) + 0.5
+            );
+        }
+    }
+
+    waterfallCtx.fillStyle = "rgba(225,242,248,.55)";
+    waterfallCtx.font = "10px Arial";
+    waterfallCtx.fillText("LIVE", 6, 18);
+
+    if (audioContext) {
+        const nyquist = audioContext.sampleRate / 2;
+        waterfallInfo.textContent =
+            `0–${Math.round(nyquist)} Hz • LIVE`;
+    }
+}
+
+function drawScope(rms=0){
+    const w=scopeCanvas.clientWidth,h=scopeCanvas.clientHeight;
+    scopeCtx.clearRect(0,0,w,h);
+    scopeCtx.fillStyle="#050607"; scopeCtx.fillRect(0,0,w,h);
+    scopeCtx.strokeStyle="rgba(130,150,160,.18)"; scopeCtx.lineWidth=1;
+    for(let x=0;x<=w;x+=w/10){scopeCtx.beginPath();scopeCtx.moveTo(x,0);scopeCtx.lineTo(x,h);scopeCtx.stroke()}
+    for(let y=0;y<=h;y+=h/4){scopeCtx.beginPath();scopeCtx.moveTo(0,y);scopeCtx.lineTo(w,y);scopeCtx.stroke()}
+    const amp=signalOn?Math.min(h*.4,Math.max(2,rms*900)):2;
+    scopeCtx.beginPath();
+    const freq=graphFrequency.textContent!=='MIC'?700:700;
+    const t=performance.now()/1000;
+    for(let x=0;x<w;x++){const ph=t*freq*2*Math.PI+(x/w)*Math.PI*14;const y=h/2-Math.sin(ph)*amp;if(x===0)scopeCtx.moveTo(x,y);else scopeCtx.lineTo(x,y)}
+    scopeCtx.strokeStyle=signalOn?'#55c7ff':'#44545b';scopeCtx.lineWidth=1.5;scopeCtx.stroke();
+    scopeReadout.textContent=(signalOn?Math.min(1.0,rms*8):0).toFixed(2)+' Vp';
+    const pct=Math.max(0,Math.min(1, signalOn?0.62+Math.min(.25,rms*2):rms*.25));
+    meterFill.style.width=(pct*100).toFixed(1)+'%';
+    const dbm=signalOn?Math.round(-50+pct*18):-120;
+    const s=signalOn?(pct<.38?3:pct<.53?5:pct<.68?7:9):0;
+    meterReadout.textContent=`S${s} · ${dbm} dBm`; meterValue.textContent=`${dbm} dBm`;
+}
+
+/* =================================================
+   SETTINGS
+================================================= */
+
+function getUnit() {
+
+    const wpm =
+        Number(speed.value);
+
+    return 60000 /
+        (
+            wpm * 50
+        );
+
+}
+
+
+speed.addEventListener(
+    "input",
+    () => {
+
+        speedValue.textContent =
+            speed.value + " WPM";
+
+    }
+);
+
+
+threshold.addEventListener(
+    "input",
+    () => {
+
+        thresholdValue.textContent =
+            threshold.value + "%";
+
+    }
+);
+
+
+/* =================================================
+   LOG
+================================================= */
+
+function log(message) {
+
+    const div =
+        document.createElement("div");
+
+    div.className =
+        "log-line";
+
+    const time =
+        new Date().toLocaleTimeString();
+
+    div.textContent =
+        "[" +
+        time +
+        "] " +
+        message;
+
+    logElement.appendChild(div);
+
+    logElement.scrollTop =
+        logElement.scrollHeight;
+
+}
+
+
+/* =================================================
+   STATUS
+================================================= */
+
+function setStatus(
+    text,
+    type = ""
+) {
+
+    statusText.textContent =
+        text;
+
+    statusDot.className =
+        "status-dot " +
+        type;
+
+}
+
+
+/* =================================================
+   RMS
+================================================= */
+
+const timeData =
+    new Float32Array(2048);
+
+
+function getRMS() {
+
+    analyser.getFloatTimeDomainData(
+        timeData
+    );
+
+
+    let sum = 0;
+
+
+    for (
+        let i = 0;
+        i < timeData.length;
+        i++
+    ) {
+
+        sum +=
+            timeData[i] *
+            timeData[i];
+
+    }
+
+
+    return Math.sqrt(
+        sum /
+        timeData.length
+    );
+
+}
+
+
+/* =================================================
+   GRAPH DATA
+================================================= */
+
+function updateGraph() {
+
+    /*
+       Downsample waveform.
+    */
+
+    const step =
+        Math.max(
+            1,
+            Math.floor(
+                timeData.length /
+                180
+            )
+        );
+
+
+    for (
+        let i = 0;
+        i < timeData.length;
+        i += step
+    ) {
+
+        graphData.push(
+            timeData[i]
+        );
+
+    }
+
+
+    /*
+       Keep last N points.
+    */
+
+    if (
+        graphData.length >
+        GRAPH_POINTS
+    ) {
+
+        graphData.splice(
+            0,
+            graphData.length -
+            GRAPH_POINTS
+        );
+
+    }
+
+
+    drawWaveform();
+
+}
+
+
+/* =================================================
+   TONE DETECTION
+================================================= */
+
+function getToneStrength() {
+
+    if (
+        toneFilter.value === "off"
+    ) {
+
+        return 1;
+
+    }
+
+
+    const frequencyData =
+        new Uint8Array(
+            analyser.frequencyBinCount
+        );
+
+
+    analyser.getByteFrequencyData(
+        frequencyData
+    );
+
+
+    const nyquist =
+        audioContext.sampleRate / 2;
+
+
+    let minFreq;
+    let maxFreq;
+
+
+    if (
+        toneFilter.value === "low"
+    ) {
+
+        minFreq = 300;
+        maxFreq = 500;
+
+    }
+
+    else if (
+        toneFilter.value === "mid"
+    ) {
+
+        minFreq = 500;
+        maxFreq = 1000;
+
+    }
+
+    else {
+
+        minFreq = 1000;
+        maxFreq = 1800;
+
+    }
+
+
+    const minBin =
+        Math.floor(
+            minFreq /
+            nyquist *
+            frequencyData.length
+        );
+
+
+    const maxBin =
+        Math.min(
+            frequencyData.length - 1,
+            Math.ceil(
+                maxFreq /
+                nyquist *
+                frequencyData.length
+            )
+        );
+
+
+    let sum = 0;
+    let count = 0;
+
+
+    for (
+        let i = minBin;
+        i <= maxBin;
+        i++
+    ) {
+
+        sum +=
+            frequencyData[i];
+
+        count++;
+
+    }
+
+
+    return count
+        ? (
+            sum / count
+        ) / 255
+        : 0;
+
+}
+
+
+/* =================================================
+   START RECEIVER
+================================================= */
+
+async function startReceiver() {
+
+    if (receiving) {
+        return;
+    }
+
+
+    if (
+        !navigator.mediaDevices ||
+        !navigator.mediaDevices.getUserMedia
+    ) {
+
+        alert(
+            "Browser ini tidak mendukung microphone."
+        );
+
+        return;
+
+    }
+
+
+    try {
+
+        stream =
+            await navigator.mediaDevices.getUserMedia({
+
+                audio: {
+
+                    echoCancellation: false,
+                    noiseSuppression: false,
+                    autoGainControl: false
+
+                }
+
+            });
+
+
+        audioContext =
+            new (
+                window.AudioContext ||
+                window.webkitAudioContext
+            )();
+
+
+        await audioContext.resume();
+
+
+        analyser =
+            audioContext.createAnalyser();
+
+        analyser.fftSize =
+            2048;
+
+        analyser.smoothingTimeConstant =
+            0.03;
+
+
+        microphone =
+            audioContext.createMediaStreamSource(
+                stream
+            );
+
+
+        microphone.connect(
+            analyser
+        );
+
+
+        receiving = true;
+
+        signalOn = false;
+
+        graphData = [];
+
+
+        setStatus(
+            "Listening...",
+            "listening"
+        );
+
+
+        log(
+            "Microphone aktif."
+        );
+
+
+        log(
+            "Waveform monitor aktif."
+        );
+
+
+        processAudio();
+
+    }
+
+    catch(error) {
+
+        console.error(error);
+
+        log(
+            "Microphone error: " +
+            error.message
+        );
+
+        setStatus(
+            "Microphone unavailable"
+        );
+
+
+        alert(
+            "Microphone tidak dapat diakses.\n\n" +
+            "Berikan izin microphone pada browser."
+        );
+
+    }
+
+}
+
+
+/* =================================================
+   STOP
+================================================= */
+
+function stopReceiver() {
+
+    receiving = false;
+
+
+    if (animationFrame) {
+
+        cancelAnimationFrame(
+            animationFrame
+        );
+
+        animationFrame = null;
+
+    }
+
+
+    if (stream) {
+
+        stream
+            .getTracks()
+            .forEach(
+                track => track.stop()
+            );
+
+        stream = null;
+
+    }
+
+
+    if (microphone) {
+
+        microphone.disconnect();
+
+        microphone = null;
+
+    }
+
+
+    if (audioContext) {
+
+        audioContext.close();
+
+        audioContext = null;
+
+    }
+
+
+    analyser = null;
+
+    signalOn = false;
+
+
+    setStatus(
+        "Stopped"
+    );
+
+
+    levelFill.style.width =
+        "0%";
+
+    levelValue.textContent =
+        "0%";
+
+    signalState.textContent =
+        "NO SIGNAL";
+
+    signalState.classList.remove(
+        "active"
+    );
+
+
+    drawWaveform();
+
+
+    log(
+        "Receiver dihentikan."
+    );
+
+}
+
+
+/* =================================================
+   AUDIO PROCESSING
+================================================= */
+
+function processAudio() {
+
+    if (!receiving) {
+        return;
+    }
+
+
+    const rms =
+        getRMS();
+
+    drawScope(rms);
+
+
+    /*
+       Visual level.
+    */
+
+    const level =
+        Math.min(
+            100,
+            rms * 500
+        );
+
+
+    levelFill.style.width =
+        level + "%";
+
+    levelValue.textContent =
+        Math.round(level) +
+        "%";
+
+
+    /*
+       Update waveform + spectrum waterfall.
+    */
+
+    updateGraph();
+    drawWaterfall();
+
+
+    /*
+       Detection threshold.
+    */
+
+    const thresholdLevel =
+        Number(threshold.value);
+
+
+    const baseThreshold =
+        thresholdLevel / 500;
+
+
+    let isSignal =
+        rms > baseThreshold;
+
+
+    /*
+       Tone filter.
+    */
+
+    if (
+        isSignal &&
+        toneFilter.value !== "off"
+    ) {
+
+        const tone =
+            getToneStrength();
+
+
+        if (
+            tone < .08
+        ) {
+
+            isSignal = false;
+
+        }
+
+    }
+
+
+    const now =
+        performance.now();
+
+
+    /* ================================
+       SIGNAL START
+    ================================= */
+
+    if (
+        isSignal &&
+        !signalOn
+    ) {
+
+        signalOn = true;
+
+        signalStart =
+            now;
+
+
+        setStatus(
+            "SIGNAL",
+            "signal"
+        );
+
+
+        signalState.textContent =
+            "● SIGNAL";
+
+        signalState.classList.add(
+            "active"
+        );
+
+
+        /*
+           Proses gap sebelum beep.
+        */
+
+        if (
+            lastSignalEnd > 0
+        ) {
+
+            const gap =
+                signalStart -
+                lastSignalEnd;
+
+            processGap(gap);
+
+        }
+
+    }
+
+
+    /* ================================
+       SIGNAL END
+    ================================= */
+
+    if (
+        !isSignal &&
+        signalOn
+    ) {
+
+        signalOn = false;
+
+        const duration =
+            now -
+            signalStart;
+
+
+        lastSignalEnd =
+            now;
+
+
+        processSignal(
+            duration
+        );
+
+
+        setStatus(
+            "Listening...",
+            "listening"
+        );
+
+
+        signalState.textContent =
+            "NO SIGNAL";
+
+        signalState.classList.remove(
+            "active"
+        );
+
+    }
+
+
+    animationFrame =
+        requestAnimationFrame(
+            processAudio
+        );
+
+}
+
+
+/* =================================================
+   SIGNAL → DOT / DASH
+================================================= */
+
+function processSignal(
+    duration
+) {
+
+    const unit =
+        getUnit();
+
+
+    let symbol;
+
+
+    /*
+       < 2 unit = DOT
+       >= 2 unit = DASH
+    */
+
+    if (
+        duration <
+        unit * 2
+    ) {
+
+        symbol = ".";
+
+    }
+
+    else {
+
+        symbol = "-";
+
+    }
+
+
+    currentMorse +=
+        symbol;
+
+
+    currentCode.textContent =
+        currentMorse;
+
+
+    updateMorseDisplay();
+
+
+    log(
+        "Signal " +
+        Math.round(duration) +
+        " ms → " +
+        symbol
+    );
+
+}
+
+
+/* =================================================
+   GAP
+================================================= */
+
+function processGap(
+    gap
+) {
+
+    const unit =
+        getUnit();
+
+
+    /*
+       >= 5 unit = WORD
+       >= 2 unit = LETTER
+       < 2 unit = SYMBOL
+    */
+
+    if (
+        gap >= unit * 5
+    ) {
+
+        finalizeLetter();
+
+        addWordSpace();
+
+    }
+
+    else if (
+        gap >= unit * 2
+    ) {
+
+        finalizeLetter();
+
+    }
+
+}
+
+
+/* =================================================
+   FINALIZE LETTER
+================================================= */
+
+function finalizeLetter() {
+
+    if (!currentMorse) {
+        return;
+    }
+
+
+    const code =
+        currentMorse;
+
+
+    const letter =
+        REVERSE[code] || "�";
+
+
+    decodedText +=
+        letter;
+
+
+    /*
+       Simpan Morse yang sudah selesai.
+    */
+
+    if (receivedMorse) {
+
+        receivedMorse +=
+            " ";
+
+    }
+
+
+    receivedMorse +=
+        code;
+
+
+    currentMorse = "";
+
+
+    currentCode.textContent =
+        "—";
+
+
+    updateMorseDisplay();
+
+    updateResult();
+
+
+    log(
+        code +
+        " → " +
+        letter
+    );
+
+}
+
+
+/* =================================================
+   WORD
+================================================= */
+
+function addWordSpace() {
+
+    if (
+        decodedText &&
+        !decodedText.endsWith(" ")
+    ) {
+
+        decodedText +=
+            " ";
+
+    }
+
+
+    if (receivedMorse) {
+
+        receivedMorse +=
+            "   ";
+
+    }
+
+
+    updateMorseDisplay();
+
+    updateResult();
+
+}
+
+
+/* =================================================
+   MORSE DISPLAY
+================================================= */
+
+function updateMorseDisplay() {
+
+    let output =
+        receivedMorse;
+
+
+    if (currentMorse) {
+
+        if (output) {
+            output += " ";
+        }
+
+        output +=
+            currentMorse;
+
+    }
+
+
+    morseDisplay.textContent =
+        output || "—";
+
+}
+
+
+/* =================================================
+   RESULT
+================================================= */
+
+function updateResult() {
+
+    resultDisplay.textContent =
+        decodedText || "—";
+
+}
+
+
+/* =================================================
+   CLEAR
+================================================= */
+
+function clearReceiver() {
+
+    currentMorse = "";
+
+    receivedMorse = "";
+
+    decodedText = "";
+
+    lastSignalEnd = 0;
+
+    currentCode.textContent =
+        "—";
+
+    morseDisplay.textContent =
+        "—";
+
+    resultDisplay.textContent =
+        "—";
+
+    graphData = [];
+    waterfallHistory.length = 0;
+
+    drawWaveform();
+    drawWaterfallBase();
+
+    logElement.innerHTML = "";
+
+    log(
+        "Receiver display dibersihkan."
+    );
+
+}
+
+
+function applyTheme(){document.documentElement.dataset.theme=themeSelect.value;localStorage.setItem("receiver-theme",themeSelect.value)}
+const savedTheme=localStorage.getItem("receiver-theme");
+if(["ham","amateur","light","dark","mono"].includes(savedTheme)) themeSelect.value=savedTheme;
+applyTheme(); themeSelect.addEventListener("change",applyTheme);
+function applyLanguage(){const en=languageSelect.value==="en";
+    document.querySelector(".subtitle").textContent=en?"Microphone Morse Code Receiver":"Penerima Kode Morse dari Mikrofon";
+    document.querySelector(".tile-receiver h2").textContent=en?"📡 Receiver":"📡 Receiver";
+    document.querySelector(".tile-morse h2").textContent=en?"📻 Morse Received":"📻 Morse Diterima";
+    document.querySelector(".tile-decoded h2").textContent=en?"💬 Decoded Message":"💬 Pesan Terjemahan";
+    document.querySelector(".tile-settings h2").textContent=en?"⚙️ Receiver Settings":"⚙️ Pengaturan Receiver";
+    document.querySelector(".tile-log h2").textContent=en?"🔎 Receiver Log":"🔎 Log Receiver";
+    localStorage.setItem("receiver-language",languageSelect.value)}
+const savedLang=localStorage.getItem("receiver-language"); if(savedLang) languageSelect.value=savedLang; applyLanguage(); languageSelect.addEventListener("change",applyLanguage);
+
+/* =================================================
+   END-OF-MESSAGE FLUSH
+================================================= */
+
+setInterval(
+    () => {
+
+        if (
+            !receiving ||
+            signalOn ||
+            !lastSignalEnd ||
+            !currentMorse
+        ) {
+
+            return;
+
+        }
+
+
+        const gap =
+            performance.now() -
+            lastSignalEnd;
+
+
+        const unit =
+            getUnit();
+
+
+        /*
+           Setelah 3 unit tanpa signal,
+           anggap huruf selesai.
+        */
+
+        if (
+            gap >= unit * 3
+        ) {
+
+            finalizeLetter();
+
+        }
+
+    },
+    40
+);
+
+
+/* =================================================
+   BUTTONS
+================================================= */
+
+document
+    .getElementById("startBtn")
+    .addEventListener(
+        "click",
+        startReceiver
+    );
+
+
+document
+    .getElementById("stopBtn")
+    .addEventListener(
+        "click",
+        stopReceiver
+    );
+
+
+document
+    .getElementById("clearBtn")
+    .addEventListener(
+        "click",
+        clearReceiver
+    );
+
+
+/* =================================================
+   INITIAL GRAPH
+================================================= */
+
+drawWaveform();
+drawWaterfallBase();
+
+
+speedValue.textContent =
+    speed.value + " WPM";
+
+
+thresholdValue.textContent =
+    threshold.value + "%";
+
+
+log(
+    "Morse Receiver siap."
+);
+
+log(
+    "Grafik sinyal akan muncul saat microphone aktif."
+);
+
+
+/* =================================================
+   CLEANUP
+================================================= */
+
+window.addEventListener(
+    "beforeunload",
+    () => {
+
+        stopReceiver();
+
+    }
+);
+
+</script>
+
+</body>
+</html>
