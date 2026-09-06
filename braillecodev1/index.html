@@ -1,0 +1,3559 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Braille Translator</title>
+
+<style>
+:root{
+    --bg:#f3f4f6;
+    --card:#ffffff;
+    --text:#111827;
+    --muted:#6b7280;
+    --border:#d1d5db;
+    --primary:#2563eb;
+    --primary-text:#ffffff;
+    --key:#e5e7eb;
+    --key-hover:#d1d5db;
+    --selected:#2563eb;
+    --braille-size:42px;
+}
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    font-family:Arial,Helvetica,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    transition:.2s;
+}
+
+body.dark{
+    --bg:#111827;
+    --card:#1f2937;
+    --text:#f9fafb;
+    --muted:#9ca3af;
+    --border:#374151;
+    --primary:#60a5fa;
+    --primary-text:#111827;
+    --key:#374151;
+    --key-hover:#4b5563;
+    --selected:#60a5fa;
+}
+
+body.lowvision{
+    --bg:#000;
+    --card:#000;
+    --text:#fff;
+    --muted:#fff;
+    --border:#fff;
+    --primary:#ffff00;
+    --primary-text:#000;
+    --key:#000;
+    --key-hover:#222;
+    --selected:#ffff00;
+    --braille-size:52px;
+}
+
+.container{
+    max-width:1200px;
+    margin:auto;
+    padding:20px;
+}
+
+header{
+    text-align:center;
+    margin-bottom:18px;
+}
+
+header h1{
+    margin:0 0 8px;
+    font-size:30px;
+}
+
+header p{
+    margin:0;
+    color:var(--muted);
+}
+
+/* =========================
+   LANGUAGE
+========================= */
+
+.top-settings{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    margin:18px 0;
+}
+
+.language-box{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.language-box label{
+    font-weight:bold;
+}
+
+.language-select,
+.reference-select,
+.keyboard-mode-select{
+    min-width:200px;
+    padding:10px 12px;
+    border:1px solid var(--border);
+    border-radius:9px;
+    background:var(--card);
+    color:var(--text);
+    cursor:pointer;
+}
+
+/* =========================
+   THEME
+========================= */
+
+.theme-bar{
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    flex-wrap:wrap;
+}
+
+button{
+    font:inherit;
+}
+
+.theme-btn,
+.action-btn,
+.mode-btn{
+    padding:10px 15px;
+    border-radius:9px;
+    border:1px solid var(--border);
+    background:var(--card);
+    color:var(--text);
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.theme-btn:hover,
+.action-btn:hover{
+    border-color:var(--primary);
+}
+
+/* =========================
+   MODE
+========================= */
+
+.mode-switch{
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    flex-wrap:wrap;
+    margin:20px 0 10px;
+}
+
+.mode-btn.active{
+    background:var(--primary);
+    color:var(--primary-text);
+    border-color:var(--primary);
+}
+
+.mode-description{
+    text-align:center;
+    color:var(--muted);
+    margin:0 0 20px;
+    font-size:14px;
+}
+
+/* =========================
+   TRANSLATOR
+========================= */
+
+.translator{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+}
+
+.card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:16px;
+    box-shadow:0 3px 12px rgba(0,0,0,.06);
+}
+
+.card h2{
+    margin:0 0 12px;
+    font-size:18px;
+}
+
+textarea{
+    width:100%;
+    min-height:230px;
+    resize:vertical;
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:15px;
+    background:var(--card);
+    color:var(--text);
+    font-size:20px;
+    line-height:1.6;
+    outline:none;
+}
+
+textarea:focus{
+    border-color:var(--primary);
+}
+
+textarea[readonly]{
+    opacity:.92;
+}
+
+#inputBox.braille-input,
+#outputBox.braille-output{
+    font-size:var(--braille-size);
+    letter-spacing:2px;
+}
+
+.controls{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-top:10px;
+}
+
+/* =========================
+   BRAILLE KEYBOARD
+========================= */
+
+.keyboard-card{
+    margin-top:20px;
+}
+
+.keyboard-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+    flex-wrap:wrap;
+    margin-bottom:15px;
+}
+
+.keyboard-title{
+    margin:0 !important;
+}
+
+.keyboard-mode-box{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.keyboard-subtitle{
+    text-align:center;
+    color:var(--muted);
+    margin-bottom:18px;
+}
+
+.braille-machine{
+    max-width:700px;
+    margin:auto;
+
+    display:grid;
+    grid-template-columns:1fr 130px 1fr;
+    gap:15px;
+    align-items:center;
+}
+
+.dot-column{
+    display:grid;
+    grid-template-rows:repeat(3,1fr);
+    gap:12px;
+}
+
+.dot-btn{
+    min-height:80px;
+
+    border:2px solid var(--border);
+    border-radius:8px;
+
+    background:var(--key);
+    color:var(--text);
+
+    font-size:25px;
+    font-weight:bold;
+
+    cursor:pointer;
+
+    user-select:none;
+    -webkit-user-select:none;
+
+    touch-action:none;
+
+    -webkit-tap-highlight-color:transparent;
+}
+
+.dot-btn:hover{
+    background:var(--key-hover);
+}
+
+.dot-btn.selected{
+    background:var(--selected);
+    color:var(--primary-text);
+    border-color:var(--selected);
+}
+
+.dot-btn.active-touch{
+    transform:scale(.94);
+    background:var(--selected);
+    color:var(--primary-text);
+}
+
+.center-space{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.space-btn,
+.enter-btn{
+    width:100%;
+    min-height:70px;
+
+    border:2px solid var(--border);
+    border-radius:8px;
+
+    background:var(--card);
+    color:var(--text);
+
+    cursor:pointer;
+    font-weight:bold;
+
+    user-select:none;
+}
+
+.space-btn:hover,
+.enter-btn:hover{
+    background:var(--key-hover);
+}
+
+.keyboard-status{
+    min-height:24px;
+    text-align:center;
+    margin-top:14px;
+    color:var(--muted);
+}
+
+/* =========================
+   PERKINS
+========================= */
+
+.perkins{
+    margin-top:20px;
+}
+
+.perkins-note{
+    text-align:center;
+    color:var(--muted);
+    line-height:1.6;
+    margin-bottom:16px;
+}
+
+.perkins-layout{
+    max-width:500px;
+    margin:auto;
+
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+}
+
+.perkins-side{
+    display:grid;
+    grid-template-rows:repeat(3,1fr);
+    gap:10px;
+}
+
+.perkins-key{
+    min-height:75px;
+
+    border:2px solid var(--border);
+    border-radius:8px;
+
+    background:var(--key);
+    color:var(--text);
+
+    font-size:25px;
+    font-weight:bold;
+}
+
+.perkins-key span{
+    display:block;
+    font-size:12px;
+    font-weight:normal;
+    margin-top:3px;
+    color:var(--muted);
+}
+
+.perkins-key.selected{
+    background:var(--selected);
+    color:var(--primary-text);
+}
+
+.perkins-warning{
+    text-align:center;
+    color:var(--muted);
+    margin-top:14px;
+    font-size:14px;
+}
+
+.perkins-disabled{
+    opacity:.45;
+}
+
+/* =========================
+   REFERENCE
+========================= */
+
+.reference{
+    margin-top:20px;
+}
+
+.reference-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+    flex-wrap:wrap;
+}
+
+.reference-header h2{
+    margin:0;
+}
+
+.reference-empty{
+    text-align:center;
+    color:var(--muted);
+    padding:25px 10px;
+}
+
+.reference-board{
+    display:none;
+
+    margin-top:18px;
+    padding:18px;
+
+    border:1px solid var(--border);
+    border-radius:12px;
+
+    background:var(--bg);
+}
+
+.reference-board.show{
+    display:block;
+}
+
+.reference-label{
+    text-align:center;
+    color:var(--muted);
+    font-size:14px;
+    margin-bottom:15px;
+}
+
+.computer-keyboard{
+    width:100%;
+    max-width:1050px;
+    margin:auto;
+
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.reference-row{
+    display:flex;
+    gap:7px;
+    width:100%;
+}
+
+.reference-row.row-1{
+    padding:0;
+}
+
+.reference-row.row-2{
+    padding-left:5%;
+    padding-right:5%;
+}
+
+.reference-row.row-3{
+    padding-left:10%;
+    padding-right:10%;
+}
+
+.unicode-key{
+    flex:1;
+    min-width:0;
+    min-height:75px;
+
+    border:2px solid var(--border);
+    border-radius:7px;
+
+    background:var(--key);
+    color:var(--text);
+
+    cursor:pointer;
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+
+    gap:4px;
+
+    transition:.12s;
+}
+
+.unicode-key:hover{
+    border-color:var(--primary);
+    transform:translateY(-2px);
+}
+
+.unicode-letter{
+    font-size:16px;
+    font-weight:bold;
+}
+
+.unicode-braille{
+    font-size:30px;
+    line-height:1;
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media(max-width:800px){
+
+    .translator{
+        grid-template-columns:1fr;
+    }
+
+    .braille-machine{
+        grid-template-columns:1fr 90px 1fr;
+        gap:8px;
+    }
+
+    .dot-btn,
+    .space-btn,
+    .enter-btn{
+        min-height:65px;
+    }
+
+    .reference-row{
+        gap:5px;
+    }
+
+    .reference-row.row-2{
+        padding-left:4%;
+        padding-right:4%;
+    }
+
+    .reference-row.row-3{
+        padding-left:8%;
+        padding-right:8%;
+    }
+
+    .unicode-key{
+        min-height:62px;
+    }
+
+    .unicode-braille{
+        font-size:25px;
+    }
+}
+
+@media(max-width:500px){
+
+    .container{
+        padding:12px;
+    }
+
+    header h1{
+        font-size:24px;
+    }
+
+    textarea{
+        min-height:180px;
+    }
+
+    .braille-machine{
+        grid-template-columns:1fr 65px 1fr;
+    }
+
+    .dot-btn{
+        min-height:58px;
+        font-size:20px;
+    }
+
+    .perkins-layout{
+        gap:10px;
+    }
+
+    .perkins-key{
+        min-height:65px;
+    }
+
+    .reference-board{
+        padding:10px 5px;
+    }
+
+    .reference-row{
+        gap:4px;
+    }
+
+    .reference-row.row-2{
+        padding-left:3%;
+        padding-right:3%;
+    }
+
+    .reference-row.row-3{
+        padding-left:6%;
+        padding-right:6%;
+    }
+
+    .unicode-key{
+        min-height:58px;
+        border-width:1px;
+    }
+
+    .unicode-letter{
+        font-size:13px;
+    }
+
+    .unicode-braille{
+        font-size:22px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<header>
+
+    <h1 id="appTitle">
+        ⠃⠗⠁⠊⠇⠇⠑ Braille Translator
+    </h1>
+
+    <p id="appSubtitle">
+        Translator instan • Keyboard Braille • Mesin Tik Perkins
+    </p>
+
+</header>
+
+
+<!-- LANGUAGE -->
+
+<div class="top-settings">
+
+    <div class="language-box">
+
+        <label
+            id="languageLabel"
+            for="languageSelect"
+        >
+            🌐 Bahasa
+        </label>
+
+        <select
+            id="languageSelect"
+            class="language-select"
+            onchange="changeLanguage()"
+        >
+
+            <option value="id">
+                🇮🇩 Indonesia
+            </option>
+
+            <option value="en">
+                🇬🇧 English
+            </option>
+
+            <option value="in">
+                🇮🇳 India
+            </option>
+
+            <option value="ms">
+                🇲🇾 Malaysia
+            </option>
+
+        </select>
+
+    </div>
+
+</div>
+
+
+<!-- THEME -->
+
+<div class="theme-bar">
+
+    <button
+        class="theme-btn"
+        onclick="setTheme('light')"
+        id="lightBtn"
+    >
+        ☀️ Light
+    </button>
+
+    <button
+        class="theme-btn"
+        onclick="setTheme('dark')"
+        id="darkBtn"
+    >
+        🌙 Dark
+    </button>
+
+    <button
+        class="theme-btn"
+        onclick="setTheme('lowvision')"
+        id="lowVisionBtn"
+    >
+        👁️ Low Vision
+    </button>
+
+</div>
+
+
+<!-- TRANSLATION MODE -->
+
+<div class="mode-switch">
+
+    <button
+        id="textModeBtn"
+        class="mode-btn active"
+        onclick="setMode('text')"
+    >
+        📝 Teks → Braille
+    </button>
+
+    <button
+        id="brailleModeBtn"
+        class="mode-btn"
+        onclick="setMode('braille')"
+    >
+        ⠃⠗⠁⠊⠇⠇⠑ Braille → Teks
+    </button>
+
+</div>
+
+
+<div
+    id="modeDescription"
+    class="mode-description"
+>
+    Ketik teks di sebelah kiri. Braille otomatis muncul di sebelah kanan.
+</div>
+
+
+<!-- TRANSLATOR -->
+
+<div class="translator">
+
+    <!-- INPUT -->
+
+    <div class="card">
+
+        <h2 id="inputTitle">
+            📝 Teks
+        </h2>
+
+        <textarea
+            id="inputBox"
+            placeholder="Ketik teks di sini..."
+            spellcheck="false"
+        ></textarea>
+
+        <div class="controls">
+
+            <button
+                class="action-btn"
+                onclick="copyBox('inputBox')"
+                id="copyInputBtn"
+            >
+                📋 Copy
+            </button>
+
+            <button
+                class="action-btn"
+                onclick="clearAll()"
+                id="clearBtn"
+            >
+                🗑️ Clear
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- OUTPUT -->
+
+    <div class="card">
+
+        <h2 id="outputTitle">
+            ⠃⠗⠁⠊⠇⠇⠑ Braille
+        </h2>
+
+        <textarea
+            id="outputBox"
+            placeholder="Hasil Braille..."
+            spellcheck="false"
+            readonly
+        ></textarea>
+
+        <div class="controls">
+
+            <button
+                class="action-btn"
+                onclick="copyBox('outputBox')"
+                id="copyOutputBtn"
+            >
+                📋 Copy
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- BRAILLE KEYBOARD -->
+
+<div class="card keyboard-card">
+
+    <div class="keyboard-top">
+
+        <h2
+            class="keyboard-title"
+            id="keyboardTitle"
+        >
+            ⌨️ Keyboard Braille 6 Titik
+        </h2>
+
+
+        <div class="keyboard-mode-box">
+
+            <label
+                id="keyboardModeLabel"
+                for="keyboardMode"
+            >
+                Mode
+            </label>
+
+            <select
+                id="keyboardMode"
+                class="keyboard-mode-select"
+                onchange="changeKeyboardMode()"
+            >
+
+                <option value="nonmulti">
+                    2. Non-multitouch
+                </option>
+
+                <option value="multi">
+                    1. Multitouch
+                </option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+
+    <div
+        class="keyboard-subtitle"
+        id="keyboardSubtitle"
+    >
+        Kiri = titik 1, 2, 3 | Kanan = titik 4, 5, 6
+    </div>
+
+
+    <div class="braille-machine">
+
+        <div class="dot-column">
+
+            <button
+                class="dot-btn"
+                data-dot="1"
+            >
+                1
+            </button>
+
+            <button
+                class="dot-btn"
+                data-dot="2"
+            >
+                2
+            </button>
+
+            <button
+                class="dot-btn"
+                data-dot="3"
+            >
+                3
+            </button>
+
+        </div>
+
+
+        <div class="center-space">
+
+            <button
+                id="touchSpace"
+                class="space-btn"
+            >
+                SPACE
+            </button>
+
+            <button
+                id="touchEnter"
+                class="enter-btn"
+            >
+                ✓ ENTER
+            </button>
+
+        </div>
+
+
+        <div class="dot-column">
+
+            <button
+                class="dot-btn"
+                data-dot="4"
+            >
+                4
+            </button>
+
+            <button
+                class="dot-btn"
+                data-dot="5"
+            >
+                5
+            </button>
+
+            <button
+                class="dot-btn"
+                data-dot="6"
+            >
+                6
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <div
+        id="keyboardStatus"
+        class="keyboard-status"
+    >
+        Pilih satu atau beberapa titik.
+    </div>
+
+</div>
+
+
+<!-- PERKINS -->
+
+<div
+    class="card perkins"
+    id="perkinsCard"
+>
+
+    <h2 id="perkinsTitle">
+        💻 Mesin Tik Perkins
+    </h2>
+
+    <div
+        class="perkins-note"
+        id="perkinsNote"
+    >
+        Hanya untuk keyboard fizikal komputer/komputer riba.
+        <br>
+        Z = 1, X = 2, C = 3
+        &nbsp;&nbsp;&nbsp;
+        B = 4, N = 5, M = 6
+        <br>
+        Tekan beberapa kekunci serentak untuk menghasilkan satu aksara Braille.
+    </div>
+
+
+    <div class="perkins-layout">
+
+        <div class="perkins-side">
+
+            <button
+                class="perkins-key"
+                data-perkins="1"
+            >
+                Z
+                <span>Titik 1</span>
+            </button>
+
+            <button
+                class="perkins-key"
+                data-perkins="2"
+            >
+                X
+                <span>Titik 2</span>
+            </button>
+
+            <button
+                class="perkins-key"
+                data-perkins="3"
+            >
+                C
+                <span>Titik 3</span>
+            </button>
+
+        </div>
+
+
+        <div class="perkins-side">
+
+            <button
+                class="perkins-key"
+                data-perkins="4"
+            >
+                B
+                <span>Titik 4</span>
+            </button>
+
+            <button
+                class="perkins-key"
+                data-perkins="5"
+            >
+                N
+                <span>Titik 5</span>
+            </button>
+
+            <button
+                class="perkins-key"
+                data-perkins="6"
+            >
+                M
+                <span>Titik 6</span>
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <div
+        id="perkinsWarning"
+        class="perkins-warning"
+    ></div>
+
+</div>
+
+
+<!-- UNICODE REFERENCE -->
+
+<div class="card reference">
+
+    <div class="reference-header">
+
+        <h2 id="referenceTitle">
+            🔤 Referensi Unicode A–Z
+        </h2>
+
+
+        <select
+            id="referenceMode"
+            class="reference-select"
+            onchange="changeReferenceMode()"
+        >
+
+            <option
+                value=""
+                id="refPlaceholder"
+            >
+                -- Pilih Mode --
+            </option>
+
+            <option
+                value="abc"
+                id="refABC"
+            >
+                1. Mode ABCDE
+            </option>
+
+            <option
+                value="qwert"
+                id="refQWERT"
+            >
+                2. Mode QWERT
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <div
+        id="referenceEmpty"
+        class="reference-empty"
+    >
+        Pilih mode terlebih dahulu.
+        <br>
+        Keyboard Unicode akan muncul di sini.
+    </div>
+
+
+    <div
+        id="referenceBoard"
+        class="reference-board"
+    >
+
+        <div
+            id="referenceLabel"
+            class="reference-label"
+        ></div>
+
+
+        <div
+            id="referenceKeyboard"
+            class="computer-keyboard"
+        ></div>
+
+    </div>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* ==================================================
+   BRAILLE DATA
+================================================== */
+
+const brailleMap = {
+
+    a:"⠁",
+    b:"⠃",
+    c:"⠉",
+    d:"⠙",
+    e:"⠑",
+    f:"⠋",
+    g:"⠛",
+    h:"⠓",
+    i:"⠊",
+    j:"⠚",
+
+    k:"⠅",
+    l:"⠇",
+    m:"⠍",
+    n:"⠝",
+    o:"⠕",
+    p:"⠏",
+    q:"⠟",
+    r:"⠗",
+    s:"⠎",
+    t:"⠞",
+
+    u:"⠥",
+    v:"⠧",
+    w:"⠺",
+    x:"⠭",
+    y:"⠽",
+    z:"⠵",
+
+    ".":"⠲",
+    ",":"⠂",
+    "?":"⠦",
+    "!":"⠖",
+    ":":"⠒",
+    ";":"⠆",
+    "-":"⠤",
+    "'":"⠄",
+    "(":"⠷",
+    ")":"⠾"
+
+};
+
+
+const numberMap = {
+
+    "1":"⠁",
+    "2":"⠃",
+    "3":"⠉",
+    "4":"⠙",
+    "5":"⠑",
+    "6":"⠋",
+    "7":"⠛",
+    "8":"⠓",
+    "9":"⠊",
+    "0":"⠚"
+
+};
+
+
+const reverseMap = {};
+
+for(const key in brailleMap){
+
+    reverseMap[
+        brailleMap[key]
+    ] = key;
+
+}
+
+
+/* ==================================================
+   TRANSLATOR
+================================================== */
+
+const inputBox =
+    document.getElementById("inputBox");
+
+const outputBox =
+    document.getElementById("outputBox");
+
+let mode = "text";
+
+
+function setMode(newMode){
+
+    mode = newMode;
+
+
+    document
+        .getElementById("textModeBtn")
+        .classList.toggle(
+            "active",
+            mode === "text"
+        );
+
+
+    document
+        .getElementById("brailleModeBtn")
+        .classList.toggle(
+            "active",
+            mode === "braille"
+        );
+
+
+    if(mode === "text"){
+
+        inputBox.readOnly = false;
+        outputBox.readOnly = true;
+
+        inputBox.classList.remove(
+            "braille-input"
+        );
+
+        outputBox.classList.add(
+            "braille-output"
+        );
+
+        document.getElementById(
+            "inputTitle"
+        ).textContent =
+            ui("text");
+
+        document.getElementById(
+            "outputTitle"
+        ).textContent =
+            ui("braille");
+
+        inputBox.placeholder =
+            ui("textPlaceholder");
+
+        outputBox.placeholder =
+            ui("brailleResult");
+
+        document.getElementById(
+            "modeDescription"
+        ).textContent =
+            ui("textDescription");
+
+        translateText();
+
+    }else{
+
+        inputBox.readOnly = false;
+        outputBox.readOnly = true;
+
+        inputBox.classList.add(
+            "braille-input"
+        );
+
+        outputBox.classList.remove(
+            "braille-output"
+        );
+
+        document.getElementById(
+            "inputTitle"
+        ).textContent =
+            ui("braille");
+
+        document.getElementById(
+            "outputTitle"
+        ).textContent =
+            ui("text");
+
+        inputBox.placeholder =
+            ui("braillePlaceholder");
+
+        outputBox.placeholder =
+            ui("textResult");
+
+        document.getElementById(
+            "modeDescription"
+        ).textContent =
+            ui("brailleDescription");
+
+        translateBraille();
+
+    }
+
+}
+
+
+/* ==================================================
+   TEXT → BRAILLE
+================================================== */
+
+function translateText(){
+
+    if(mode !== "text"){
+        return;
+    }
+
+
+    const text =
+        inputBox.value;
+
+    let result = "";
+
+    let numberMode = false;
+
+
+    for(let i=0;i<text.length;i++){
+
+        const ch =
+            text[i];
+
+        const lower =
+            ch.toLowerCase();
+
+
+        if(/[0-9]/.test(ch)){
+
+            if(!numberMode){
+
+                result += "⠼";
+
+                numberMode = true;
+
+            }
+
+            result +=
+                numberMap[ch];
+
+            continue;
+
+        }
+
+
+        if(ch === " "){
+
+            result += " ";
+
+            numberMode = false;
+
+            continue;
+
+        }
+
+
+        if(/[A-Z]/.test(ch)){
+
+            result += "⠠";
+
+        }
+
+
+        if(brailleMap[lower]){
+
+            result +=
+                brailleMap[lower];
+
+        }else{
+
+            result += ch;
+
+        }
+
+
+        numberMode = false;
+
+    }
+
+
+    outputBox.value =
+        result;
+
+}
+
+
+/* ==================================================
+   BRAILLE → TEXT
+================================================== */
+
+function translateBraille(){
+
+    if(mode !== "braille"){
+        return;
+    }
+
+
+    const value =
+        inputBox.value;
+
+    let result = "";
+
+    let numberMode = false;
+    let capitalMode = false;
+
+
+    const numbers = {
+
+        "⠁":"1",
+        "⠃":"2",
+        "⠉":"3",
+        "⠙":"4",
+        "⠑":"5",
+        "⠋":"6",
+        "⠛":"7",
+        "⠓":"8",
+        "⠊":"9",
+        "⠚":"0"
+
+    };
+
+
+    for(let i=0;i<value.length;i++){
+
+        const ch =
+            value[i];
+
+
+        if(ch === "⠼"){
+
+            numberMode = true;
+
+            continue;
+
+        }
+
+
+        if(ch === "⠠"){
+
+            capitalMode = true;
+
+            continue;
+
+        }
+
+
+        if(ch === " "){
+
+            result += " ";
+
+            numberMode = false;
+            capitalMode = false;
+
+            continue;
+
+        }
+
+
+        if(numberMode){
+
+            if(numbers[ch]){
+
+                result +=
+                    numbers[ch];
+
+                continue;
+
+            }
+
+            numberMode = false;
+
+        }
+
+
+        if(reverseMap[ch]){
+
+            let letter =
+                reverseMap[ch];
+
+
+            if(capitalMode){
+
+                letter =
+                    letter.toUpperCase();
+
+                capitalMode = false;
+
+            }
+
+
+            result +=
+                letter;
+
+        }else{
+
+            result += ch;
+
+        }
+
+    }
+
+
+    outputBox.value =
+        result;
+
+}
+
+
+inputBox.addEventListener(
+    "input",
+    () => {
+
+        if(mode === "text"){
+
+            translateText();
+
+        }else{
+
+            translateBraille();
+
+        }
+
+    }
+);
+
+
+/* ==================================================
+   BRAILLE KEYBOARD MODE
+================================================== */
+
+let keyboardMode =
+    localStorage.getItem(
+        "brailleKeyboardMode"
+    ) || "nonmulti";
+
+
+const keyboardModeSelect =
+    document.getElementById(
+        "keyboardMode"
+    );
+
+
+keyboardModeSelect.value =
+    keyboardMode;
+
+
+function changeKeyboardMode(){
+
+    keyboardMode =
+        keyboardModeSelect.value;
+
+
+    localStorage.setItem(
+        "brailleKeyboardMode",
+        keyboardMode
+    );
+
+
+    clearSelectedDots();
+
+    updateKeyboardStatus();
+
+}
+
+
+/* ==================================================
+   TOUCH DOT STATE
+================================================== */
+
+const selectedDots =
+    new Set();
+
+
+const activePointers =
+    new Map();
+
+
+const dotButtons =
+    document.querySelectorAll(
+        ".dot-btn"
+    );
+
+
+function ensureBrailleMode(){
+
+    if(mode !== "braille"){
+
+        setMode("braille");
+
+    }
+
+}
+
+
+function clearSelectedDots(){
+
+    selectedDots.clear();
+
+    activePointers.clear();
+
+
+    dotButtons.forEach(button => {
+
+        button.classList.remove(
+            "selected"
+        );
+
+        button.classList.remove(
+            "active-touch"
+        );
+
+    });
+
+}
+
+
+/* ==================================================
+   NON-MULTITOUCH
+================================================== */
+
+function nonMultiClick(button){
+
+    ensureBrailleMode();
+
+
+    const dot =
+        Number(
+            button.dataset.dot
+        );
+
+
+    if(selectedDots.has(dot)){
+
+        selectedDots.delete(dot);
+
+        button.classList.remove(
+            "selected"
+        );
+
+    }else{
+
+        selectedDots.add(dot);
+
+        button.classList.add(
+            "selected"
+        );
+
+    }
+
+
+    updateKeyboardStatus();
+
+}
+
+
+/* ==================================================
+   MULTITOUCH
+================================================== */
+
+let multiGestureDots =
+    new Set();
+
+
+function handleMultiDown(
+    event,
+    button
+){
+
+    ensureBrailleMode();
+
+    event.preventDefault();
+
+
+    const dot =
+        Number(
+            button.dataset.dot
+        );
+
+
+    multiGestureDots.add(dot);
+
+
+    activePointers.set(
+        event.pointerId,
+        dot
+    );
+
+
+    button.classList.add(
+        "active-touch"
+    );
+
+
+    try{
+
+        button.setPointerCapture(
+            event.pointerId
+        );
+
+    }catch(e){}
+
+
+    updateMultiStatus();
+
+}
+
+
+function handleMultiUp(
+    event,
+    button
+){
+
+    event.preventDefault();
+
+
+    button.classList.remove(
+        "active-touch"
+    );
+
+
+    activePointers.delete(
+        event.pointerId
+    );
+
+
+    if(activePointers.size === 0){
+
+        const dots =
+            [...multiGestureDots]
+            .sort((a,b)=>a-b);
+
+
+        if(dots.length > 0){
+
+            inputBox.value +=
+                dotsToUnicode(dots);
+
+            translateBraille();
+
+        }
+
+
+        multiGestureDots.clear();
+
+
+        dotButtons.forEach(btn => {
+
+            btn.classList.remove(
+                "active-touch"
+            );
+
+        });
+
+
+        updateKeyboardStatus();
+
+        inputBox.focus();
+
+    }
+
+}
+
+
+function updateMultiStatus(){
+
+    const dots =
+        [...multiGestureDots]
+        .sort((a,b)=>a-b);
+
+
+    if(dots.length === 0){
+
+        document.getElementById(
+            "keyboardStatus"
+        ).textContent =
+            ui("multiInstruction");
+
+        return;
+
+    }
+
+
+    document.getElementById(
+        "keyboardStatus"
+    ).textContent =
+        ui("selectedDots") +
+        " " +
+        dots.join(", ") +
+        " → " +
+        dotsToUnicode(dots);
+
+}
+
+
+/* ==================================================
+   DOT EVENT HANDLERS
+================================================== */
+
+dotButtons.forEach(button => {
+
+    button.addEventListener(
+        "pointerdown",
+        event => {
+
+            if(keyboardMode === "multi"){
+
+                handleMultiDown(
+                    event,
+                    button
+                );
+
+            }
+
+        }
+    );
+
+
+    button.addEventListener(
+        "pointerup",
+        event => {
+
+            if(keyboardMode === "multi"){
+
+                handleMultiUp(
+                    event,
+                    button
+                );
+
+            }
+
+        }
+    );
+
+
+    button.addEventListener(
+        "pointercancel",
+        event => {
+
+            if(keyboardMode === "multi"){
+
+                activePointers.delete(
+                    event.pointerId
+                );
+
+                button.classList.remove(
+                    "active-touch"
+                );
+
+                if(activePointers.size === 0){
+
+                    multiGestureDots.clear();
+
+                    updateKeyboardStatus();
+
+                }
+
+            }
+
+        }
+    );
+
+
+    button.addEventListener(
+        "click",
+        () => {
+
+            if(keyboardMode === "nonmulti"){
+
+                nonMultiClick(
+                    button
+                );
+
+            }
+
+        }
+    );
+
+});
+
+
+/* ==================================================
+   DOT → UNICODE
+================================================== */
+
+function dotsToUnicode(dots){
+
+    let value =
+        0x2800;
+
+
+    dots.forEach(dot => {
+
+        value |=
+            1 << (dot - 1);
+
+    });
+
+
+    return String.fromCodePoint(
+        value
+    );
+
+}
+
+
+/* ==================================================
+   ENTER
+================================================== */
+
+document.getElementById(
+    "touchEnter"
+).addEventListener(
+    "click",
+    () => {
+
+        ensureBrailleMode();
+
+
+        if(
+            keyboardMode === "nonmulti" &&
+            selectedDots.size > 0
+        ){
+
+            const dots =
+                [...selectedDots]
+                .sort((a,b)=>a-b);
+
+
+            inputBox.value +=
+                dotsToUnicode(dots);
+
+
+            clearSelectedDots();
+
+            translateBraille();
+
+            updateKeyboardStatus();
+
+            inputBox.focus();
+
+            return;
+
+        }
+
+
+        if(
+            keyboardMode === "multi" &&
+            multiGestureDots.size > 0
+        ){
+
+            const dots =
+                [...multiGestureDots]
+                .sort((a,b)=>a-b);
+
+
+            inputBox.value +=
+                dotsToUnicode(dots);
+
+
+            multiGestureDots.clear();
+
+            activePointers.clear();
+
+
+            dotButtons.forEach(button => {
+
+                button.classList.remove(
+                    "active-touch"
+                );
+
+            });
+
+
+            translateBraille();
+
+            updateKeyboardStatus();
+
+            inputBox.focus();
+
+        }
+
+    }
+);
+
+
+/* ==================================================
+   SPACE
+================================================== */
+
+document.getElementById(
+    "touchSpace"
+).addEventListener(
+    "click",
+    () => {
+
+        ensureBrailleMode();
+
+
+        if(
+            keyboardMode === "nonmulti" &&
+            selectedDots.size > 0
+        ){
+
+            const dots =
+                [...selectedDots]
+                .sort((a,b)=>a-b);
+
+
+            inputBox.value +=
+                dotsToUnicode(dots);
+
+
+            clearSelectedDots();
+
+        }
+
+
+        if(
+            keyboardMode === "multi" &&
+            multiGestureDots.size > 0
+        ){
+
+            const dots =
+                [...multiGestureDots]
+                .sort((a,b)=>a-b);
+
+
+            inputBox.value +=
+                dotsToUnicode(dots);
+
+
+            multiGestureDots.clear();
+
+        }
+
+
+        inputBox.value +=
+            " ";
+
+
+        translateBraille();
+
+        updateKeyboardStatus();
+
+        inputBox.focus();
+
+    }
+);
+
+
+/* ==================================================
+   KEYBOARD STATUS
+================================================== */
+
+function updateKeyboardStatus(){
+
+    const status =
+        document.getElementById(
+            "keyboardStatus"
+        );
+
+
+    if(keyboardMode === "multi"){
+
+        if(multiGestureDots.size === 0){
+
+            status.textContent =
+                ui("multiInstruction");
+
+        }else{
+
+            updateMultiStatus();
+
+        }
+
+        return;
+
+    }
+
+
+    const dots =
+        [...selectedDots]
+        .sort((a,b)=>a-b);
+
+
+    if(dots.length === 0){
+
+        status.textContent =
+            ui("nonMultiInstruction");
+
+        return;
+
+    }
+
+
+    status.textContent =
+        ui("selectedDots") +
+        " " +
+        dots.join(", ") +
+        " → " +
+        dotsToUnicode(dots);
+
+}
+
+
+/* ==================================================
+   PERKINS
+================================================== */
+
+const perkinsMap = {
+
+    KeyZ:1,
+    KeyX:2,
+    KeyC:3,
+
+    KeyB:4,
+    KeyN:5,
+    KeyM:6
+
+};
+
+
+const pressedPerkins =
+    new Set();
+
+const perkinsDots =
+    new Set();
+
+
+function isPhoneOrTablet(){
+
+    const ua =
+        navigator.userAgent || "";
+
+
+    const mobile =
+        /Android|iPhone|iPad|iPod|Windows Phone|Mobile/i
+        .test(ua);
+
+
+    const ipadOS =
+        navigator.platform === "MacIntel" &&
+        navigator.maxTouchPoints > 1;
+
+
+    return mobile || ipadOS;
+
+}
+
+
+const perkinsSupported =
+    !isPhoneOrTablet();
+
+
+const perkinsCard =
+    document.getElementById(
+        "perkinsCard"
+    );
+
+
+const perkinsWarning =
+    document.getElementById(
+        "perkinsWarning"
+    );
+
+
+function updatePerkinsLanguage(){
+
+    if(!perkinsSupported){
+
+        perkinsCard.classList.add(
+            "perkins-disabled"
+        );
+
+        perkinsWarning.textContent =
+            ui("perkinsMobile");
+
+    }else{
+
+        perkinsWarning.textContent =
+            ui("perkinsComputer");
+
+    }
+
+}
+
+
+function commitPerkins(){
+
+    if(perkinsDots.size === 0){
+        return;
+    }
+
+
+    if(mode !== "braille"){
+
+        setMode("braille");
+
+    }
+
+
+    const dots =
+        [...perkinsDots]
+        .sort((a,b)=>a-b);
+
+
+    inputBox.value +=
+        dotsToUnicode(dots);
+
+
+    perkinsDots.clear();
+    pressedPerkins.clear();
+
+
+    document.querySelectorAll(
+        ".perkins-key"
+    ).forEach(button => {
+
+        button.classList.remove(
+            "selected"
+        );
+
+    });
+
+
+    translateBraille();
+
+    inputBox.focus();
+
+}
+
+
+if(perkinsSupported){
+
+    document.addEventListener(
+        "keydown",
+        event => {
+
+            if(mode !== "braille"){
+                return;
+            }
+
+
+            const dot =
+                perkinsMap[event.code];
+
+
+            if(dot){
+
+                event.preventDefault();
+
+
+                if(
+                    !pressedPerkins.has(
+                        event.code
+                    )
+                ){
+
+                    pressedPerkins.add(
+                        event.code
+                    );
+
+                    perkinsDots.add(
+                        dot
+                    );
+
+
+                    const key =
+                        document.querySelector(
+                            `.perkins-key[data-perkins="${dot}"]`
+                        );
+
+
+                    if(key){
+
+                        key.classList.add(
+                            "selected"
+                        );
+
+                    }
+
+                }
+
+                return;
+
+            }
+
+
+            if(event.code === "Space"){
+
+                event.preventDefault();
+
+
+                if(perkinsDots.size > 0){
+
+                    commitPerkins();
+
+                }else{
+
+                    inputBox.value +=
+                        " ";
+
+                    translateBraille();
+
+                }
+
+                return;
+
+            }
+
+
+            if(event.code === "Enter"){
+
+                if(perkinsDots.size > 0){
+
+                    event.preventDefault();
+
+                    commitPerkins();
+
+                }
+
+            }
+
+        }
+    );
+
+
+    document.addEventListener(
+        "keyup",
+        event => {
+
+            const dot =
+                perkinsMap[event.code];
+
+
+            if(!dot){
+                return;
+            }
+
+
+            event.preventDefault();
+
+
+            pressedPerkins.delete(
+                event.code
+            );
+
+
+            if(
+                pressedPerkins.size === 0 &&
+                perkinsDots.size > 0
+            ){
+
+                commitPerkins();
+
+            }
+
+        }
+    );
+
+}
+
+
+/* ==================================================
+   UNICODE REFERENCE
+================================================== */
+
+const abcLayout = [
+
+    [
+        "a","b","c","d","e",
+        "f","g","h","i","j"
+    ],
+
+    [
+        "k","l","m","n","o",
+        "p","q","r","s"
+    ],
+
+    [
+        "t","u","v","w","x",
+        "y","z"
+    ]
+
+];
+
+
+const qwertLayout = [
+
+    [
+        "q","w","e","r","t",
+        "y","u","i","o","p"
+    ],
+
+    [
+        "a","s","d","f","g",
+        "h","j","k","l"
+    ],
+
+    [
+        "z","x","c","v","b",
+        "n","m"
+    ]
+
+];
+
+
+function changeReferenceMode(){
+
+    const value =
+        document.getElementById(
+            "referenceMode"
+        ).value;
+
+
+    const empty =
+        document.getElementById(
+            "referenceEmpty"
+        );
+
+
+    const board =
+        document.getElementById(
+            "referenceBoard"
+        );
+
+
+    const keyboard =
+        document.getElementById(
+            "referenceKeyboard"
+        );
+
+
+    const label =
+        document.getElementById(
+            "referenceLabel"
+        );
+
+
+    if(value === ""){
+
+        empty.style.display =
+            "block";
+
+        board.classList.remove(
+            "show"
+        );
+
+        keyboard.innerHTML =
+            "";
+
+        return;
+
+    }
+
+
+    empty.style.display =
+        "none";
+
+    board.classList.add(
+        "show"
+    );
+
+
+    keyboard.innerHTML =
+        "";
+
+
+    if(value === "abc"){
+
+        label.textContent =
+            ui("abcReference");
+
+        buildReferenceKeyboard(
+            abcLayout
+        );
+
+    }
+
+
+    if(value === "qwert"){
+
+        label.textContent =
+            ui("qwertReference");
+
+        buildReferenceKeyboard(
+            qwertLayout
+        );
+
+    }
+
+}
+
+
+function buildReferenceKeyboard(
+    layout
+){
+
+    const keyboard =
+        document.getElementById(
+            "referenceKeyboard"
+        );
+
+
+    layout.forEach(
+        (row,index) => {
+
+            const rowElement =
+                document.createElement(
+                    "div"
+                );
+
+
+            rowElement.className =
+                "reference-row row-" +
+                (index + 1);
+
+
+            row.forEach(
+                letter => {
+
+                    const button =
+                        document.createElement(
+                            "button"
+                        );
+
+
+                    button.className =
+                        "unicode-key";
+
+
+                    button.innerHTML = `
+
+                        <span class="unicode-letter">
+                            ${letter.toUpperCase()}
+                        </span>
+
+                        <span class="unicode-braille">
+                            ${brailleMap[letter]}
+                        </span>
+
+                    `;
+
+
+                    button.addEventListener(
+                        "click",
+                        () => {
+
+                            ensureBrailleMode();
+
+
+                            inputBox.value +=
+                                brailleMap[
+                                    letter
+                                ];
+
+
+                            translateBraille();
+
+                            inputBox.focus();
+
+                        }
+                    );
+
+
+                    rowElement.appendChild(
+                        button
+                    );
+
+                }
+            );
+
+
+            keyboard.appendChild(
+                rowElement
+            );
+
+        }
+    );
+
+}
+
+
+/* ==================================================
+   COPY
+================================================== */
+
+async function copyBox(id){
+
+    const box =
+        document.getElementById(id);
+
+
+    try{
+
+        await navigator.clipboard
+            .writeText(
+                box.value
+            );
+
+    }catch(error){
+
+        box.select();
+
+        document.execCommand(
+            "copy"
+        );
+
+    }
+
+}
+
+
+/* ==================================================
+   CLEAR
+================================================== */
+
+function clearAll(){
+
+    inputBox.value =
+        "";
+
+    outputBox.value =
+        "";
+
+
+    clearSelectedDots();
+
+
+    multiGestureDots.clear();
+
+
+    perkinsDots.clear();
+    pressedPerkins.clear();
+
+
+    document.querySelectorAll(
+        ".perkins-key"
+    ).forEach(button => {
+
+        button.classList.remove(
+            "selected"
+        );
+
+    });
+
+
+    updateKeyboardStatus();
+
+    inputBox.focus();
+
+}
+
+
+/* ==================================================
+   THEME
+================================================== */
+
+function setTheme(theme){
+
+    document.body.classList.remove(
+        "dark",
+        "lowvision"
+    );
+
+
+    if(theme === "dark"){
+
+        document.body.classList.add(
+            "dark"
+        );
+
+    }
+
+
+    if(theme === "lowvision"){
+
+        document.body.classList.add(
+            "lowvision"
+        );
+
+    }
+
+
+    localStorage.setItem(
+        "brailleTheme",
+        theme
+    );
+
+}
+
+
+/* ==================================================
+   LANGUAGE
+================================================== */
+
+const translations = {
+
+    /* =========================================
+       INDONESIA
+    ========================================= */
+
+    id: {
+
+        title:
+            "⠃⠗⠁⠊⠇⠇⠑ Braille Translator",
+
+        subtitle:
+            "Translator instan • Keyboard Braille • Mesin Tik Perkins",
+
+        language:
+            "🌐 Bahasa",
+
+        light:
+            "☀️ Light",
+
+        dark:
+            "🌙 Dark",
+
+        lowvision:
+            "👁️ Low Vision",
+
+        textMode:
+            "📝 Teks → Braille",
+
+        brailleMode:
+            "⠃⠗⠁⠊⠇⠇⠑ Braille → Teks",
+
+        text:
+            "📝 Teks",
+
+        braille:
+            "⠃⠗⠁⠊⠇⠇⠑ Braille",
+
+        textPlaceholder:
+            "Ketik teks di sini...",
+
+        braillePlaceholder:
+            "Masukkan Braille di sini...",
+
+        brailleResult:
+            "Hasil Braille...",
+
+        textResult:
+            "Hasil teks...",
+
+        textDescription:
+            "Ketik teks di sebelah kiri. Braille otomatis muncul di sebelah kanan.",
+
+        brailleDescription:
+            "Masukkan Unicode Braille atau gunakan keyboard Braille/Perkins. Teks otomatis muncul di sebelah kanan.",
+
+        copy:
+            "📋 Copy",
+
+        clear:
+            "🗑️ Clear",
+
+        keyboardTitle:
+            "⌨️ Keyboard Braille 6 Titik",
+
+        keyboardMode:
+            "Mode",
+
+        multi:
+            "1. Multitouch",
+
+        nonmulti:
+            "2. Non-multitouch",
+
+        keyboardSubtitle:
+            "Kiri = titik 1, 2, 3 | Kanan = titik 4, 5, 6",
+
+        space:
+            "SPACE",
+
+        enter:
+            "✓ ENTER",
+
+        selectDots:
+            "Pilih satu atau beberapa titik.",
+
+        nonMultiInstruction:
+            "Pilih titik satu per satu, lalu tekan ENTER.",
+
+        multiInstruction:
+            "Tekan beberapa titik bersamaan dengan beberapa jari.",
+
+        selectedDots:
+            "Titik",
+
+        perkinsTitle:
+            "💻 Mesin Tik Perkins",
+
+        perkinsNote:
+            "Hanya untuk keyboard fisik komputer/laptop.<br>Z = 1, X = 2, C = 3 &nbsp;&nbsp;&nbsp; B = 4, N = 5, M = 6<br>Tekan beberapa tombol bersamaan untuk membuat satu karakter Braille.",
+
+        perkinsComputer:
+            "💻 Perkins aktif saat mode Braille → Teks. ZXC = titik 1–3, BNM = titik 4–6.",
+
+        perkinsMobile:
+            "📱 Perkins ZXC/BNM tidak tersedia di HP/tablet. Gunakan keyboard Braille 6 titik.",
+
+        referenceTitle:
+            "🔤 Referensi Unicode A–Z",
+
+        selectMode:
+            "-- Pilih Mode --",
+
+        abcMode:
+            "1. Mode ABCDE",
+
+        qwertMode:
+            "2. Mode QWERT",
+
+        referenceEmpty:
+            "Pilih mode terlebih dahulu.<br>Keyboard Unicode akan muncul di sini.",
+
+        abcReference:
+            "Mode ABCDE — alfabet A–Z dengan bentuk keyboard komputer",
+
+        qwertReference:
+            "Mode QWERT — susunan keyboard komputer QWERTY"
+
+    },
+
+
+    /* =========================================
+       ENGLISH
+    ========================================= */
+
+    en: {
+
+        title:
+            "⠃⠗⠁⠊⠇⠇⠑ Braille Translator",
+
+        subtitle:
+            "Instant Translator • Braille Keyboard • Perkins Brailler",
+
+        language:
+            "🌐 Language",
+
+        light:
+            "☀️ Light",
+
+        dark:
+            "🌙 Dark",
+
+        lowvision:
+            "👁️ Low Vision",
+
+        textMode:
+            "📝 Text → Braille",
+
+        brailleMode:
+            "⠃⠗⠁⠊⠇⠇⠑ Braille → Text",
+
+        text:
+            "📝 Text",
+
+        braille:
+            "⠃⠗⠁⠊⠇⠇⠑ Braille",
+
+        textPlaceholder:
+            "Type text here...",
+
+        braillePlaceholder:
+            "Enter Braille here...",
+
+        brailleResult:
+            "Braille result...",
+
+        textResult:
+            "Text result...",
+
+        textDescription:
+            "Type text on the left. Braille appears automatically on the right.",
+
+        brailleDescription:
+            "Enter Unicode Braille or use the Braille/Perkins keyboard. Text appears automatically on the right.",
+
+        copy:
+            "📋 Copy",
+
+        clear:
+            "🗑️ Clear",
+
+        keyboardTitle:
+            "⌨️ 6-Dot Braille Keyboard",
+
+        keyboardMode:
+            "Mode",
+
+        multi:
+            "1. Multitouch",
+
+        nonmulti:
+            "2. Non-multitouch",
+
+        keyboardSubtitle:
+            "Left = dots 1, 2, 3 | Right = dots 4, 5, 6",
+
+        space:
+            "SPACE",
+
+        enter:
+            "✓ ENTER",
+
+        selectDots:
+            "Select one or more dots.",
+
+        nonMultiInstruction:
+            "Select dots one by one, then press ENTER.",
+
+        multiInstruction:
+            "Press multiple dots at the same time with several fingers.",
+
+        selectedDots:
+            "Dots",
+
+        perkinsTitle:
+            "💻 Perkins Brailler",
+
+        perkinsNote:
+            "For physical computer/laptop keyboards only.<br>Z = 1, X = 2, C = 3 &nbsp;&nbsp;&nbsp; B = 4, N = 5, M = 6<br>Press multiple keys together to create one Braille character.",
+
+        perkinsComputer:
+            "💻 Perkins is active in Braille → Text mode. ZXC = dots 1–3, BNM = dots 4–6.",
+
+        perkinsMobile:
+            "📱 Perkins ZXC/BNM is unavailable on phones/tablets. Use the 6-dot Braille keyboard.",
+
+        referenceTitle:
+            "🔤 Unicode A–Z Reference",
+
+        selectMode:
+            "-- Select Mode --",
+
+        abcMode:
+            "1. ABCDE Mode",
+
+        qwertMode:
+            "2. QWERT Mode",
+
+        referenceEmpty:
+            "Select a mode first.<br>The Unicode keyboard will appear here.",
+
+        abcReference:
+            "ABCDE Mode — A–Z alphabet arranged like a computer keyboard",
+
+        qwertReference:
+            "QWERT Mode — QWERTY computer keyboard layout"
+
+    },
+
+
+    /* =========================================
+       INDIA / HINDI
+    ========================================= */
+
+    in: {
+
+        title:
+            "⠃⠗⠁⠊⠇⠇⠑ Braille Translator",
+
+        subtitle:
+            "तुरंत अनुवादक • ब्रेल कीबोर्ड • Perkins Brailler",
+
+        language:
+            "🌐 भाषा",
+
+        light:
+            "☀️ Light",
+
+        dark:
+            "🌙 Dark",
+
+        lowvision:
+            "👁️ Low Vision",
+
+        textMode:
+            "📝 टेक्स्ट → ब्रेल",
+
+        brailleMode:
+            "⠃⠗⠁⠊⠇⠇⠑ ब्रेल → टेक्स्ट",
+
+        text:
+            "📝 टेक्स्ट",
+
+        braille:
+            "⠃⠗⠁⠊⠇⠇⠑ ब्रेल",
+
+        textPlaceholder:
+            "यहाँ टेक्स्ट लिखें...",
+
+        braillePlaceholder:
+            "यहाँ ब्रेल दर्ज करें...",
+
+        brailleResult:
+            "ब्रेल परिणाम...",
+
+        textResult:
+            "टेक्स्ट परिणाम...",
+
+        textDescription:
+            "बाईं ओर टेक्स्ट लिखें। ब्रेल अपने आप दाईं ओर दिखाई देगा।",
+
+        brailleDescription:
+            "Unicode Braille दर्ज करें या Braille/Perkins keyboard का उपयोग करें। टेक्स्ट अपने आप दाईं ओर दिखाई देगा।",
+
+        copy:
+            "📋 Copy",
+
+        clear:
+            "🗑️ Clear",
+
+        keyboardTitle:
+            "⌨️ 6-डॉट ब्रेल कीबोर्ड",
+
+        keyboardMode:
+            "मोड",
+
+        multi:
+            "1. Multitouch",
+
+        nonmulti:
+            "2. Non-multitouch",
+
+        keyboardSubtitle:
+            "बायाँ = डॉट 1, 2, 3 | दायाँ = डॉट 4, 5, 6",
+
+        space:
+            "SPACE",
+
+        enter:
+            "✓ ENTER",
+
+        selectDots:
+            "एक या अधिक डॉट चुनें।",
+
+        nonMultiInstruction:
+            "डॉट को एक-एक करके चुनें, फिर ENTER दबाएँ।",
+
+        multiInstruction:
+            "कई डॉट को एक साथ कई उंगलियों से दबाएँ।",
+
+        selectedDots:
+            "डॉट",
+
+        perkinsTitle:
+            "💻 Perkins Brailler",
+
+        perkinsNote:
+            "केवल कंप्यूटर/लैपटॉप के भौतिक कीबोर्ड के लिए।<br>Z = 1, X = 2, C = 3 &nbsp;&nbsp;&nbsp; B = 4, N = 5, M = 6<br>एक Braille अक्षर बनाने के लिए कई कुंजियाँ एक साथ दबाएँ।",
+
+        perkinsComputer:
+            "💻 Perkins ब्रेल → टेक्स्ट मोड में सक्रिय है। ZXC = डॉट 1–3, BNM = डॉट 4–6।",
+
+        perkinsMobile:
+            "📱 फोन/टैबलेट पर Perkins ZXC/BNM उपलब्ध नहीं है। 6-डॉट Braille keyboard का उपयोग करें।",
+
+        referenceTitle:
+            "🔤 Unicode A–Z संदर्भ",
+
+        selectMode:
+            "-- मोड चुनें --",
+
+        abcMode:
+            "1. ABCDE मोड",
+
+        qwertMode:
+            "2. QWERT मोड",
+
+        referenceEmpty:
+            "पहले एक मोड चुनें।<br>Unicode keyboard यहाँ दिखाई देगा।",
+
+        abcReference:
+            "ABCDE मोड — A–Z अक्षर कंप्यूटर कीबोर्ड की तरह व्यवस्थित",
+
+        qwertReference:
+            "QWERT मोड — QWERTY कंप्यूटर कीबोर्ड लेआउट"
+
+    },
+
+
+    /* =========================================
+       MALAYSIA / BAHASA MELAYU
+    ========================================= */
+
+    ms: {
+
+        title:
+            "⠃⠗⠁⠊⠇⠇⠑ Penterjemah Braille",
+
+        subtitle:
+            "Penterjemah segera • Papan Kekunci Braille • Mesin Taip Perkins",
+
+        language:
+            "🌐 Bahasa",
+
+        light:
+            "☀️ Cerah",
+
+        dark:
+            "🌙 Gelap",
+
+        lowvision:
+            "👁️ Penglihatan Rendah",
+
+        textMode:
+            "📝 Teks → Braille",
+
+        brailleMode:
+            "⠃⠗⠁⠊⠇⠇⠑ Braille → Teks",
+
+        text:
+            "📝 Teks",
+
+        braille:
+            "⠃⠗⠁⠊⠇⠇⠑ Braille",
+
+        textPlaceholder:
+            "Taip teks di sini...",
+
+        braillePlaceholder:
+            "Masukkan Braille di sini...",
+
+        brailleResult:
+            "Hasil Braille...",
+
+        textResult:
+            "Hasil teks...",
+
+        textDescription:
+            "Taip teks di sebelah kiri. Braille akan muncul secara automatik di sebelah kanan.",
+
+        brailleDescription:
+            "Masukkan Unicode Braille atau gunakan papan kekunci Braille/Perkins. Teks akan muncul secara automatik di sebelah kanan.",
+
+        copy:
+            "📋 Salin",
+
+        clear:
+            "🗑️ Padam",
+
+        keyboardTitle:
+            "⌨️ Papan Kekunci Braille 6 Titik",
+
+        keyboardMode:
+            "Mod",
+
+        multi:
+            "1. Multitouch",
+
+        nonmulti:
+            "2. Bukan multitouch",
+
+        keyboardSubtitle:
+            "Kiri = titik 1, 2, 3 | Kanan = titik 4, 5, 6",
+
+        space:
+            "RUANG",
+
+        enter:
+            "✓ ENTER",
+
+        selectDots:
+            "Pilih satu atau beberapa titik.",
+
+        nonMultiInstruction:
+            "Pilih titik satu demi satu, kemudian tekan ENTER.",
+
+        multiInstruction:
+            "Tekan beberapa titik serentak menggunakan beberapa jari.",
+
+        selectedDots:
+            "Titik",
+
+        perkinsTitle:
+            "💻 Mesin Taip Perkins",
+
+        perkinsNote:
+            "Hanya untuk papan kekunci fizikal komputer/komputer riba.<br>Z = 1, X = 2, C = 3 &nbsp;&nbsp;&nbsp; B = 4, N = 5, M = 6<br>Tekan beberapa kekunci serentak untuk menghasilkan satu aksara Braille.",
+
+        perkinsComputer:
+            "💻 Perkins aktif dalam mod Braille → Teks. ZXC = titik 1–3, BNM = titik 4–6.",
+
+        perkinsMobile:
+            "📱 Perkins ZXC/BNM tidak tersedia pada telefon/tablet. Gunakan papan kekunci Braille 6 titik.",
+
+        referenceTitle:
+            "🔤 Rujukan Unicode A–Z",
+
+        selectMode:
+            "-- Pilih Mod --",
+
+        abcMode:
+            "1. Mod ABCDE",
+
+        qwertMode:
+            "2. Mod QWERT",
+
+        referenceEmpty:
+            "Pilih mod terlebih dahulu.<br>Papan kekunci Unicode akan muncul di sini.",
+
+        abcReference:
+            "Mod ABCDE — abjad A–Z disusun seperti papan kekunci komputer",
+
+        qwertReference:
+            "Mod QWERT — susunan papan kekunci komputer QWERTY"
+
+    }
+
+};
+
+
+/* ==================================================
+   LANGUAGE SYSTEM
+================================================== */
+
+let currentLanguage =
+    localStorage.getItem(
+        "brailleLanguage"
+    ) || "id";
+
+
+function ui(key){
+
+    const language =
+        translations[currentLanguage]
+        || translations.id;
+
+
+    return language[key]
+        || translations.id[key]
+        || key;
+
+}
+
+
+function changeLanguage(){
+
+    currentLanguage =
+        document.getElementById(
+            "languageSelect"
+        ).value;
+
+
+    if(!translations[currentLanguage]){
+
+        currentLanguage = "id";
+
+    }
+
+
+    localStorage.setItem(
+        "brailleLanguage",
+        currentLanguage
+    );
+
+
+    updateUI();
+
+}
+
+
+function updateUI(){
+
+    const t =
+        translations[currentLanguage]
+        || translations.id;
+
+
+    /* HTML language */
+
+    if(currentLanguage === "id"){
+
+        document.documentElement.lang =
+            "id";
+
+    }else if(currentLanguage === "en"){
+
+        document.documentElement.lang =
+            "en";
+
+    }else if(currentLanguage === "in"){
+
+        document.documentElement.lang =
+            "hi";
+
+    }else if(currentLanguage === "ms"){
+
+        document.documentElement.lang =
+            "ms";
+
+    }
+
+
+    document.title =
+        t.title;
+
+
+    document.getElementById(
+        "appTitle"
+    ).textContent =
+        t.title;
+
+
+    document.getElementById(
+        "appSubtitle"
+    ).textContent =
+        t.subtitle;
+
+
+    document.getElementById(
+        "languageLabel"
+    ).textContent =
+        t.language;
+
+
+    document.getElementById(
+        "lightBtn"
+    ).textContent =
+        t.light;
+
+
+    document.getElementById(
+        "darkBtn"
+    ).textContent =
+        t.dark;
+
+
+    document.getElementById(
+        "lowVisionBtn"
+    ).textContent =
+        t.lowvision;
+
+
+    document.getElementById(
+        "textModeBtn"
+    ).textContent =
+        t.textMode;
+
+
+    document.getElementById(
+        "brailleModeBtn"
+    ).textContent =
+        t.brailleMode;
+
+
+    document.getElementById(
+        "copyInputBtn"
+    ).textContent =
+        t.copy;
+
+
+    document.getElementById(
+        "copyOutputBtn"
+    ).textContent =
+        t.copy;
+
+
+    document.getElementById(
+        "clearBtn"
+    ).textContent =
+        t.clear;
+
+
+    document.getElementById(
+        "keyboardTitle"
+    ).textContent =
+        t.keyboardTitle;
+
+
+    document.getElementById(
+        "keyboardModeLabel"
+    ).textContent =
+        t.keyboardMode;
+
+
+    document.querySelector(
+        '#keyboardMode option[value="multi"]'
+    ).textContent =
+        t.multi;
+
+
+    document.querySelector(
+        '#keyboardMode option[value="nonmulti"]'
+    ).textContent =
+        t.nonmulti;
+
+
+    document.getElementById(
+        "keyboardSubtitle"
+    ).textContent =
+        t.keyboardSubtitle;
+
+
+    document.getElementById(
+        "touchSpace"
+    ).textContent =
+        t.space;
+
+
+    document.getElementById(
+        "touchEnter"
+    ).textContent =
+        t.enter;
+
+
+    document.getElementById(
+        "perkinsTitle"
+    ).textContent =
+        t.perkinsTitle;
+
+
+    document.getElementById(
+        "perkinsNote"
+    ).innerHTML =
+        t.perkinsNote;
+
+
+    document.getElementById(
+        "referenceTitle"
+    ).textContent =
+        t.referenceTitle;
+
+
+    document.getElementById(
+        "refPlaceholder"
+    ).textContent =
+        t.selectMode;
+
+
+    document.getElementById(
+        "refABC"
+    ).textContent =
+        t.abcMode;
+
+
+    document.getElementById(
+        "refQWERT"
+    ).textContent =
+        t.qwertMode;
+
+
+    document.getElementById(
+        "referenceEmpty"
+    ).innerHTML =
+        t.referenceEmpty;
+
+
+    updatePerkinsLanguage();
+
+
+    setMode(mode);
+
+
+    updateKeyboardStatus();
+
+
+    const ref =
+        document.getElementById(
+            "referenceMode"
+        ).value;
+
+
+    if(ref !== ""){
+
+        changeReferenceMode();
+
+    }
+
+}
+
+
+/* ==================================================
+   THEME LOAD
+================================================== */
+
+const savedTheme =
+    localStorage.getItem(
+        "brailleTheme"
+    ) || "light";
+
+
+setTheme(savedTheme);
+
+
+/* ==================================================
+   INITIAL LANGUAGE
+================================================== */
+
+if(!translations[currentLanguage]){
+
+    currentLanguage = "id";
+
+}
+
+
+document.getElementById(
+    "languageSelect"
+).value =
+    currentLanguage;
+
+
+/* ==================================================
+   INITIALIZE
+================================================== */
+
+setMode("text");
+
+updateKeyboardStatus();
+
+updatePerkinsLanguage();
+
+</script>
+
+</body>
+      </html>
