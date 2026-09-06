@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Referensi Braille A–Z</title>
+<style>
+:root{--bg:#f3f4f6;--card:#fff;--text:#111827;--muted:#6b7280;--border:#d1d5db;--primary:#2563eb;--primary-text:#fff;--key:#e5e7eb}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text);transition:.2s}
+body.dark{--bg:#111827;--card:#1f2937;--text:#f9fafb;--muted:#9ca3af;--border:#374151;--primary:#60a5fa;--primary-text:#111827;--key:#374151}
+body.lowvision{--bg:#000;--card:#000;--text:#fff;--muted:#fff;--border:#fff;--primary:#ffff00;--primary-text:#000;--key:#000}
+.container{max-width:1050px;margin:auto;padding:20px}header{text-align:center;margin-bottom:18px}header h1{margin:0 0 8px;font-size:30px}header p{margin:0;color:var(--muted)}
+.topbar,.theme-bar,.shortcut-row{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap}.topbar{margin:18px 0 12px}.language-box{display:flex;align-items:center;gap:8px}.language-box label{font-weight:bold}
+.language-select{min-width:200px;padding:10px 12px;border:1px solid var(--border);border-radius:9px;background:var(--card);color:var(--text);cursor:pointer}
+.theme-btn,.nav-btn{padding:10px 15px;border-radius:9px;border:1px solid var(--border);background:var(--card);color:var(--text);cursor:pointer;font-weight:bold;text-decoration:none;display:inline-flex;align-items:center;gap:7px}.theme-btn:hover,.nav-btn:hover{border-color:var(--primary)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:0 3px 12px rgba(0,0,0,.06);margin-top:16px}.card h2{margin:0 0 12px;font-size:19px}
+.note{color:var(--muted);line-height:1.6}.shortcut-row{justify-content:flex-start;margin-top:10px}.shortcut-row span{line-height:1.5}
+kbd{font-family:Arial,sans-serif;font-size:12px;padding:4px 7px;border:1px solid var(--border);border-bottom-width:2px;border-radius:5px;background:var(--key);color:var(--text)}
+.table-wrap{overflow:auto;border:1px solid var(--border);border-radius:12px}table{width:100%;border-collapse:collapse;min-width:610px}th,td{padding:13px 12px;border-bottom:1px solid var(--border);text-align:center}th{background:var(--key);font-weight:bold}tr:last-child td{border-bottom:0}
+.letter{font-weight:bold;font-size:18px}.braille{font-size:42px;line-height:1}.dot-pattern{font-weight:bold}
+.footer-note{text-align:center;color:var(--muted);font-size:13px;margin:18px 0 4px}
+@media(max-width:600px){.container{padding:12px}header h1{font-size:24px}.card{padding:13px}.language-box{width:100%;align-items:stretch;flex-direction:column}.language-select{min-width:0;width:100%}.topbar{margin-top:14px}th,td{padding:11px 9px}body.lowvision .braille{font-size:48px}}
+</style>
+</head>
+<body>
+<div class="container">
+<header><h1 id="title">⠃⠗⠁⠊⠇⠇⠑ Referensi Braille A–Z</h1><p id="subtitle">Tabel informasi alfabet Braille standar (A–Z)</p></header>
+<div class="topbar"><div class="language-box"><label id="languageLabel" for="languageSelect">🌐 Bahasa</label><select id="languageSelect" class="language-select" onchange="changeLanguage()"><option value="id">🇮🇩 Indonesia</option><option value="en">🇬🇧 English</option><option value="in">🇮🇳 India</option><option value="ms">🇲🇾 Malaysia</option></select></div></div>
+<div class="theme-bar">
+<button class="theme-btn" onclick="setTheme('light')" id="lightBtn">☀️ Light</button><button class="theme-btn" onclick="setTheme('dark')" id="darkBtn">🌙 Dark</button><button class="theme-btn" onclick="setTheme('lowvision')" id="lowVisionBtn">👁️ Low Vision</button>
+<a class="nav-btn" id="backBtn" href="index.html">← Translator</a>
+</div>
+<div class="card"><h2 id="infoTitle">ℹ️ Informasi</h2><div class="note" id="infoText">Halaman ini hanya sebagai referensi. Tabel tidak memiliki fungsi input.</div>
+<div class="shortcut-row"><span>⌨️</span><span id="shortcutText">Shortcut:</span><kbd>Alt+B</kbd><span id="shortcutBack">kembali ke translator</span><kbd>Alt+1</kbd><span>Light</span><kbd>Alt+2</kbd><span>Dark</span><kbd>Alt+3</kbd><span>Low Vision</span><kbd>Alt+L</kbd><span id="shortcutLang">Bahasa</span></div></div>
+<div class="card"><h2 id="tableTitle">🔤 Tabel Braille A–Z</h2><div class="table-wrap"><table><thead><tr><th id="letterHead">Huruf</th><th id="brailleHead">Braille</th><th id="dotsHead">Titik</th></tr></thead><tbody id="brailleTableBody"></tbody></table></div></div>
+<p class="footer-note" id="footerNote">Referensi ini bersifat informasi dan tidak digunakan sebagai input.</p>
+</div>
+<script>
+const brailleMap={a:"⠁",b:"⠃",c:"⠉",d:"⠙",e:"⠑",f:"⠋",g:"⠛",h:"⠓",i:"⠊",j:"⠚",k:"⠅",l:"⠇",m:"⠍",n:"⠝",o:"⠕",p:"⠏",q:"⠟",r:"⠗",s:"⠎",t:"⠞",u:"⠥",v:"⠧",w:"⠺",x:"⠭",y:"⠽",z:"⠵"};
+const dots={a:"1",b:"12",c:"14",d:"145",e:"15",f:"124",g:"1245",h:"125",i:"24",j:"245",k:"13",l:"123",m:"134",n:"1345",o:"135",p:"1234",q:"12345",r:"1235",s:"234",t:"2345",u:"136",v:"1236",w:"2456",x:"1346",y:"13456",z:"1356"};
+const translations={
+id:{title:"⠃⠗⠁⠊⠇⠇⠑ Referensi Braille A–Z",subtitle:"Tabel informasi alfabet Braille standar (A–Z)",language:"🌐 Bahasa",light:"☀️ Light",dark:"🌙 Dark",lowvision:"👁️ Low Vision",back:"← Translator",infoTitle:"ℹ️ Informasi",infoText:"Halaman ini hanya sebagai referensi. Tabel tidak memiliki fungsi input.",shortcutText:"Shortcut:",shortcutBack:"kembali ke translator",shortcutLang:"Bahasa",tableTitle:"🔤 Tabel Braille A–Z",letterHead:"Huruf",brailleHead:"Braille",dotsHead:"Titik",footer:"Referensi ini bersifat informasi dan tidak digunakan sebagai input."},
+en:{title:"⠃⠗⠁⠊⠇⠇⠑ Braille A–Z Reference",subtitle:"Information table for the standard Braille alphabet (A–Z)",language:"🌐 Language",light:"☀️ Light",dark:"🌙 Dark",lowvision:"👁️ Low Vision",back:"← Translator",infoTitle:"ℹ️ Information",infoText:"This page is reference-only. The table has no input function.",shortcutText:"Shortcuts:",shortcutBack:"back to translator",shortcutLang:"Language",tableTitle:"🔤 Braille A–Z Table",letterHead:"Letter",brailleHead:"Braille",dotsHead:"Dots",footer:"Reference information only; it is not used as input."},
+in:{title:"⠃⠗⠁⠊⠇⠇⠑ ब्रेल A–Z संदर्भ",subtitle:"मानक ब्रेल वर्णमाला (A–Z) की सूचना तालिका",language:"🌐 भाषा",light:"☀️ Light",dark:"🌙 Dark",lowvision:"👁️ Low Vision",back:"← Translator",infoTitle:"ℹ️ जानकारी",infoText:"यह पृष्ठ केवल संदर्भ के लिए है। इस तालिका में input की कोई सुविधा नहीं है।",shortcutText:"शॉर्टकट:",shortcutBack:"translator पर वापस",shortcutLang:"भाषा",tableTitle:"🔤 ब्रेल A–Z तालिका",letterHead:"अक्षर",brailleHead:"ब्रेल",dotsHead:"डॉट",footer:"यह केवल संदर्भ जानकारी है; इसे input के रूप में उपयोग नहीं किया जाता।"},
+ms:{title:"⠃⠗⠁⠊⠇⠇⠑ Rujukan Braille A–Z",subtitle:"Jadual maklumat abjad Braille standard (A–Z)",language:"🌐 Bahasa",light:"☀️ Cerah",dark:"🌙 Gelap",lowvision:"👁️ Penglihatan Rendah",back:"← Penterjemah",infoTitle:"ℹ️ Maklumat",infoText:"Halaman ini hanya untuk rujukan. Jadual ini tidak mempunyai fungsi input.",shortcutText:"Pintasan:",shortcutBack:"kembali ke penterjemah",shortcutLang:"Bahasa",tableTitle:"🔤 Jadual Braille A–Z",letterHead:"Huruf",brailleHead:"Braille",dotsHead:"Titik",footer:"Maklumat rujukan sahaja; tidak digunakan sebagai input."}
+};
+let currentLanguage=localStorage.getItem("brailleLanguage")||"id";
+function ui(k){return (translations[currentLanguage]||translations.id)[k]||translations.id[k]||k}
+function setTheme(t){document.body.classList.remove("dark","lowvision");if(t==="dark")document.body.classList.add("dark");if(t==="lowvision")document.body.classList.add("lowvision");localStorage.setItem("brailleTheme",t)}
+function changeLanguage(){currentLanguage=document.getElementById("languageSelect").value;localStorage.setItem("brailleLanguage",currentLanguage);updateUI()}
+function updateUI(){const t=translations[currentLanguage]||translations.id;document.documentElement.lang=currentLanguage==="in"?"hi":currentLanguage;document.title=t.title;for(const [id,key] of [["title","title"],["subtitle","subtitle"],["languageLabel","language"],["lightBtn","light"],["darkBtn","dark"],["lowVisionBtn","lowvision"],["backBtn","back"],["infoTitle","infoTitle"],["infoText","infoText"],["shortcutText","shortcutText"],["shortcutBack","shortcutBack"],["shortcutLang","shortcutLang"],["tableTitle","tableTitle"],["letterHead","letterHead"],["brailleHead","brailleHead"],["dotsHead","dotsHead"],["footerNote","footer"]])document.getElementById(id).textContent=t[key]}
+function buildTable(){const body=document.getElementById("brailleTableBody");body.innerHTML="";for(const letter of "abcdefghijklmnopqrstuvwxyz"){const tr=document.createElement("tr");tr.innerHTML=`<td class="letter">${letter.toUpperCase()}</td><td class="braille">${brailleMap[letter]}</td><td class="dot-pattern">${dots[letter]}</td>`;body.appendChild(tr)}}
+document.addEventListener("keydown",e=>{if(!e.altKey||e.ctrlKey||e.metaKey)return;const k=e.key.toLowerCase();if(k==="b"){e.preventDefault();location.href="index.html"}else if(k==="1"){e.preventDefault();setTheme("light")}else if(k==="2"){e.preventDefault();setTheme("dark")}else if(k==="3"){e.preventDefault();setTheme("lowvision")}else if(k==="l"){e.preventDefault();const s=document.getElementById("languageSelect");s.focus();try{s.showPicker()}catch(_){}}});
+setTheme(localStorage.getItem("brailleTheme")||"light");document.getElementById("languageSelect").value=currentLanguage;buildTable();updateUI();
+</script>
+</body>
+</html>
