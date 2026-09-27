@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulator Gerhana Matahari & Bulan</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#05070d;--panel:#0d1220;--line:#273149;--text:#eef3ff;
+  --muted:#9aa8c2;--control:#151d30;--control-hover:#1d2942
+}
+body{
+  margin:0;background:radial-gradient(circle at 50% 35%,#111a31 0,var(--bg) 52%,#020308 100%);
+  color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  min-height:100vh
+}
+header{padding:22px 18px 10px;text-align:center}
+h1{margin:0;font-size:clamp(24px,5vw,42px);letter-spacing:.3px}
+header p{color:var(--muted);margin:7px auto 0;max-width:760px}
+.app{max-width:1200px;margin:auto;padding:16px;display:grid;grid-template-columns:330px 1fr;gap:16px}
+.panel,.stage{background:rgba(13,18,32,.88);border:1px solid var(--line);border-radius:18px;box-shadow:0 15px 50px #0008}
+.panel{padding:18px}.group{margin-bottom:18px}
+label,.label{display:block;font-size:13px;font-weight:700;color:#bdc8dd;margin-bottom:8px}
+select,input[type=range],button{width:100%}
+select,button{background:var(--control);color:var(--text);border:1px solid #33405d;border-radius:10px;padding:11px 12px;font-size:14px}
+button{cursor:pointer;font-weight:700}button:hover{background:var(--control-hover)}button:active{transform:translateY(1px)}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #9fb4ff;outline-offset:2px}
+.buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+input[type=range]{accent-color:#b9c7ff}.range-row{display:flex;justify-content:space-between;color:var(--muted);font-size:12px}
+.check{display:flex;align-items:center;gap:8px;color:#c8d1e4;font-size:13px;margin-top:10px}.check input{width:auto}
+.info{font-size:12px;line-height:1.5;color:var(--muted);background:#080d18;border:1px solid #202a42;border-radius:12px;padding:11px}
+.stage{overflow:hidden;min-height:620px;position:relative}
+canvas{width:100%;height:100%;display:block;min-height:620px}
+.badge{position:absolute;left:16px;top:16px;padding:8px 11px;border:1px solid #ffffff20;border-radius:999px;background:#050811aa;backdrop-filter:blur(7px);font-size:12px;color:#dce5ff}
+.legend{position:absolute;right:16px;bottom:16px;background:#050811b8;border:1px solid #ffffff18;border-radius:12px;padding:10px 12px;font-size:11px;color:#b9c4da;line-height:1.5;max-width:230px}
+.footer{text-align:center;color:#66738d;font-size:11px;padding:0 16px 20px}
+.theme-toggle{position:fixed;right:16px;top:16px;z-index:10;width:auto;padding:9px 12px}
+body.light{
+  --bg:#eef2f7;--panel:#fff;--line:#ccd5e2;--text:#172033;--muted:#617089;
+  --control:#f4f7fb;--control-hover:#e8edf5;
+  background:linear-gradient(180deg,#f8fbff,#e9eef5)
+}
+body.light .panel,body.light .stage{background:rgba(255,255,255,.92);box-shadow:0 15px 45px #52607022}
+body.light .info{background:#f4f7fb;border-color:#d7dfeb}
+body.light .badge,body.light .legend{background:#ffffffdd;color:#26344b;border-color:#ccd5e2}
+@media(max-width:850px){.app{grid-template-columns:1fr}.stage,canvas{min-height:500px}}
+</style>
+</head>
+<body>
+<button id="themeToggle" class="theme-toggle" type="button">☀️ Light</button>
+<header>
+  <h1>🌑 Simulator Gerhana</h1>
+  <p>Eksperimen gerhana Bulan, gerhana Matahari, dan simulasi pengamatan gerhana dari permukaan Bulan.</p>
+</header>
+
+<main class="app">
+<section class="panel">
+  <div class="group">
+    <span class="label">Jenis simulasi</span>
+    <select id="mode">
+      <option value="lunar">🌕 Gerhana Bulan (POV Bumi)</option>
+      <option value="solar">☀️ Gerhana Matahari — dari Bumi</option>
+      <option value="moonview">☀️ Gerhana Matahari — POV Bulan</option>
+    </select>
+  </div>
+  <div class="group">
+    <span class="label">Tipe gerhana</span>
+    <select id="type"></select>
+  </div>
+  <div class="group">
+    <span class="label">Point of View (POV)</span>
+    <select id="pov">
+      <option value="observer">Pengamat di permukaan / Default</option>
+      <option value="system">Sistem orbit (Matahari, Bumi, Bulan)</option>
+    </select>
+  </div>
+  <div class="group">
+    <span class="label">Posisi / fase</span>
+    <input id="phase" type="range" min="0" max="100" step="0.01" value="0">
+    <div class="range-row"><span>Kontak awal</span><b id="phaseValue">0%</b><span>Kontak akhir</span></div>
+  </div>
+  <div class="group">
+    <span class="label">Skala objek</span>
+    <input id="scale" type="range" min="60" max="150" value="100">
+    <div class="range-row"><span>Kecil</span><b id="scaleValue">100%</b><span>Besar</span></div>
+  </div>
+  <div class="buttons">
+    <button id="play" type="button">▶ Play</button>
+    <button id="pause" type="button">⏸ Pause</button>
+    <button id="replay" type="button">↻ Replay</button>
+  </div>
+  <label class="check"><input id="labels" type="checkbox" checked>Tampilkan label</label>
+  <label class="check"><input id="stars" type="checkbox" checked>Tampilkan bintang</label>
+  <div class="info" id="description" style="margin-top:16px"></div>
+</section>
+
+<section class="stage">
+  <canvas id="canvas" role="img" aria-label="Simulasi gerhana astronomi"></canvas>
+  <div class="badge" id="badge"></div>
+  <div class="legend" id="legend"></div>
+</section>
+</main>
+
+<div class="footer">Simulasi visual edukatif • Corona Matahari diberi semburat putih ✨</div>
+
+<script>
+"use strict";
+
+const canvas=document.getElementById("canvas");
+const ctx=canvas.getContext("2d");
+if(!ctx) throw new Error("Canvas 2D tidak tersedia.");
+
+const modeEl=document.getElementById("mode");
+const typeEl=document.getElementById("type");
+const povEl=document.getElementById("pov");
+const phaseEl=document.getElementById("phase");
+const scaleEl=document.getElementById("scale");
+const phaseValue=document.getElementById("phaseValue");
+const scaleValue=document.getElementById("scaleValue");
+const labelsEl=document.getElementById("labels");
+const starsEl=document.getElementById("stars");
+const desc=document.getElementById("description");
+const badge=document.getElementById("badge");
+const legend=document.getElementById("legend");
+const playBtn=document.getElementById("play");
+const pauseBtn=document.getElementById("pause");
+const replayBtn=document.getElementById("replay");
+const themeToggle=document.getElementById("themeToggle");
+
+let phase=0;
+let playing=false;
+let animationFrame=0;
+let lastTimestamp=null;
+const ANIMATION_DURATION=8000;
+
+const types={
+  lunar:[
+    ["penumbral","Penumbral","Bulan hanya melewati penumbra."],
+    ["partial","Sebagian","Sebagian permukaan Bulan masuk ke dalam umbra Bumi."],
+    ["total","Total","Seluruh piringan Bulan masuk ke dalam umbra Bumi."]
+  ],
+  solar:[
+    ["partial","Sebagian","Bulan hanya menutupi sebagian piringan Matahari; maksimum visual dibuat sekitar setengah piringan tertutup."],
+    ["total","Total","Bulan menutupi fotosfer Matahari."],
+    ["annular","Cincin","Bulan tampak lebih kecil sehingga Matahari membentuk cincin."],
+    ["hybrid","Hybrid","Gerhana dapat tampak total atau cincin bergantung lokasi."]
+  ],
+  moonview:[
+    ["partial","Sebagian","Dari permukaan Bulan, Bumi mengalami posisi gerhana sebagian."],
+    ["total","Total","Dari permukaan Bulan, Bumi berada di depan Matahari."]
+  ]
+};
+
+function clamp(v,min,max){return Math.max(min,Math.min(max,v));}
+
+function setPhase(v){
+  phase=clamp(Number(v)||0,0,100);
+  phaseEl.value=phase;
+  phaseValue.textContent=`${Math.round(phase)}%`;
+}
+
+function setScale(v){
+  const n=clamp(Number(v)||100,60,150);
+  scaleEl.value=n;
+  scaleValue.textContent=`${Math.round(n)}%`;
+}
+
+function populateTypes(){
+  const list=types[modeEl.value]||types.lunar;
+  typeEl.replaceChildren();
+  for(const item of list){
+    const option=document.createElement("option");
+    option.value=item[0];
+    option.textContent=item[1];
+    typeEl.appendChild(option);
+  }
+  const total=list.find(x=>x[0]==="total");
+  typeEl.value=total?"total":list[0][0];
+  updateText();
+}
+
+function updateText(){
+  const list=types[modeEl.value]||types.lunar;
+  const current=list.find(x=>x[0]===typeEl.value)||list[0];
+  const modeName=modeEl.value==="lunar"?"GERHANA BULAN":
+                 modeEl.value==="solar"?"GERHANA MATAHARI":
+                 "GERHANA MATAHARI • POV BULAN";
+  badge.textContent=`${modeName} • ${current[1].toUpperCase()}`;
+  desc.innerHTML=`<b>${current[1]}</b><br>${current[2]}`;
+  legend.textContent=modeEl.value==="solar"
+    ?"Visualisasi gerhana Matahari. Ukuran dan jarak dibuat ilustratif."
+    :modeEl.value==="moonview"
+    ?"POV dari permukaan Bulan. Bumi menutupi Matahari; corona ditampilkan saat totalitas."
+    :"Visualisasi gerhana Bulan. Skala jarak dibuat ilustratif.";
+}
+
+let cssWidth=0,cssHeight=0,dpr=1;
+
+function resizeCanvas(){
+  const rect=canvas.getBoundingClientRect();
+  cssWidth=Math.max(1,Math.floor(rect.width));
+  cssHeight=Math.max(1,Math.floor(rect.height));
+  dpr=Math.max(1,Math.min(window.devicePixelRatio||1,3));
+  const width=Math.floor(cssWidth*dpr),height=Math.floor(cssHeight*dpr);
+  if(canvas.width!==width||canvas.height!==height){
+    canvas.width=width;canvas.height=height;
+  }
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+
+function clearScene(){
+  ctx.clearRect(0,0,cssWidth,cssHeight);
+  ctx.fillStyle="#03050b";
+  ctx.fillRect(0,0,cssWidth,cssHeight);
+}
+
+function starfield(){
+  if(!starsEl.checked)return;
+  const w=cssWidth,h=cssHeight;
+  ctx.save();
+  for(let i=0;i<150;i++){
+    const x=(i*83.17)%w,y=(i*47.31)%h;
+    const r=.25+((i*17)%10)/18;
+    ctx.globalAlpha=.25+((i*13)%70)/100;
+    ctx.fillStyle="#fff";
+    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();
+}
+
+function glowCircle(x,y,r,core,outer){
+  const g=ctx.createRadialGradient(x,y,r*.15,x,y,r);
+  g.addColorStop(0,core);g.addColorStop(.5,core);g.addColorStop(1,outer);
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+}
+
+function sun(x,y,r){
+  ctx.save();
+  const corona=ctx.createRadialGradient(x,y,r*.7,x,y,r*2.2);
+  corona.addColorStop(0,"rgba(255,255,255,.55)");
+  corona.addColorStop(.35,"rgba(255,245,210,.20)");
+  corona.addColorStop(1,"rgba(255,255,255,0)");
+  ctx.fillStyle=corona;ctx.beginPath();ctx.arc(x,y,r*2.2,0,Math.PI*2);ctx.fill();
+
+  const g=ctx.createRadialGradient(x-r*.25,y-r*.30,r*.08,x,y,r);
+  g.addColorStop(0,"#fffbd7");g.addColorStop(.65,"#ffd54a");g.addColorStop(1,"#e99016");
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
+
+function planet(x,y,r,color){
+  glowCircle(x,y,r*1.18,color,"rgba(0,0,0,0)");
+  const g=ctx.createRadialGradient(x-r*.30,y-r*.35,r*.1,x,y,r);
+  g.addColorStop(0,"#eef4ff");g.addColorStop(.55,color);g.addColorStop(1,"#07101e");
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+
+  if(color==="#d9d5c5"){
+    ctx.save();ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.clip();
+    const craters=[[-.42,-.28,.13],[-.12,-.45,.09],[.22,-.30,.16],[.45,-.05,.10],[-.34,.08,.18],[.03,.04,.11],[.30,.22,.14],[-.08,.32,.17],[-.40,.38,.09],[.42,.43,.08]];
+    craters.forEach(([ox,oy,size])=>{
+      const cx=x+ox*r,cy=y+oy*r,rr=size*r;
+      ctx.fillStyle="rgba(45,42,40,.16)";ctx.beginPath();ctx.arc(cx,cy,rr,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle="rgba(245,242,225,.14)";ctx.lineWidth=Math.max(.7,r*.018);ctx.stroke();
+    });
+    ctx.restore();
+  }
+}
+
+function label(text,x,y){
+  if(!labelsEl.checked)return;
+  ctx.save();ctx.fillStyle="#dbe5ff";ctx.font="600 13px system-ui,sans-serif";ctx.fillText(text,x,y);ctx.restore();
+}
+
+function shadowCone(x,y,direction,radius,kind){
+  const length=Math.max(cssWidth,cssHeight)*1.5;
+  const magnitude=Math.hypot(direction.x,direction.y)||1;
+  const dx=direction.x/magnitude,dy=direction.y/magnitude;
+  const angle=Math.atan2(dy,dx);
+  const px=-Math.sin(angle),py=Math.cos(angle);
+  const width=radius*(kind==="penumbral"?2.8:1.2);
+  const tipX=x+dx*length,tipY=y+dy*length;
+
+  ctx.save();ctx.globalAlpha=.25;ctx.fillStyle="#111827";
+  ctx.beginPath();ctx.moveTo(x+px*width,y+py*width);ctx.lineTo(x-px*width,y-py*width);ctx.lineTo(tipX,tipY);ctx.closePath();ctx.fill();
+  if(kind!=="penumbral"){
+    ctx.globalAlpha=.43;ctx.fillStyle="#05060a";
+    ctx.beginPath();ctx.moveTo(x+px*radius*.8,y+py*radius*.8);ctx.lineTo(x-px*radius*.8,y-py*radius*.8);ctx.lineTo(tipX,tipY);ctx.closePath();ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawLunarObserver(){
+  const w=cssWidth,h=cssHeight,scale=Number(scaleEl.value)/100;
+  const cx=w/2,cy=h*.48;
+  const moonRadius=Math.min(w,h)*.19*scale;
+
+  // POV pengamat di permukaan Bumi: yang terlihat hanya langit dan Bulan.
+  const sky=ctx.createLinearGradient(0,0,0,h);
+  sky.addColorStop(0,"#01030a");sky.addColorStop(.72,"#050914");sky.addColorStop(1,"#101522");
+  ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
+  starfield();
+
+  // Posisi bayangan Bumi bergerak melintasi piringan Bulan selama gerhana.
+  const progress=phase/100;
+  const travel=moonRadius*2.5;
+  const shadowX=cx+(progress-.5)*travel;
+  const shadowY=cy;
+  const shadowRadius=typeEl.value==="penumbral"?moonRadius*1.35:moonRadius*1.05;
+
+  // Bulan bercahaya normal.
+  planet(cx,cy,moonRadius,"#d9d5c5");
+
+  ctx.save();
+  ctx.beginPath();ctx.arc(cx,cy,moonRadius,0,Math.PI*2);ctx.clip();
+
+  if(typeEl.value==="penumbral"){
+    const g=ctx.createRadialGradient(shadowX,shadowY,moonRadius*.15,shadowX,shadowY,shadowRadius);
+    g.addColorStop(0,"rgba(30,30,38,.38)");
+    g.addColorStop(.65,"rgba(20,20,28,.22)");
+    g.addColorStop(1,"rgba(0,0,0,0)");
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(shadowX,shadowY,shadowRadius,0,Math.PI*2);ctx.fill();
+  }else{
+    const distance=Math.abs(shadowX-cx);
+    const influence=clamp(1-distance/(moonRadius*2),0,1);
+    const smooth=influence*influence*(3-2*influence);
+    const g=ctx.createRadialGradient(shadowX,shadowY,0,shadowX,shadowY,shadowRadius*1.15);
+    if(typeEl.value==="total"){
+      const red=.10+smooth*.78;
+      g.addColorStop(0,`rgba(190,42,24,${red})`);
+      g.addColorStop(.55,`rgba(125,28,18,${red*.88})`);
+      g.addColorStop(1,"rgba(35,10,10,.30)");
+    }else{
+      g.addColorStop(0,"rgba(4,3,7,.92)");
+      g.addColorStop(.72,"rgba(10,7,12,.78)");
+      g.addColorStop(1,"rgba(20,12,13,.20)");
+    }
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(shadowX,shadowY,shadowRadius*1.15,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();
+
+  // Garis tipis untuk menonjolkan siluet Bulan tanpa mengubah tampilan objek lain.
+  ctx.save();ctx.strokeStyle="rgba(255,255,255,.18)";ctx.lineWidth=1.2;
+  ctx.beginPath();ctx.arc(cx,cy,moonRadius,0,Math.PI*2);ctx.stroke();ctx.restore();
+
+  label("Bulan",cx-moonRadius,cy+moonRadius+28);
+  if(labelsEl.checked){
+    ctx.save();ctx.fillStyle="#9aa8c2";ctx.font="500 12px system-ui,sans-serif";
+    ctx.fillText("Tampilan dari permukaan Bumi",16,h-18);ctx.restore();
+  }
+}
+
+function drawLunar(){
+  const w=cssWidth,h=cssHeight,scale=Number(scaleEl.value)/100,centerY=h/2;
+  const earthRadius=96*scale,moonRadius=29*scale,earthX=w*.28,earthY=centerY;
+  const orbitRadius=earthRadius*3.35;
+  const angle=-Math.PI/2+(phase/100)*Math.PI;
+  const moonX=earthX+Math.cos(angle)*orbitRadius;
+  const moonY=earthY+Math.sin(angle)*orbitRadius;
+
+  ctx.save();
+  ctx.strokeStyle="#26314b";ctx.lineWidth=1;ctx.setLineDash([5,8]);
+  ctx.beginPath();ctx.arc(earthX,earthY,orbitRadius,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+
+  planet(earthX,earthY,earthRadius,"#2b73c6");
+  label("Bumi",earthX-earthRadius,earthY+earthRadius+24);
+
+  shadowCone(earthX,earthY,{x:1,y:0},earthRadius,typeEl.value);
+
+  let offsetY=0;
+  if(typeEl.value==="partial")offsetY=-moonRadius*.95;
+  if(typeEl.value==="penumbral")offsetY=-moonRadius*1.45;
+
+  const shadowCenterX=earthX+orbitRadius;
+  const shadowCenterY=earthY+offsetY;
+
+  ctx.beginPath();ctx.arc(moonX,moonY,moonRadius,0,Math.PI*2);ctx.clip();
+  ctx.fillStyle=typeEl.value==="penumbral"?"rgba(0,0,0,.34)":"rgba(0,0,0,.13)";
+  ctx.beginPath();ctx.arc(shadowCenterX,shadowCenterY,earthRadius*1.5,0,Math.PI*2);ctx.fill();
+
+  if(typeEl.value!=="penumbral"){
+    const distance=Math.hypot(moonX-shadowCenterX,moonY-shadowCenterY);
+    const influence=clamp(1-distance/(moonRadius*2),0,1);
+    const smooth=influence*influence*(3-2*influence);
+    const radius=Math.max(moonRadius*1.1,earthRadius*.7);
+    const g=ctx.createRadialGradient(shadowCenterX,shadowCenterY,0,shadowCenterX,shadowCenterY,radius);
+
+    if(typeEl.value==="total"){
+      const red=.08+smooth*.88;
+      g.addColorStop(0,`rgba(190,42,24,${red})`);
+      g.addColorStop(.55,`rgba(130,28,18,${red*.9})`);
+      g.addColorStop(1,`rgba(55,10,8,${red*.65})`);
+    }else{
+      g.addColorStop(0,"rgba(5,3,5,.95)");
+      g.addColorStop(.7,"rgba(10,6,7,.88)");
+      g.addColorStop(1,"rgba(20,12,13,.70)");
+    }
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(shadowCenterX,shadowCenterY,radius,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();
+
+  planet(moonX,moonY,moonRadius,"#d9d5c5");
+  label("Bulan",moonX-moonRadius,moonY+moonRadius+22);
+}
+
+function drawSolar(){
+  const w=cssWidth,h=cssHeight,scale=Number(scaleEl.value)/100,cx=w/2,cy=h/2;
+  const sunRadius=92*scale;
+  const hybridPhase=Math.abs(phase-50);
+  const renderType=typeEl.value==="hybrid"?(hybridPhase<=18?"total":"annular"):typeEl.value;
+  const moonRadius=renderType==="annular"?68*scale:90*scale;
+  const travel=(sunRadius+moonRadius)*2.25;
+  const moonX=cx+(phase/100-.5)*travel;
+  const moonY=renderType==="partial"?cy-sunRadius*.56:cy;
+  const distance=Math.hypot(moonX-cx,moonY-cy);
+  const overlap=clamp(1-distance/(sunRadius+moonRadius),0,1);
+  const darkness=renderType==="total"?Math.pow(overlap,1.7)*.9:Math.pow(overlap,1.4)*.58;
+
+  const r=Math.round(72-darkness*55),g=Math.round(165-darkness*125),b=Math.round(220-darkness*170);
+  const sky=ctx.createLinearGradient(0,0,0,h);
+  sky.addColorStop(0,`rgb(${r},${g},${b})`);
+  sky.addColorStop(1,`rgb(${Math.round(145-darkness*115)},${Math.round(205-darkness*165)},${Math.round(235-darkness*190)})`);
+  ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
+  ctx.fillStyle=`rgba(0,4,14,${darkness*.72})`;ctx.fillRect(0,0,w,h);
+
+  ctx.globalAlpha=Math.max(.18,1-darkness*.72);sun(cx,cy,sunRadius);ctx.globalAlpha=1;
+  planet(moonX,moonY,moonRadius,"#05070b");
+
+  if(renderType==="total" && distance <= Math.max(2,sunRadius-moonRadius*.015)){
+    ctx.save();
+    ctx.globalCompositeOperation="screen";
+
+    // Corona berlapis: inner corona + streamer panjang yang tidak seragam.
+    const inner = ctx.createRadialGradient(cx,cy,sunRadius*.96,cx,cy,sunRadius*1.72);
+    inner.addColorStop(0,"rgba(255,255,245,.72)");
+    inner.addColorStop(.22,"rgba(245,246,236,.38)");
+    inner.addColorStop(.62,"rgba(220,228,235,.14)");
+    inner.addColorStop(1,"rgba(255,255,255,0)");
+    ctx.fillStyle=inner;
+    ctx.beginPath();ctx.arc(cx,cy,sunRadius*1.72,0,Math.PI*2);ctx.fill();
+
+    // Streamer corona dengan panjang dan opacity bervariasi.
+    for(let i=0;i<64;i++){
+      const a=(i/64)*Math.PI*2 + Math.sin(i*12.7)*.035;
+      const variation=.72 + .48*Math.abs(Math.sin(i*2.31));
+      const len=sunRadius*(1.35 + variation*2.15);
+      const width=sunRadius*(.012 + .018*(.5+.5*Math.sin(i*4.17)));
+      const sx=cx+Math.cos(a)*sunRadius*.94;
+      const sy=cy+Math.sin(a)*sunRadius*.94;
+      const ex=cx+Math.cos(a)*len;
+      const ey=cy+Math.sin(a)*len;
+
+      const grad=ctx.createLinearGradient(sx,sy,ex,ey);
+      grad.addColorStop(0,"rgba(255,255,250,.22)");
+      grad.addColorStop(.22,"rgba(235,240,245,.10)");
+      grad.addColorStop(1,"rgba(255,255,255,0)");
+      ctx.strokeStyle=grad;
+      ctx.lineWidth=width;
+      ctx.beginPath();
+      ctx.moveTo(sx,sy);
+      ctx.quadraticCurveTo(
+        cx+Math.cos(a+.10)*len*.55,
+        cy+Math.sin(a+.10)*len*.55,
+        ex,ey
+      );
+      ctx.stroke();
+    }
+
+    // Cahaya tipis tepat di tepi Bulan.
+    ctx.strokeStyle="rgba(255,255,250,.82)";
+    ctx.lineWidth=Math.max(1,scale*1.2);
+    ctx.beginPath();ctx.arc(cx,cy,moonRadius+1.2*scale,0,Math.PI*2);ctx.stroke();
+
+    ctx.restore();
+  }
+  label("Matahari",cx-sunRadius,cy+sunRadius+25);
+  label("Bulan",moonX-moonRadius,moonY+moonRadius+25);
+}
+
+function drawMoonView(){
+  const w=cssWidth,h=cssHeight,scale=Number(scaleEl.value)/100;
+  const sky=ctx.createLinearGradient(0,0,0,h);
+  sky.addColorStop(0,"#010207");sky.addColorStop(.68,"#080b12");sky.addColorStop(1,"#141217");
+  ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);starfield();
+
+  const cx=w/2,cy=h*.40,earthRadius=82*scale;
+  const sunRadius=earthRadius*(typeEl.value==="partial"?1.34:1.08);
+  const travel=sunRadius+earthRadius*1.25;
+  const sunX=cx+(phase/100-.5)*2*travel;
+  sun(sunX,cy,sunRadius);
+
+  const distance=Math.abs(sunX-cx);
+  const eclipse=clamp(1-distance/(sunRadius+earthRadius),0,1);
+
+  if(typeEl.value==="total"){
+    const center=clamp(1-Math.abs(phase-50)/18,0,1);
+    if(center>0){
+      ctx.save();
+      ctx.globalAlpha=center;
+      ctx.globalCompositeOperation="screen";
+
+      // Corona Matahari terlihat mengelilingi siluet Bumi dari permukaan Bulan.
+      const corona=ctx.createRadialGradient(cx,cy,earthRadius*.94,cx,cy,earthRadius*2.05);
+      corona.addColorStop(0,"rgba(255,235,190,.66)");
+      corona.addColorStop(.16,"rgba(255,205,130,.38)");
+      corona.addColorStop(.38,"rgba(255,165,82,.20)");
+      corona.addColorStop(.70,"rgba(245,215,170,.07)");
+      corona.addColorStop(1,"rgba(255,160,70,0)");
+      ctx.fillStyle=corona;
+      ctx.beginPath();ctx.arc(cx,cy,earthRadius*2.05,0,Math.PI*2);ctx.fill();
+
+      // Streamer radial untuk efek corona yang lebih alami.
+      for(let i=0;i<48;i++){
+        const a=(i/48)*Math.PI*2 + Math.sin(i*5.7)*.045;
+        const len=earthRadius*(1.25 + .85*(.5+.5*Math.sin(i*2.83)));
+        const sx=cx+Math.cos(a)*earthRadius*.98;
+        const sy=cy+Math.sin(a)*earthRadius*.98;
+        const ex=cx+Math.cos(a)*len;
+        const ey=cy+Math.sin(a)*len;
+        const grad=ctx.createLinearGradient(sx,sy,ex,ey);
+        grad.addColorStop(0,"rgba(255,220,165,.22)");
+        grad.addColorStop(1,"rgba(255,140,50,0)");
+        ctx.strokeStyle=grad;
+        ctx.lineWidth=Math.max(1,earthRadius*.012);
+        ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+  }
+
+  const atmosphere=ctx.createRadialGradient(cx,cy,earthRadius*.88,cx,cy,earthRadius*1.30);
+  atmosphere.addColorStop(0,"rgba(255,72,34,.025)");
+  atmosphere.addColorStop(.62,"rgba(210,45,25,.12)");
+  atmosphere.addColorStop(.84,"rgba(255,92,48,.30)");
+  atmosphere.addColorStop(.94,"rgba(255,125,72,.55)");
+  atmosphere.addColorStop(1,"rgba(255,80,40,0)");
+  ctx.fillStyle=atmosphere;ctx.beginPath();ctx.arc(cx,cy,earthRadius*1.24,0,Math.PI*2);ctx.fill();
+
+  const earth=ctx.createRadialGradient(cx-earthRadius*.28,cy-earthRadius*.32,earthRadius*.08,cx,cy,earthRadius);
+  earth.addColorStop(0,"#26313a");earth.addColorStop(.55,"#11181f");earth.addColorStop(1,"#030507");
+  ctx.fillStyle=earth;ctx.beginPath();ctx.arc(cx,cy,earthRadius,0,Math.PI*2);ctx.fill();
+
+  ctx.save();ctx.strokeStyle="rgba(255,88,48,.62)";ctx.lineWidth=Math.max(2,5*scale);
+  ctx.shadowColor="#ff4d2e";ctx.shadowBlur=14*scale;
+  ctx.beginPath();ctx.arc(cx,cy,earthRadius*1.01,0,Math.PI*2);ctx.stroke();ctx.restore();
+
+  const surface=ctx.createLinearGradient(0,h*.72,0,h);
+  const red=typeEl.value==="total"?eclipse:eclipse*.35;
+  const baseR=Math.round(78+red*58),baseG=Math.round(80-red*48),baseB=Math.round(84-red*55);
+  surface.addColorStop(0,`rgb(${baseR},${baseG},${baseB})`);
+  surface.addColorStop(1,`rgb(${Math.max(35,baseR-35)},${Math.max(25,baseG-35)},${Math.max(28,baseB-38)})`);
+  ctx.fillStyle=surface;ctx.beginPath();ctx.ellipse(cx,h+65,w*.80,h*.34,0,Math.PI,Math.PI*2);ctx.fill();
+
+  const craters=[[-.42,.88,24,15,.12],[-.20,.94,34,19,-.18],[.08,.86,20,13,.28],[.30,.96,31,18,-.12],[.48,.84,18,11,.20],[-.02,.98,15,9,-.35]];
+  ctx.save();ctx.globalAlpha=.35;
+  for(const [dx,dy,rx,ry,rotation] of craters){
+    const x=cx+dx*w,y=dy*h;
+    ctx.fillStyle="#3d3b3c";ctx.beginPath();ctx.ellipse(x,y,rx,ry,rotation,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle="#aaa0a0";ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x-2,y-2,rx*.78,ry*.74,rotation,0,Math.PI*2);ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawSystem(){
+  const w=cssWidth,h=cssHeight,scale=Number(scaleEl.value)/100,cy=h/2;
+  const sunX=w*.12,earthX=w*.67,earthRadius=27*scale,moonRadius=11*scale,sunRadius=60*scale;
+  const orbitRadius=Math.min(w*.20,145)*scale;
+
+  ctx.strokeStyle="#26314b";ctx.lineWidth=1.5;ctx.setLineDash([6,8]);
+  ctx.beginPath();ctx.arc(earthX,cy,orbitRadius,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+
+  sun(sunX,cy,sunRadius);label("Matahari",sunX-sunRadius,cy+sunRadius+25);
+
+  const lunarSystem=modeEl.value==="lunar"||modeEl.value==="moonview";
+  let angle;
+  if(lunarSystem){
+    angle=-Math.PI/2+(phase/100)*Math.PI;
+  }else{
+    angle=Math.PI-(phase/100-.5)*2;
+  }
+
+  const moonX=earthX+Math.cos(angle)*orbitRadius;
+  const moonY=cy+Math.sin(angle)*orbitRadius;
+
+  if(lunarSystem){
+    shadowCone(earthX,cy,{x:1,y:0},earthRadius,typeEl.value);
+  }else{
+    shadowCone(moonX,moonY,{x:moonX-sunX,y:moonY-cy},moonRadius,typeEl.value);
+  }
+
+  planet(earthX,cy,earthRadius,"#2b73c6");label("Bumi",earthX-earthRadius,cy+earthRadius+24);
+  planet(moonX,moonY,moonRadius,"#d9d5c5");label("Bulan",moonX-moonRadius,moonY+moonRadius+18);
+}
+
+function draw(){
+  resizeCanvas();
+  if(cssWidth<=0||cssHeight<=0)return;
+  clearScene();
+
+  if(povEl.value==="system"){
+    starfield();
+    drawSystem();
+    return;
+  }
+
+  if(modeEl.value==="lunar"){
+    if(povEl.value==="observer") drawLunarObserver();
+    else { starfield();drawLunar(); }
+  }else if(modeEl.value==="solar"){
+    drawSolar();
+  }else{
+    drawMoonView();
+  }
+}
+
+/* ===== Mesin animasi =====
+   RAF hanya dibuat satu kali.
+   Timer di-reset ke null saat Play/Replay agar frame pertama
+   setelah tombol ditekan tidak menghasilkan loncatan waktu.
+*/
+function animationLoop(timestamp){
+  if(lastTimestamp===null) lastTimestamp=timestamp;
+
+  const delta=Math.min(100,Math.max(0,timestamp-lastTimestamp));
+  lastTimestamp=timestamp;
+
+  if(playing){
+    phase+=delta/ANIMATION_DURATION*100;
+    if(phase>=100){
+      phase=100;
+      playing=false;
+    }
+    setPhase(phase);
+  }
+
+  draw();
+  animationFrame=requestAnimationFrame(animationLoop);
+}
+
+function playSimulation(){
+  if(phase>=100)setPhase(0);
+  playing=true;
+  lastTimestamp=null;
+  draw();
+}
+
+function pauseSimulation(){
+  playing=false;
+  lastTimestamp=null;
+  draw();
+}
+
+function replaySimulation(){
+  setPhase(0);
+  playing=true;
+  lastTimestamp=null;
+  draw();
+}
+
+function resetForSelection(){
+  playing=false;
+  lastTimestamp=null;
+  setPhase(0);
+}
+
+modeEl.addEventListener("change",()=>{
+  resetForSelection();
+  populateTypes();
+  draw();
+});
+
+typeEl.addEventListener("change",()=>{
+  resetForSelection();
+  updateText();
+  draw();
+});
+
+povEl.addEventListener("change",()=>{
+  resetForSelection();
+  draw();
+});
+
+phaseEl.addEventListener("input",()=>{
+  playing=false;
+  lastTimestamp=null;
+  setPhase(phaseEl.value);
+  draw();
+});
+
+scaleEl.addEventListener("input",()=>{setScale(scaleEl.value);draw()});
+labelsEl.addEventListener("change",draw);
+starsEl.addEventListener("change",draw);
+
+playBtn.addEventListener("click",playSimulation);
+pauseBtn.addEventListener("click",pauseSimulation);
+replayBtn.addEventListener("click",replaySimulation);
+
+themeToggle.addEventListener("click",()=>{
+  document.body.classList.toggle("light");
+  const light=document.body.classList.contains("light");
+  themeToggle.textContent=light?"🌙 Dark":"☀️ Light";
+});
+
+let resizeTimer=0;
+window.addEventListener("resize",()=>{
+  clearTimeout(resizeTimer);
+  resizeTimer=setTimeout(()=>{resizeCanvas();draw()},80);
+});
+
+populateTypes();
+setPhase(0);
+setScale(100);
+resizeCanvas();
+draw();
+animationFrame=requestAnimationFrame(animationLoop);
+</script>
+</body>
+</html>
