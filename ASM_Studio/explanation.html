@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASM Studio — Assembler 8086 Explanation</title>
+<style>
+:root{
+  --bg:#f6f8fa;--panel:#fff;--panel2:#f1f3f5;--line:#d0d7de;
+  --text:#1f2328;--muted:#656d76;--accent:#0969da;--code:#24292f;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,sans-serif;line-height:1.65}
+header{background:var(--panel);border-bottom:1px solid var(--line);padding:24px}
+header .wrap,main{max-width:1050px;margin:auto}
+h1{margin:0 0 6px;font-size:30px}
+h2{margin-top:0;color:var(--accent)}
+h3{margin-bottom:6px}
+.muted{color:var(--muted)}
+nav{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+select,button{padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--text)}
+main{padding:28px 20px 60px}
+section{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;margin:0 0 18px}
+.cardgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.card{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:15px}
+code{background:var(--panel2);padding:2px 5px;border-radius:5px}
+pre{background:var(--code);color:#e6edf3;padding:16px;border-radius:10px;overflow:auto}
+table{width:100%;border-collapse:collapse}
+th,td{border:1px solid var(--line);padding:10px;text-align:left}
+th{background:var(--panel2)}
+.note{border-left:4px solid var(--accent);padding:12px 15px;background:var(--panel2)}
+footer{text-align:center;color:var(--muted);padding:25px}
+body.dark{--bg:#0b1016;--panel:#111820;--panel2:#171e27;--line:#283442;--text:#dce7f5;--muted:#9aabba;--accent:#4da3ff}
+body.hacker{--bg:#020603;--panel:#050a06;--panel2:#071007;--line:#123b18;--text:#b7ffb7;--muted:#5da65d;--accent:#39ff14}
+button a {
+    color: inherit;
+    text-decoration: none;
+  }
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<h1>ASM Studio — Assembler 8086</h1>
+<div class="muted" id="subtitle">Penjelasan singkat mengenai bahasa Assembly dan pemrograman 8086.</div>
+
+<nav>
+	    <button><a href="index.html">Back</a></button>
+
+<select id="language" onchange="setLanguage(this.value)">
+<option value="id">Indonesia</option>
+<option value="hi">India</option>
+<option value="ms">Malaysia</option>
+<option value="en">English</option>
+</select>
+<select id="theme" onchange="setTheme(this.value)">
+<option value="light">Light</option>
+<option value="dark">Dark</option>
+<option value="hacker">Hacker</option>
+
+</select>
+</nav>
+</div></header>
+
+<main>
+<section>
+<h2 data-i18n="what">Apa itu Assembly?</h2>
+<p data-i18n="whatText">Assembly adalah bahasa pemrograman tingkat rendah yang menggunakan mnemonic untuk merepresentasikan instruksi prosesor. Program Assembly sangat dekat dengan cara CPU menjalankan instruksi.</p>
+<div class="note" data-i18n="note">Dalam ASM Studio, contoh dan emulator berfokus pada arsitektur Intel 8086 dan lingkungan MS-DOS.</div>
+</section>
+
+<section>
+<h2 data-i18n="why">Mengapa belajar Assembly 8086?</h2>
+<div class="cardgrid">
+<div class="card"><h3>CPU</h3><p data-i18n="cpu">Memahami register, instruksi, flag, dan alur eksekusi CPU.</p></div>
+<div class="card"><h3>Memory</h3><p data-i18n="memory">Memahami hubungan antara register, alamat memori, stack, dan data.</p></div>
+<div class="card"><h3>Machine Code</h3><p data-i18n="machine">Melihat bagaimana instruksi Assembly diterjemahkan menjadi machine code.</p></div>
+<div class="card"><h3>Debugging</h3><p data-i18n="debug">Mengamati perubahan register dan langkah eksekusi satu per satu.</p></div>
+</div>
+</section>
+
+<section>
+<h2 data-i18n="registers">Register dasar 8086</h2>
+<table>
+<thead><tr><th>Register</th><th>Fungsi umum</th></tr></thead>
+<tbody>
+<tr><td>AX</td><td data-i18n="ax">Accumulator; sering digunakan untuk operasi aritmetika dan data.</td></tr>
+<tr><td>BX</td><td data-i18n="bx">Base register; dapat digunakan sebagai basis alamat.</td></tr>
+<tr><td>CX</td><td data-i18n="cx">Count register; sering digunakan untuk counter dan operasi berulang.</td></tr>
+<tr><td>DX</td><td data-i18n="dx">Data register; digunakan dalam berbagai operasi data dan perkalian/pembagian.</td></tr>
+<tr><td>SI</td><td data-i18n="si">Source Index; umum digunakan sebagai indeks sumber.</td></tr>
+<tr><td>DI</td><td data-i18n="di">Destination Index; umum digunakan sebagai indeks tujuan.</td></tr>
+<tr><td>SP</td><td data-i18n="sp">Stack Pointer; menunjuk ke bagian atas stack.</td></tr>
+<tr><td>BP</td><td data-i18n="bp">Base Pointer; sering digunakan untuk mengakses data pada stack.</td></tr>
+<tr><td>IP</td><td data-i18n="ip">Instruction Pointer; menunjuk ke instruksi berikutnya.</td></tr>
+<tr><td>FLAGS</td><td data-i18n="flags">Menyimpan flag kondisi hasil operasi CPU.</td></tr>
+</tbody>
+</table>
+</section>
+
+<section>
+<h2 data-i18n="instructions">Instruksi yang umum</h2>
+<table>
+<thead><tr><th>Instruksi</th><th>Contoh</th><th>Penjelasan</th></tr></thead>
+<tbody>
+<tr><td>MOV</td><td><code>MOV AX, 5</code></td><td data-i18n="mov">Menyalin nilai dari sumber ke tujuan.</td></tr>
+<tr><td>ADD</td><td><code>ADD AX, BX</code></td><td data-i18n="add">Menambahkan operand sumber ke operand tujuan.</td></tr>
+<tr><td>SUB</td><td><code>SUB AX, BX</code></td><td data-i18n="sub">Mengurangkan operand sumber dari operand tujuan.</td></tr>
+<tr><td>INC</td><td><code>INC AX</code></td><td data-i18n="inc">Menambah nilai operand sebesar satu.</td></tr>
+<tr><td>DEC</td><td><code>DEC AX</code></td><td data-i18n="dec">Mengurangi nilai operand sebesar satu.</td></tr>
+<tr><td>CMP</td><td><code>CMP AX, BX</code></td><td data-i18n="cmp">Membandingkan dua operand dengan memengaruhi flags.</td></tr>
+<tr><td>JMP</td><td><code>JMP label</code></td><td data-i18n="jmp">Melakukan lompatan ke label tertentu.</td></tr>
+<tr><td>CALL / RET</td><td><code>CALL fungsi</code></td><td data-i18n="call">Digunakan untuk memanggil dan kembali dari subroutine.</td></tr>
+</tbody>
+</table>
+</section>
+
+<section>
+<h2>Binary Conversion</h2>
+<pre> ; ============================================
+; Konversi Desimal ke Biner 
+; ============================================
+ORG 100h
+
+; --- Proses Hitung Nyata (Dibagi 2 berulang kali) ---
+MOV AX, 0        ; <--- Angka desimal yang akan dihitung
+MOV BX, 2           ; <--- Angka pembagi (karena biner berbasis 2)
+MOV CX, 16          ; Kita akan membagi 16 kali agar pas menjadi 16-bit
+
+BAGI_DUA:
+    XOR DX, DX      ; (Penting!) Bersihkan register sisa bagi sebelum pembagian
+    DIV BX          ; Bagi AX dengan 2. Hasil bagi masuk ke AX, sisa masuk ke DX.
+    PUSH DX         ; Simpan sisa bagi (0 atau 1) ke dalam memori Stack
+    LOOP BAGI_DUA   ; Ulangi perhitungan ini 16 kali 
+
+; --- Proses Mencetak Hasil ke Layar ---
+MOV CX, 16          ; Atur counter untuk mencetak 16 digit bit
+
+CETAK_BIT:
+    POP DX          ; Ambil sisa bagi dari stack (otomatis membalik urutan angka)
+    ADD DL, '0'     ; Ubah angka mesin (0/1) menjadi teks ASCII ('0'/'1')
+    MOV AH, 02h     ; Perintah cetak 1 karakter
+    INT 21h
+    LOOP CETAK_BIT  ; Ulangi sampai 16 digit tercetak
+
+; --- Cetak huruf 'b' di akhir ---
+MOV DL, 'b'
+MOV AH, 02h
+INT 21h
+
+; --- Program Selesai ---
+MOV AX, 4C00h       ; Exit code
+INT 21h</pre>
+<p>	    <button><a href="../ASM_Studio/Downloads/binary.txt">Download</a></button>
+</p>
+</section>
+
+
+
+<section>
+<h2 data-i18n="example">Contoh program sederhana</h2>
+<pre>; Menjumlahkan dua nilai
+MOV AX, 5
+MOV BX, 3
+ADD AX, BX
+
+; AX sekarang berisi 8</pre>
+<p data-i18n="exampleText">CPU menjalankan instruksi dari atas ke bawah, kecuali alur program diubah oleh instruksi seperti JMP, CALL, atau instruksi percabangan.</p>
+</section>
+
+
+
+
+<section>
+<h2 data-i18n="flagsTitle">Flags dan percabangan</h2>
+<p data-i18n="flagsText">Beberapa instruksi aritmetika dan perbandingan memengaruhi FLAGS. Instruksi percabangan bersyarat dapat menggunakan flag tersebut untuk menentukan apakah lompatan dilakukan.</p>
+<pre>CMP AX, BX
+JE  sama
+JMP selesai
+
+sama:
+; kode ketika AX == BX
+
+selesai:</pre>
+</section>
+
+<section>
+<h2 data-i18n="stackTitle">Stack dan subroutine</h2>
+<p data-i18n="stackText">Stack adalah area memori yang digunakan secara LIFO (Last In, First Out). Instruksi PUSH memasukkan data ke stack, sedangkan POP mengambil data dari stack. CALL dan RET digunakan untuk alur subroutine.</p>
+<pre>PUSH AX
+PUSH BX
+POP BX
+POP AX</pre>
+</section>
+
+<section>
+<h2 data-i18n="studioTitle">Cara memakai ASM Studio</h2>
+<ol>
+<li data-i18n="step1">Tulis program Assembly pada editor.</li>
+<li data-i18n="step2">Gunakan Build Code untuk melakukan assembly.</li>
+<li data-i18n="step3">Gunakan Run Emulator untuk menjalankan program.</li>
+<li data-i18n="step4">Gunakan Step untuk melihat eksekusi instruksi satu per satu.</li>
+<li data-i18n="step5">Amati register, simbol, stack, memory dump, dan machine code pada panel debug.</li>
+</ol>
+</section>
+</main>
+<footer>ASM Studio • 8086 Assembly Explanation</footer>
+
+<script>
+const T={
+id:{
+subtitle:"Penjelasan singkat mengenai bahasa Assembly dan pemrograman 8086.",
+what:"Apa itu Assembly?",whatText:"Assembly adalah bahasa pemrograman tingkat rendah yang menggunakan mnemonic untuk merepresentasikan instruksi prosesor. Program Assembly sangat dekat dengan cara CPU menjalankan instruksi.",
+note:"Dalam ASM Studio, contoh dan emulator berfokus pada arsitektur Intel 8086 dan lingkungan MS-DOS.",
+why:"Mengapa belajar Assembly 8086?",cpu:"Memahami register, instruksi, flag, dan alur eksekusi CPU.",memory:"Memahami hubungan antara register, alamat memori, stack, dan data.",machine:"Melihat bagaimana instruksi Assembly diterjemahkan menjadi machine code.",debug:"Mengamati perubahan register dan langkah eksekusi satu per satu.",registers:"Register dasar 8086",ax:"Accumulator; sering digunakan untuk operasi aritmetika dan data.",bx:"Base register; dapat digunakan sebagai basis alamat.",cx:"Count register; sering digunakan untuk counter dan operasi berulang.",dx:"Data register; digunakan dalam berbagai operasi data dan perkalian/pembagian.",si:"Source Index; umum digunakan sebagai indeks sumber.",di:"Destination Index; umum digunakan sebagai indeks tujuan.",sp:"Stack Pointer; menunjuk ke bagian atas stack.",bp:"Base Pointer; sering digunakan untuk mengakses data pada stack.",ip:"Instruction Pointer; menunjuk ke instruksi berikutnya.",flags:"Menyimpan flag kondisi hasil operasi CPU.",instructions:"Instruksi yang umum",mov:"Menyalin nilai dari sumber ke tujuan.",add:"Menambahkan operand sumber ke operand tujuan.",sub:"Mengurangkan operand sumber dari operand tujuan.",inc:"Menambah nilai operand sebesar satu.",dec:"Mengurangi nilai operand sebesar satu.",cmp:"Membandingkan dua operand dengan memengaruhi flags.",jmp:"Melakukan lompatan ke label tertentu.",call:"Digunakan untuk memanggil dan kembali dari subroutine.",example:"Contoh program sederhana",exampleText:"CPU menjalankan instruksi dari atas ke bawah, kecuali alur program diubah oleh instruksi seperti JMP, CALL, atau instruksi percabangan.",flagsTitle:"Flags dan percabangan",flagsText:"Beberapa instruksi aritmetika dan perbandingan memengaruhi FLAGS. Instruksi percabangan bersyarat dapat menggunakan flag tersebut untuk menentukan apakah lompatan dilakukan.",stackTitle:"Stack dan subroutine",stackText:"Stack adalah area memori yang digunakan secara LIFO (Last In, First Out). Instruksi PUSH memasukkan data ke stack, sedangkan POP mengambil data dari stack. CALL dan RET digunakan untuk alur subroutine.",studioTitle:"Cara memakai ASM Studio",step1:"Tulis program Assembly pada editor.",step2:"Gunakan Build Code untuk melakukan assembly.",step3:"Gunakan Run Emulator untuk menjalankan program.",step4:"Gunakan Step untuk melihat eksekusi instruksi satu per satu.",step5:"Amati register, simbol, stack, memory dump, dan machine code pada panel debug."
+},
+hi:{
+subtitle:"Assembly भाषा और 8086 प्रोग्रामिंग का संक्षिप्त परिचय।",what:"Assembly क्या है?",whatText:"Assembly एक low-level programming language है जो processor instructions को mnemonic के रूप में लिखने देती है। यह CPU के execution के बहुत करीब होती है।",note:"ASM Studio में उदाहरण और emulator Intel 8086 architecture तथा MS-DOS environment पर केंद्रित हैं।",why:"8086 Assembly क्यों सीखें?",cpu:"Registers, instructions, flags और CPU execution flow को समझें।",memory:"Registers, memory addresses, stack और data के संबंध को समझें।",machine:"देखें कि Assembly instructions machine code में कैसे बदलती हैं।",debug:"Registers और instruction execution को step-by-step देखें।",registers:"8086 के मूल Registers",ax:"Accumulator; arithmetic और data operations में उपयोगी।",bx:"Base register; address base के रूप में उपयोग किया जा सकता है।",cx:"Count register; counter और repeated operations में उपयोगी।",dx:"Data register; data तथा multiplication/division operations में उपयोगी।",si:"Source Index; source indexing के लिए सामान्यतः उपयोगी।",di:"Destination Index; destination indexing के लिए सामान्यतः उपयोगी।",sp:"Stack Pointer; stack के top की ओर संकेत करता है।",bp:"Base Pointer; stack data access में उपयोगी।",ip:"Instruction Pointer; अगली instruction की ओर संकेत करता है।",flags:"CPU operation के condition flags रखता है।",instructions:"सामान्य Instructions",mov:"Source से destination में value copy करता है।",add:"Source operand को destination operand में जोड़ता है।",sub:"Source operand को destination operand से घटाता है।",inc:"Operand को एक से बढ़ाता है।",dec:"Operand को एक से घटाता है।",cmp:"दो operands की तुलना करता है और flags को प्रभावित करता है।",jmp:"किसी label पर jump करता है।",call:"Subroutine को call और return करने के लिए उपयोग होता है।",example:"सरल Program उदाहरण",exampleText:"CPU instructions को ऊपर से नीचे चलाता है, जब तक JMP, CALL या branch instructions flow को न बदलें।",flagsTitle:"Flags और branching",flagsText:"Arithmetic और comparison instructions FLAGS को बदल सकती हैं। Conditional branches इन flags का उपयोग jump तय करने के लिए कर सकती हैं।",stackTitle:"Stack और subroutine",stackText:"Stack LIFO (Last In, First Out) memory area है। PUSH data को stack में रखता है और POP data निकालता है। CALL और RET subroutine flow के लिए उपयोग होते हैं।",studioTitle:"ASM Studio का उपयोग",step1:"Editor में Assembly program लिखें।",step2:"Assembly करने के लिए Build Code दबाएँ।",step3:"Program चलाने के लिए Run Emulator दबाएँ।",step4:"Instructions को एक-एक करके देखने के लिए Step उपयोग करें।",step5:"Debug panel में registers, symbols, stack, memory dump और machine code देखें।"
+},
+ms:{
+subtitle:"Penerangan ringkas tentang bahasa Assembly dan pengaturcaraan 8086.",what:"Apakah Assembly?",whatText:"Assembly ialah bahasa pengaturcaraan aras rendah yang menggunakan mnemonic untuk mewakili arahan pemproses. Ia sangat hampir dengan cara CPU melaksanakan arahan.",note:"Dalam ASM Studio, contoh dan emulator memberi tumpuan kepada seni bina Intel 8086 dan persekitaran MS-DOS.",why:"Mengapa belajar Assembly 8086?",cpu:"Memahami register, arahan, flag dan aliran pelaksanaan CPU.",memory:"Memahami hubungan antara register, alamat memori, stack dan data.",machine:"Melihat bagaimana arahan Assembly diterjemahkan kepada machine code.",debug:"Memerhati perubahan register dan pelaksanaan arahan langkah demi langkah.",registers:"Register asas 8086",ax:"Accumulator; sering digunakan untuk operasi aritmetik dan data.",bx:"Base register; boleh digunakan sebagai asas alamat.",cx:"Count register; sering digunakan untuk counter dan operasi berulang.",dx:"Data register; digunakan dalam pelbagai operasi data serta darab/bahagi.",si:"Source Index; biasanya digunakan sebagai indeks sumber.",di:"Destination Index; biasanya digunakan sebagai indeks destinasi.",sp:"Stack Pointer; menunjuk ke bahagian atas stack.",bp:"Base Pointer; sering digunakan untuk mengakses data pada stack.",ip:"Instruction Pointer; menunjuk kepada arahan seterusnya.",flags:"Menyimpan flag keadaan hasil operasi CPU.",instructions:"Arahan yang biasa",mov:"Menyalin nilai daripada sumber ke destinasi.",add:"Menambah operand sumber kepada operand destinasi.",sub:"Menolak operand sumber daripada operand destinasi.",inc:"Menambah nilai operand sebanyak satu.",dec:"Mengurangkan nilai operand sebanyak satu.",cmp:"Membandingkan dua operand dan mempengaruhi flags.",jmp:"Melompat ke label tertentu.",call:"Digunakan untuk memanggil dan kembali daripada subroutine.",example:"Contoh program ringkas",exampleText:"CPU menjalankan arahan dari atas ke bawah kecuali aliran program diubah oleh JMP, CALL atau arahan percabangan.",flagsTitle:"Flags dan percabangan",flagsText:"Sesetengah arahan aritmetik dan perbandingan mempengaruhi FLAGS. Arahan percabangan bersyarat boleh menggunakan flag untuk menentukan lompatan.",stackTitle:"Stack dan subroutine",stackText:"Stack ialah kawasan memori LIFO (Last In, First Out). PUSH memasukkan data ke stack manakala POP mengambil data. CALL dan RET digunakan untuk aliran subroutine.",studioTitle:"Cara menggunakan ASM Studio",step1:"Tulis program Assembly dalam editor.",step2:"Gunakan Build Code untuk melakukan assembly.",step3:"Gunakan Run Emulator untuk menjalankan program.",step4:"Gunakan Step untuk melihat pelaksanaan arahan satu demi satu.",step5:"Lihat register, simbol, stack, memory dump dan machine code dalam panel debug."
+},
+en:{
+subtitle:"A concise introduction to Assembly language and 8086 programming.",what:"What is Assembly?",whatText:"Assembly is a low-level programming language that uses mnemonics to represent processor instructions. It is very close to the way the CPU executes instructions.",note:"In ASM Studio, examples and the emulator focus on the Intel 8086 architecture and MS-DOS environment.",why:"Why learn 8086 Assembly?",cpu:"Understand registers, instructions, flags, and CPU execution flow.",memory:"Understand the relationship between registers, memory addresses, the stack, and data.",machine:"See how Assembly instructions are translated into machine code.",debug:"Observe register changes and instruction execution step by step.",registers:"8086 Basic Registers",ax:"Accumulator; commonly used for arithmetic and data operations.",bx:"Base register; can be used as an address base.",cx:"Count register; commonly used for counters and repeated operations.",dx:"Data register; used in various data and multiplication/division operations.",si:"Source Index; commonly used as a source index.",di:"Destination Index; commonly used as a destination index.",sp:"Stack Pointer; points to the top of the stack.",bp:"Base Pointer; often used to access stack data.",ip:"Instruction Pointer; points to the next instruction.",flags:"Stores condition flags produced by CPU operations.",instructions:"Common Instructions",mov:"Copies a value from source to destination.",add:"Adds the source operand to the destination operand.",sub:"Subtracts the source operand from the destination operand.",inc:"Increases the operand by one.",dec:"Decreases the operand by one.",cmp:"Compares two operands and affects flags.",jmp:"Jumps to a specified label.",call:"Used to call and return from a subroutine.",example:"Simple Program Example",exampleText:"The CPU executes instructions from top to bottom unless flow is changed by JMP, CALL, or branching instructions.",flagsTitle:"Flags and Branching",flagsText:"Some arithmetic and comparison instructions affect FLAGS. Conditional branches can use those flags to decide whether a jump is taken.",stackTitle:"Stack and Subroutines",stackText:"The stack is a LIFO (Last In, First Out) memory area. PUSH puts data on the stack while POP retrieves it. CALL and RET are used for subroutine flow.",studioTitle:"How to use ASM Studio",step1:"Write an Assembly program in the editor.",step2:"Use Build Code to assemble it.",step3:"Use Run Emulator to execute the program.",step4:"Use Step to inspect execution one instruction at a time.",step5:"Inspect registers, symbols, stack, memory dump, and machine code in the debug panel."
+}};
+function setLanguage(lang){
+  const t=T[lang]||T.id;
+  document.documentElement.lang=lang;
+  document.querySelectorAll("[data-i18n]").forEach(el=>{const k=el.dataset.i18n;if(t[k])el.textContent=t[k]});
+  document.getElementById("subtitle").textContent=t.subtitle;
+  localStorage.setItem("asmExplanationLang",lang);
+}
+function setTheme(theme){
+  document.body.classList.remove("dark","hacker");
+  if(theme==="dark"||theme==="hacker")document.body.classList.add(theme);
+  localStorage.setItem("asmExplanationTheme",theme);
+}
+const lang=localStorage.getItem("asmExplanationLang")||"id";
+document.getElementById("language").value=lang; setLanguage(lang);
+const theme=localStorage.getItem("asmExplanationTheme")||"light";
+document.getElementById("theme").value=theme; setTheme(theme);
+</script>
+</body>
+</html>
