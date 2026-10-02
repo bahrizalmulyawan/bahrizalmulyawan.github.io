@@ -57,6 +57,20 @@ Tidak diperlukan instalasi compiler Assembly atau emulator 8086 tambahan untuk m
 4. Gunakan **F10** untuk menjalankan instruksi satu per satu.
 5. Gunakan **Reset CPU** untuk mengembalikan kondisi emulator.
 
+Segitiga Pascal:
+        1
+       1 1
+      1 2 1
+     1 3 3 1
+    1 4 6 4 1
+
+
+Fibonacci (8 langkah)
+Nilai akhir = 21
+AX = 21 (0x0015)
+Deret: 0, 1, 1, 2, 3, 5, 8, 13, 21
+Program Selesai.
+
 ## 🌐 Bahasa GUI
 
 Tersedia empat pilihan:
@@ -92,3 +106,11 @@ Tersedia empat pilihan:
 ## 👨‍💻 Author
 
 **Bahrizal Helmi Mulyawan**
+
+
+
+ASM Studio — Learn 8086 Assembly by seeing the CPU execute it. ⚡
+
+🌐 Live Demo
+
+https://bahrizalmulyawan.github.io/ASM_Studio/
