@@ -38,7 +38,7 @@ Clone repository menggunakan Git atau download repository melalui **Code → Dow
 Pastikan file utama berikut tersedia:
 
 ```text
-asm_studio_responsive(6).html
+index.html
 ```
 
 ### 3. Jalankan ASM Studio
