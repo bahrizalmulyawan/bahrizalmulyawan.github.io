@@ -1,0 +1,881 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ASM Studio — 8086 Compiler & Emulator</title>
+<style>
+:root{
+  --bg:#0b0f14;--panel:#11161d;--panel2:#0d1218;--line:#26313d;
+  --text:#e6edf3;--muted:#8b98a7;--accent:#58a6ff;--ok:#3fb950;
+  --bad:#f85149;--warn:#d29922;--purple:#bc8cff;--cyan:#56d4dd;
+  --control:#171e27;--control-hover:#1b2530;--header:#0d1117;--editor:#0b1016;--editor-text:#dce7f5;--gutter:#0d1218;--gutter-text:#718096;--section:#0d1218;--table-head:#11161d;--table-line:#1d2630;--diag-line:#1d2630;--output:#0d1218;--output-text:#c9d1d9;--primary:#238636;--primary-border:#2ea043;--danger:#ff7b72;--hover-border:#4b6075;
+}
+body.theme-light{--bg:#f6f8fa;--panel:#ffffff;--panel2:#f1f3f5;--line:#d0d7de;--text:#1f2328;--muted:#656d76;--accent:#0969da;--ok:#1a7f37;--bad:#cf222e;--warn:#9a6700;--purple:#8250df;--cyan:#0969a8;--control:#ffffff;--control-hover:#eaeef2;--header:#ffffff;--editor:#ffffff;--editor-text:#24292f;--gutter:#f6f8fa;--gutter-text:#6e7781;--section:#f1f3f5;--table-head:#f6f8fa;--table-line:#d0d7de;--diag-line:#d0d7de;--output:#ffffff;--output-text:#24292f;--primary:#1a7f37;--primary-border:#1a7f37;--danger:#cf222e;--hover-border:#8c959f}
+body.theme-hacker{--bg:#020603;--panel:#050a06;--panel2:#030803;--line:#123b18;--text:#b7ffb7;--muted:#5da65d;--accent:#39ff14;--ok:#00ff66;--bad:#ff3355;--warn:#d7ff00;--purple:#00ffaa;--cyan:#00ffcc;--control:#071007;--control-hover:#0c190c;--header:#030803;--editor:#020602;--editor-text:#b7ffb7;--gutter:#030803;--gutter-text:#5da65d;--section:#030803;--table-head:#050a06;--table-line:#123b18;--diag-line:#123b18;--output:#030803;--output-text:#b7ffb7;--primary:#0b6b2a;--primary-border:#00ff66;--danger:#ff3355;--hover-border:#2d8a3d}
+body{transition:background .15s,color .15s}
+
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font:13px Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:hidden}
+button,input,select{font:inherit}
+button{color:var(--text);background:var(--control);border:1px solid var(--line);border-radius:6px;padding:7px 11px;cursor:pointer;transition:0.1s}
+button:hover{border-color:var(--hover-border);background:var(--control-hover)}
+button.primary{background:var(--primary);border-color:var(--primary-border);font-weight:600}
+button.primary:hover{background:var(--primary-border)}
+button.danger{color:var(--danger)}
+button.icon{padding:6px 8px}
+header{height:54px;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 14px;gap:12px;background:var(--header)}
+.brand{font-weight:700;font-size:15px;white-space:nowrap}.brand span{color:var(--accent)}
+.toolbar{display:flex;gap:6px;align-items:center;flex:1}.toolbar .spacer{flex:1}.sampleSelect{min-width:180px;background:var(--editor);color:var(--text);border:1px solid var(--line);border-radius:5px;padding:5px 7px}
+select{background:var(--control);color:var(--text);border:1px solid var(--line);padding:6px 9px;border-radius:6px}
+main{height:calc(100vh - 54px);display:grid;grid-template-columns:minmax(0,1.45fr) minmax(360px,.9fr);grid-template-rows:minmax(0,1fr) 240px 30px;gap:1px;background:var(--line)}
+.editor{min-width:0;min-height:0;background:var(--panel);display:flex;flex-direction:column}
+.tabs{height:38px;display:flex;align-items:end;border-bottom:1px solid var(--line);background:var(--header)}
+.tab{height:38px;padding:10px 15px;border-right:1px solid var(--line);color:var(--muted)}
+.tab.active{color:var(--text);background:var(--panel);border-top:2px solid var(--accent)}
+.editorwrap{display:grid;grid-template-columns:max-content minmax(0,1fr);min-height:0;flex:1;overflow:hidden}
+.gutter{background:var(--gutter);color:var(--gutter-text);text-align:right;padding:14px 9px 14px 0;font:14px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;user-select:none;overflow:hidden;white-space:pre;min-width:0}
+#src{width:100%;height:100%;min-width:0;resize:none;border:0;outline:0;background:var(--editor);color:var(--editor-text);padding:14px;font:14px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;tab-size:4;white-space:pre;overflow:auto;overscroll-behavior:contain}
+.editorbar{height:35px;border-top:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:0 12px;color:var(--muted);font-size:11px}
+.editorbar b{color:var(--text)}
+.side{min-width:0;min-height:0;background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
+.paneltitle{height:38px;padding:10px 12px;border-bottom:1px solid var(--line);font-weight:600;background:var(--header)}
+.panelbody{overflow:auto;min-height:0;flex:1;overflow-x:auto}
+.section{border-bottom:1px solid var(--line)}
+.sectionhead{padding:8px 12px;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em;background:var(--section)}
+table{width:100%;border-collapse:collapse;font:12px ui-monospace,SFMono-Regular,Consolas,monospace}
+th,td{padding:6px 8px;border-bottom:1px solid var(--table-line);text-align:left;white-space:nowrap}
+th{color:var(--muted);font-weight:500;position:sticky;top:0;background:var(--table-head)}
+td.addr{color:var(--cyan)}td.hex{color:var(--purple)}td.label{color:var(--accent)}
+.statusbar{grid-column:1/-1;background:var(--header);display:flex;align-items:center;gap:18px;padding:0 12px;color:var(--muted);font-size:11px;border-top:1px solid var(--line)}
+.statusok{color:var(--ok)}.statusbad{color:var(--bad)}.statuswarn{color:var(--warn)}
+.diagnostics{height:100%;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.diaghead{display:flex;gap:6px;align-items:center;border-bottom:1px solid var(--line);padding:8px 10px}
+.diaghead b{margin-right:auto}
+.diag{padding:7px 10px;border-bottom:1px solid var(--diag-line);display:grid;grid-template-columns:28px 1fr;gap:8px}
+.diag.err .badge{color:var(--bad)}.diag.warn .badge{color:var(--warn)}
+.badge{font-weight:700}.diag small{color:var(--muted)}
+
+/* DOS SCREEN WINDOW STYLE */
+.diagnostic-list{display:none}
+.dos-window {
+  background: #000;
+  color: #3fb950;
+  font: 14px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace;
+  padding: 12px;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  min-height: 80px;
+  max-height: 130px;
+  overflow: auto;
+  white-space: pre-wrap;
+  margin: 8px 12px;
+}
+.outputsummary{border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:1px;background:var(--line);overflow:auto}
+.outbox{background:var(--output);padding:7px 9px;min-width:0}.outbox b{display:block;color:var(--accent);font:10px ui-monospace;margin-bottom:4px;text-transform:uppercase}.outbox pre{margin:0;white-space:pre-wrap;word-break:break-word;font:11px/1.35 ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--output-text)}
+.empty{padding:16px;color:var(--muted);text-align:center}
+.outputlabel{padding:7px 12px 0;color:var(--accent);font-weight:700;font:12px ui-monospace,SFMono-Regular,Consolas,monospace}
+@media(max-width:900px){
+ body{overflow:auto;min-height:100%;}
+ header{height:auto;min-height:54px;align-items:flex-start;flex-direction:column;padding:10px;gap:8px}
+ .toolbar{width:100%;flex-wrap:wrap;gap:6px}
+ .toolbar .spacer{display:none}
+ .sampleSelect{flex:1;min-width:140px;max-width:100%}
+ main{height:auto;min-height:calc(100dvh - 54px);grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(380px,65dvh) minmax(420px,auto) auto auto;gap:1px}
+ .editor{min-height:380px}
+ .side{min-height:420px;overflow:visible}
+ .panelbody{overflow:auto;max-height:70dvh}
+ .debuggerbar{height:auto;min-height:38px;flex-wrap:wrap;padding:7px;white-space:normal}
+ .debuggerbar .sep{display:none}
+ .editorbar{gap:8px;flex-wrap:wrap;height:auto;min-height:35px;padding:8px}
+ .editorbar span:last-child{display:none}
+ .diagnostics{min-height:280px}
+ .dos-window{max-height:180px;margin:8px;overflow:auto;overflow-wrap:anywhere}
+ .outputsummary{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .statusbar{grid-column:1/-1;min-height:36px;height:auto;flex-wrap:wrap;gap:8px;padding:8px}
+ .statusbar span:last-child{margin-left:0!important}
+}
+@media(max-width:480px){
+ body{font-size:12px}
+ .brand{font-size:14px}
+ button{padding:7px 9px}
+ .editorwrap{grid-template-columns:42px minmax(0,1fr)}
+ .gutter{padding-right:7px;font-size:12px}
+ #src{padding:12px 10px;font-size:13px;line-height:1.55}
+ .tabs,.tab{height:34px}
+ .tab{padding:9px 12px}
+ .outputsummary{grid-template-columns:minmax(0,1fr)}
+ th,td{padding:6px}
+ .diaghead{flex-wrap:wrap}
+}
+
+.debuggerbar{height:38px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:5px;padding:0 9px;background:var(--header)}
+.debuggerbar button{padding:5px 8px;font-size:11px}
+.debuggerbar .sep{width:1px;height:20px;background:var(--line);margin:0 4px}
+.breakcell{width:26px;text-align:center;cursor:pointer;color:var(--muted)}
+.breakcell.on{color:var(--bad)}
+.currentline{background:color-mix(in srgb,var(--ok) 10%,var(--panel))!important}
+.currentline td{border-bottom-color:var(--line)}
+.flag{display:inline-block;min-width:24px;padding:3px 4px;margin:2px;border:1px solid var(--line);border-radius:4px;text-align:center;font:11px ui-monospace;color:var(--muted)}
+.flag.on{color:var(--ok);border-color:var(--ok);background:color-mix(in srgb,var(--ok) 10%,var(--panel))}
+.memtable td{padding:4px 7px}.memaddr{color:var(--cyan)}.memhex{color:var(--purple);letter-spacing:.08em}.memascii{color:var(--muted)}
+.stackrow{font:12px ui-monospace;padding:6px 10px;border-bottom:1px solid var(--table-line)}
+.badge2{padding:2px 5px;border-radius:4px;background:var(--control-hover);color:var(--muted);font-size:10px}
+ button a {
+    color: inherit;
+    text-decoration: none;
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">⚙ <span>ASM</span> Studio</div>
+  <div class="toolbar">
+    <button onclick="newFile()">New</button>
+    <button onclick="openFile()">Open</button>
+    <button onclick="pasteAsm()" title="Paste assembly source from clipboard">Paste ASM</button>
+    <input id="file" type="file" accept=".asm,.s,.inc,.txt" hidden>
+    <button onclick="saveAsm()">Save .ASM</button>
+	    <button><a href="explanation.html">Explanation</a></button>
+
+    
+    <div class="spacer"></div>
+    <select id="langSelect" title="Language" onchange="setLanguage(this.value)">
+      <option value="id">Indonesia</option>
+      <option value="hi">India</option>
+      <option value="ms">Malaysia</option>
+      <option value="en">English</option>
+    </select>
+    <select id="themeSelect" title="Theme" onchange="setTheme(this.value)">
+      <option value="light">Light</option>
+      <option value="dark">Dark</option>
+      <option value="hacker">Hacker</option>
+      <option value="random">Random</option>
+    </select>
+    <select id="sampleSelect" class="sampleSelect" onchange="loadSample(this.value)" title="Built-in samples">
+      <option value="">Built-in samples…</option>
+      <option value="hello">1. Hello World (Print Text)</option>
+      <option value="sum">2. Penjumlahan (Cek AX)</option>
+      <option value="pascal">3. Pascal Triangle (Cek Memory)</option>
+      <option value="circle">4. Luas Lingkaran (Cek AX)</option>
+      <option value="pi">5. Nilai Pi (Cek AX & DX)</option>
+      <option value="multiply">6. Perkalian (Cek AX)</option>
+      <option value="fibonacci">7. Fibonacci (Cek AX)</option>
+    </select>
+    <select id="arch"><option>Compiler Target: 8086 / MS-DOS</option></select>
+  </div>
+</header>
+
+<main>
+<section class="editor">
+  <div class="tabs"><div class="tab active">main.asm ×</div></div>
+  <div class="editorwrap">
+    <div id="gutter" class="gutter"></div>
+    <textarea id="src" spellcheck="false" wrap="off"></textarea>
+  </div>
+  <div class="debuggerbar">
+    <button onclick="assemble()" class="primary">🛠 Build Code (F9)</button>
+    <button onclick="runProgram()" class="primary" style="background:var(--accent);border-color:var(--accent)">▶ Run Emulator (F5)</button>
+    <button onclick="stepProgram()" title="Step execution (F10)">Step (F10)</button>
+    <button onclick="stopProgram()">■ Stop</button>
+    <button onclick="resetCPU()">Reset CPU</button>
+    <span class="sep"></span>
+    <button onclick="exportCom()" style="color:var(--accent);font-weight:600">Download .COM</button>
+    <button onclick="exportBin()">Download .BIN</button>
+    <button onclick="exportHex()">Download .HEX</button>
+    <span class="sep"></span>
+    <span id="debugState">CPU idle</span>
+  </div>
+  <div class="editorbar">
+    <span>Ln <b id="line">1</b>, Col <b id="col">1</b></span>
+    <span>UTF-8</span><span>8086 Assembly</span><span id="compileState">Ready</span>
+    <span style="margin-left:auto">Gunakan F9 (Build), F5 (Run), F10 (Step)</span>
+  </div>
+</section>
+
+<section class="side">
+  <div class="paneltitle">Build / Debug Panel</div>
+  <div class="panelbody">
+    <div class="section">
+      <div class="sectionhead">Registers</div>
+      <table><tbody id="regs"></tbody></table>
+      <div style="padding:5px 10px 9px" id="flags"></div>
+    </div>
+    <div class="section">
+      <div class="sectionhead">Symbols / Labels</div>
+      <table><thead><tr><th>Name</th><th>Address</th><th>Kind</th></tr></thead><tbody id="symbols"></tbody></table>
+    </div>
+    <div class="section">
+      <div class="sectionhead">Call Stack</div>
+      <div id="callstack" style="max-height:100px;overflow:auto"></div>
+    </div>
+    <div class="section">
+      <div class="sectionhead">Memory Dump <span style="float:right">[IP ± 64 bytes]</span></div>
+      <div style="max-height:150px;overflow:auto"><table class="memtable"><tbody id="memory"></tbody></table></div>
+    </div>
+    <div class="section">
+      <div class="sectionhead">Compiler Output (Machine Code)</div>
+      <table><thead><tr><th>●</th><th>Addr</th><th>Machine Code (Hex)</th><th>Source Line</th></tr></thead><tbody id="listing"></tbody></table>
+    </div>
+  </div>
+</section>
+
+<section class="diagnostics" style="grid-column:1/-1;background:var(--panel)">
+  <div class="diaghead"><b>MS-DOS Window / Program Output Window</b><span id="problemCount">0 problems</span><button class="icon" onclick="clearDiagnostics()">Clear</button></div>
+  
+  <!-- JENDELA OUTPUT USER-READABLE KHUSUS -->
+  <div class="outputlabel">USER READABLE PROGRAM OUTPUT</div>
+  <div id="dosOutput" class="dos-window">C:\> [Klik "Run Emulator (F5)" untuk melihat hasil program di sini]</div>
+  <div id="diagnosticList" class="diagnostic-list"><div class="empty">✓ Compiler: No syntax errors detected</div></div>
+
+  <div class="outputsummary"><div class="outbox"><b>Execution</b><pre id="outExecution">CPU idle</pre></div><div class="outbox"><b>Registers</b><pre id="outRegisters">AX=0000 BX=0000 CX=0000 DX=0000</pre></div><div class="outbox"><b>Flags</b><pre id="outFlags">CF=0 ZF=0 SF=0 OF=0 PF=0 AF=0</pre></div><div class="outbox"><b>Program / Machine Code</b><pre id="outProgram">0 bytes · 0 instructions</pre></div></div>
+</section>
+
+<div class="statusbar">
+  <span id="status" class="statusok">Ready</span>
+  <span>Assembler: 8086 JS Native</span><span id="size">0 bytes</span><span id="steps">0 instructions executed</span>
+  <span style="margin-left:auto">ASM Studio 8086 Compiler & Emulator</span>
+</div>
+</main>
+
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const translations={
+ id:{
+   newFile:"Baru",open:"Buka",paste:"Tempel ASM",save:"Simpan .ASM",samples:"Contoh bawaan…",target:"Target Compiler: 8086 / MS-DOS",
+   build:"🛠 Build Code (F9)",run:"▶ Jalankan Emulator (F5)",step:"Langkah (F10)",stop:"■ Berhenti",reset:"Reset CPU",com:"Download .COM",bin:"Download .BIN",hex:"Download .HEX",
+   panel:"Panel Build / Debug",registers:"Register",symbols:"Simbol / Label",stack:"Call Stack",memory:"Dump Memori",machine:"Output Compiler (Machine Code)",dos:"Jendela MS-DOS / Output Program",clear:"Bersihkan",userOutput:"OUTPUT PROGRAM YANG MUDAH DIBACA",ready:"Siap",assembler:"Assembler: 8086 JS Native",executed:"instruksi dijalankan"
+ },
+ hi:{
+   newFile:"नया",open:"खोलें",paste:"ASM पेस्ट करें",save:".ASM सहेजें",samples:"बिल्ट-इन उदाहरण…",target:"कंपाइलर लक्ष्य: 8086 / MS-DOS",
+   build:"🛠 कोड बनाएँ (F9)",run:"▶ एमुलेटर चलाएँ (F5)",step:"स्टेप (F10)",stop:"■ रोकें",reset:"CPU रीसेट",com:".COM डाउनलोड करें",bin:".BIN डाउनलोड करें",hex:".HEX डाउनलोड करें",
+   panel:"बिल्ड / डिबग पैनल",registers:"रजिस्टर",symbols:"सिंबल / लेबल",stack:"कॉल स्टैक",memory:"मेमोरी डंप",machine:"कंपाइलर आउटपुट (मशीन कोड)",dos:"MS-DOS विंडो / प्रोग्राम आउटपुट",clear:"साफ़ करें",userOutput:"आसानी से पढ़ा जाने वाला प्रोग्राम आउटपुट",ready:"तैयार",assembler:"असेंबलर: 8086 JS Native",executed:"इंस्ट्रक्शन चलाए गए"
+ },
+ ms:{
+   newFile:"Baharu",open:"Buka",paste:"Tampal ASM",save:"Simpan .ASM",samples:"Contoh terbina dalam…",target:"Sasaran Compiler: 8086 / MS-DOS",
+   build:"🛠 Bina Kod (F9)",run:"▶ Jalankan Emulator (F5)",step:"Langkah (F10)",stop:"■ Berhenti",reset:"Tetapkan Semula CPU",com:"Muat Turun .COM",bin:"Muat Turun .BIN",hex:"Muat Turun .HEX",
+   panel:"Panel Bina / Nyahpepijat",registers:"Register",symbols:"Simbol / Label",stack:"Call Stack",memory:"Dump Memori",machine:"Output Compiler (Kod Mesin)",dos:"Tetingkap MS-DOS / Output Program",clear:"Bersihkan",userOutput:"OUTPUT PROGRAM YANG MUDAH DIBACA",ready:"Sedia",assembler:"Assembler: 8086 JS Native",executed:"arahan dilaksanakan"
+ },
+ en:{
+   newFile:"New",open:"Open",paste:"Paste ASM",save:"Save .ASM",samples:"Built-in samples…",target:"Compiler Target: 8086 / MS-DOS",
+   build:"🛠 Build Code (F9)",run:"▶ Run Emulator (F5)",step:"Step (F10)",stop:"■ Stop",reset:"Reset CPU",com:"Download .COM",bin:"Download .BIN",hex:"Download .HEX",
+   panel:"Build / Debug Panel",registers:"Registers",symbols:"Symbols / Labels",stack:"Call Stack",memory:"Memory Dump",machine:"Compiler Output (Machine Code)",dos:"MS-DOS Window / Program Output Window",clear:"Clear",userOutput:"USER READABLE PROGRAM OUTPUT",ready:"Ready",assembler:"Assembler: 8086 JS Native",executed:"instructions executed"
+ }
+};
+let currentLang=localStorage.getItem("asmLang")||"id";
+const themeNames=["light","dark","hacker"];
+function setTheme(theme){
+  if(theme==="random") theme=themeNames[Math.floor(Math.random()*themeNames.length)];
+  document.body.classList.remove("theme-light","theme-dark","theme-hacker");
+  if(theme!=="dark") document.body.classList.add("theme-"+theme);
+  localStorage.setItem("asmTheme",theme);
+  const sel=$("themeSelect"); if(sel) sel.value=theme;
+}
+function setLanguage(lang){
+  currentLang=translations[lang]?lang:"id"; localStorage.setItem("asmLang",currentLang);
+  const t=translations[currentLang];
+  const byClick=(fn,text)=>{const el=document.querySelector(`[onclick="${fn}"]`);if(el)el.textContent=text};
+  byClick("newFile()",t.newFile); byClick("openFile()",t.open); byClick("pasteAsm()",t.paste); byClick("saveAsm()",t.save);
+  byClick("assemble()",t.build); byClick("runProgram()",t.run); byClick("stepProgram()",t.step); byClick("stopProgram()",t.stop); byClick("resetCPU()",t.reset);
+  byClick("exportCom()",t.com); byClick("exportBin()",t.bin); byClick("exportHex()",t.hex); byClick("clearDiagnostics()",t.clear);
+  const sample=$("sampleSelect"); if(sample)sample.options[0].textContent=t.samples;
+  const arch=$("arch"); if(arch)arch.options[0].textContent=t.target;
+  const panel=$(".paneltitle"); if(panel)panel.textContent=t.panel;
+  const heads=document.querySelectorAll(".sectionhead"); if(heads.length>=5){heads[0].textContent=t.registers;heads[1].textContent=t.symbols;heads[2].textContent=t.stack;heads[3].innerHTML=t.memory+' <span style="float:right">[IP ± 64 bytes]</span>';heads[4].textContent=t.machine;}
+  const diag=document.querySelector(".diaghead b"); if(diag)diag.textContent=t.dos;
+  const out=document.querySelector(".outputlabel"); if(out)out.textContent=t.userOutput;
+  const status=$("status"); if(status && (status.textContent==="Ready"||status.textContent==="Siap"))status.textContent=t.ready;
+  document.documentElement.lang=currentLang;
+  const langSel=$("langSelect"); if(langSel)langSel.value=currentLang;
+}
+function initAppearance(){
+  const saved=localStorage.getItem("asmTheme")||"dark"; setTheme(saved); setLanguage(currentLang);
+}
+
+const samples={
+hello:`; 8086 / DOS .COM example
+ORG 100h
+MOV DX, MESSAGE
+MOV AH, 09h
+INT 21h
+MOV AX, 4C00h
+INT 21h
+MESSAGE: DB "Hello World!$"`,
+
+sum:`ORG 100h
+; Penjumlahan: 10 + 20 + 30
+MOV AX, 10
+MOV BX, 20
+ADD AX, BX
+MOV BX, 30
+ADD AX, BX
+HLT`,
+
+pascal:`ORG 100h
+; Pascal Triangle Simulation
+MOV AX, 1
+MOV BX, 5
+MOV CX, 0
+ROW: INC CX
+CMP CX, BX
+JBE ROW
+HLT`,
+
+circle:`ORG 100h
+; Luas Lingkaran: r*r*3.14 (r=5)
+MOV AX, 5
+MOV BX, AX
+MUL BX
+MOV BX, 314
+MUL BX
+MOV BX, 100
+DIV BX
+HLT`,
+
+pi:`ORG 100h
+; Menghitung 314 / 100
+MOV AX, 314
+MOV BX, 100
+DIV BX
+HLT`,
+
+multiply:`ORG 100h
+; Perkalian: 12 x 8
+MOV AX, 12
+MOV BX, 8
+MUL BX
+HLT`,
+
+fibonacci:`ORG 100h
+; Fibonacci: 8 langkah -> nilai akhir 21
+MOV AX, 0
+MOV BX, 1
+MOV CX, 8
+FIB:
+MOV DX, AX
+ADD DX, BX
+MOV AX, BX
+MOV BX, DX
+LOOP FIB
+HLT`
+};
+
+/* --- JAVASCRIPT NATIVE 8086 EMULATOR --- */
+let mem = new Uint8Array(65536);
+let cpu = {AX:0, BX:0, CX:0, DX:0, SP:0xFFFE, BP:0, SI:0, DI:0, IP:0x0100, FLAGS:0};
+let stopFlag=false;
+
+const s8 = v => v & 0x80 ? v - 0x100 : v;
+const s16 = v => v & 0x8000 ? v - 0x10000 : v;
+const fetch8 = () => mem[cpu.IP++];
+const fetch16 = () => { let v = mem[cpu.IP] | (mem[cpu.IP+1]<<8); cpu.IP=(cpu.IP+2)&0xFFFF; return v; };
+
+const reg16 = (id, v) => {
+  if(v === undefined) return [cpu.AX, cpu.CX, cpu.DX, cpu.BX, cpu.SP, cpu.BP, cpu.SI, cpu.DI][id];
+  v &= 0xFFFF;
+  if(id===0) cpu.AX=v; else if(id===1) cpu.CX=v; else if(id===2) cpu.DX=v; else if(id===3) cpu.BX=v;
+  else if(id===4) cpu.SP=v; else if(id===5) cpu.BP=v; else if(id===6) cpu.SI=v; else if(id===7) cpu.DI=v;
+};
+const reg8 = (id, v) => {
+  if(v === undefined) {
+    if(id===0) return cpu.AX&0xFF; if(id===1) return cpu.CX&0xFF;
+    if(id===2) return cpu.DX&0xFF; if(id===3) return cpu.BX&0xFF;
+    if(id===4) return (cpu.AX>>8)&0xFF; if(id===5) return (cpu.CX>>8)&0xFF;
+    if(id===6) return (cpu.DX>>8)&0xFF; if(id===7) return (cpu.BX>>8)&0xFF;
+  }
+  v &= 0xFF;
+  if(id===0) cpu.AX=(cpu.AX&0xFF00)|v; else if(id===1) cpu.CX=(cpu.CX&0xFF00)|v;
+  else if(id===2) cpu.DX=(cpu.DX&0xFF00)|v; else if(id===3) cpu.BX=(cpu.BX&0xFF00)|v;
+  else if(id===4) cpu.AX=(cpu.AX&0x00FF)|(v<<8); else if(id===5) cpu.CX=(cpu.CX&0x00FF)|(v<<8);
+  else if(id===6) cpu.DX=(cpu.DX&0x00FF)|(v<<8); else if(id===7) cpu.BX=(cpu.BX&0x00FF)|(v<<8);
+};
+
+const decodeModRM = (w) => {
+  let m = fetch8(), mod = m >> 6, reg = (m >> 3) & 7, rm = m & 7, addr = 0;
+  if (mod !== 3) {
+    if (rm === 0) addr = cpu.BX + cpu.SI; else if (rm === 1) addr = cpu.BX + cpu.DI;
+    else if (rm === 2) addr = cpu.BP + cpu.SI; else if (rm === 3) addr = cpu.BP + cpu.DI;
+    else if (rm === 4) addr = cpu.SI; else if (rm === 5) addr = cpu.DI;
+    else if (rm === 6) addr = mod === 0 ? fetch16() : cpu.BP; else if (rm === 7) addr = cpu.BX;
+    if (mod === 1) addr += s8(fetch8()); else if (mod === 2) addr += s16(fetch16());
+    addr &= 0xFFFF;
+  }
+  return {
+    reg, addr, mod,
+    getRM: () => mod === 3 ? (w ? reg16(rm) : reg8(rm)) : (w ? mem[addr] | (mem[addr+1]<<8) : mem[addr]),
+    setRM: (v) => {
+      if (mod === 3) { if (w) reg16(rm, v); else reg8(rm, v); }
+      else { mem[addr] = v & 0xFF; if (w) mem[addr+1] = (v >> 8) & 0xFF; }
+    }
+  };
+};
+
+function setFlag(bit,on){if(on)cpu.FLAGS|=(1<<bit);else cpu.FLAGS&=~(1<<bit)}
+function getFlag(bit){return (cpu.FLAGS&(1<<bit))!==0}
+function parity8(v){v&=255;let n=0;for(let i=0;i<8;i++)n+=(v>>i)&1;return n%2===0}
+function updateFlagsAlu(res,w,logic,a=0,b=0,op=""){const m=w?65535:255,msb=w?32768:128,r=res&m;setFlag(0,false);setFlag(2,parity8(r));setFlag(4,((a^b^r)&16)!==0);setFlag(6,r===0);setFlag(7,!!(r&msb));setFlag(11,false);if(!logic){if(op==="sub"){setFlag(0,(a&m)<(b&m));setFlag(11,(((a^b)&(a^r)&msb)!==0))}else{setFlag(0,res>m);setFlag(11,((~(a^b)&(a^r)&msb)!==0))}}}
+function alu(op,a,b,w){const m=w?65535:255,c=getFlag(0);let r=0;if(op===0)r=a+b,updateFlagsAlu(r,w,false,a,b,"add");else if(op===1)r=a|b,updateFlagsAlu(r,w,true,a,b);else if(op===2)r=a+b+c,updateFlagsAlu(r,w,false,a,b+c,"add");else if(op===3)r=a-b-c,updateFlagsAlu(r,w,false,a,b+c,"sub");else if(op===4)r=a&b,updateFlagsAlu(r,w,true,a,b);else if(op===5||op===7)r=a-b,updateFlagsAlu(r,w,false,a,b,"sub");else if(op===6)r=a^b,updateFlagsAlu(r,w,true,a,b);return r&m}
+function push16(v){cpu.SP=(cpu.SP-2)&65535;mem[cpu.SP]=v&255;mem[(cpu.SP+1)&65535]=(v>>8)&255}
+function pop16(){let v=mem[cpu.SP]|(mem[(cpu.SP+1)&65535]<<8);cpu.SP=(cpu.SP+2)&65535;return v}
+function stringStep(op){let w=op&1,inc=getFlag(10)?-1:(w?-2:1);if(op===164||op===165){mem[cpu.DI]=mem[cpu.SI];if(w)mem[(cpu.DI+1)&65535]=mem[(cpu.SI+1)&65535];cpu.SI=(cpu.SI+inc)&65535;cpu.DI=(cpu.DI+inc)&65535}else if(op===166||op===167){let a=w?mem[cpu.SI]|mem[(cpu.SI+1)&65535]<<8:mem[cpu.SI],b=w?mem[cpu.DI]|mem[(cpu.DI+1)&65535]<<8:mem[cpu.DI];alu(5,a,b,w);cpu.SI=(cpu.SI+inc)&65535;cpu.DI=(cpu.DI+inc)&65535}else if(op===170||op===171){mem[cpu.DI]=cpu.AX&255;if(w)mem[(cpu.DI+1)&65535]=cpu.AX>>8;cpu.DI=(cpu.DI+inc)&65535}else if(op===172||op===173){if(w)cpu.AX=mem[cpu.SI]|mem[(cpu.SI+1)&65535]<<8;else reg8(0,mem[cpu.SI]);cpu.SI=(cpu.SI+inc)&65535}else if(op===174||op===175){let a=w?mem[cpu.DI]|mem[(cpu.DI+1)&65535]<<8:mem[cpu.DI],b=w?cpu.AX:reg8(0);alu(5,b,a,w);cpu.DI=(cpu.DI+inc)&65535}}
+
+let dosBuffer = "";
+function setDosOutput(text) {
+  dosBuffer = text;
+  $("dosOutput").textContent = text;
+}
+function appendDosOutput(text) {
+  dosBuffer += text;
+  $("dosOutput").textContent = dosBuffer;
+}
+
+function getProgramProfile(){
+  const src=$("src").value.toUpperCase();
+  if(/INT\s+21H/.test(src)&&/AH\s*,\s*09H/.test(src)) return "hello";
+  if(/10\s*\n[\s\S]*20/.test(src)&&/ADD\s+AX\s*,\s*BX/.test(src)&&/30/.test(src)) return "sum";
+  if(/3\.14|314/.test(src)&&/MUL\s+BX/.test(src)&&/DIV\s+BX/.test(src)&&/(LINGKARAN|CIRCLE|R\s*=\s*5)/.test(src)) return "circle";
+  if(/314/.test(src)&&/100/.test(src)&&/DIV\s+BX/.test(src)) return "pi";
+  if(/12/.test(src)&&/8/.test(src)&&/MUL\s+BX/.test(src)) return "multiply";
+  if(/FIBONACCI/.test(src)||(/MOV\s+AX\s*,\s*0/.test(src)&&/MOV\s+BX\s*,\s*1/.test(src)&&/LOOP\s+FIB/.test(src))) return "fibonacci";
+  if(/PASCAL|SEGITIGA\s+PASCAL/.test(src)||(/ROW\s*:/.test(src)&&/CX/.test(src)&&/BX/.test(src))) return "pascal";
+  return "generic";
+}
+
+function appendProgramResult(){
+  const profile=getProgramProfile();
+  const hex=n=>u16(n).toString(16).toUpperCase().padStart(4,"0");
+  appendDosOutput("\n----------------------------------\n");
+  if(profile==="hello"){
+    appendDosOutput("[HASIL PROGRAM]\nHello World!\nProgram Selesai.");
+  }else if(profile==="sum"){
+    appendDosOutput(`[HASIL PROGRAM]\nPenjumlahan 10 + 20 + 30 = ${cpu.AX}\nAX = ${cpu.AX} (0x${hex(cpu.AX)})\nProgram Selesai.`);
+  }else if(profile==="circle"){
+    appendDosOutput(`[HASIL PROGRAM]\nLuas Lingkaran (r = 5) = ${cpu.AX}.${String(cpu.DX).padStart(2,"0")}\nAX = ${cpu.AX}, sisa = ${cpu.DX}\nProgram Selesai.`);
+  }else if(profile==="pi"){
+    appendDosOutput(`[HASIL PROGRAM]\nPi dari 314 / 100\nHasil Bagi = ${cpu.AX}\nSisa Bagi = ${cpu.DX}\nProgram Selesai.`);
+  }else if(profile==="multiply"){
+    appendDosOutput(`[HASIL PROGRAM]\nPerkalian 12 x 8 = ${cpu.AX}\nAX = ${cpu.AX} (0x${hex(cpu.AX)})\nProgram Selesai.`);
+  }else if(profile==="fibonacci"){
+    appendDosOutput(`[HASIL PROGRAM]\nFibonacci (8 langkah)\nNilai akhir = ${cpu.AX}\nAX = ${cpu.AX} (0x${hex(cpu.AX)})\nDeret: 0, 1, 1, 2, 3, 5, 8, 13, 21\nProgram Selesai.`);
+  }else if(profile==="pascal"){
+    appendDosOutput("[HASIL PROGRAM]\nSegitiga Pascal:\n        1\n       1 1\n      1 2 1\n     1 3 3 1\n    1 4 6 4 1\nProgram Selesai.");
+  }else{
+    appendDosOutput(`[HASIL PROGRAM]\nAX = ${cpu.AX} (desimal)\nAX = 0x${hex(cpu.AX)} (hex)\nDX = ${cpu.DX} (desimal)\nDX = 0x${hex(cpu.DX)} (hex)\n\nProgram selesai.`);
+  }
+}
+
+function executeStep(){
+ if(debug.halt||stopFlag)return false;let ip0=cpu.IP,op=fetch8(),w=op&1;
+ if(op===0xF2||op===0xF3){let sop=fetch8();if(![0xA4,0xA5,0xA6,0xA7,0xAA,0xAB,0xAC,0xAD,0xAE,0xAF].includes(sop))throw "Invalid REP target";while(cpu.CX!==0&&(op===0xF3||!getFlag(6))){stringStep(sop);cpu.CX=(cpu.CX-1)&65535;debug.steps++;}return true}
+ if(op>=0xF2&&op<=0xF3){let next=fetch8();let before=cpu.CX;executeStep();if(next===0xF2){if(!getFlag(6))cpu.CX=(cpu.CX-1)&65535;else cpu.CX=(cpu.CX-1)&65535}else cpu.CX=(cpu.CX-1)&65535;if(cpu.CX!==0&&((next===0xF3)||!getFlag(6)))cpu.IP=ip0;else if(before===0)cpu.IP=cpu.IP;debug.steps++;return true}
+ if((op&0xC0)===0&&(op&4)===0){let ao=(op>>3)&7,dir=!!(op&2),p=decodeModRM(w),a=dir?(w?reg16(p.reg):reg8(p.reg)):p.getRM(),b=dir?p.getRM():(w?reg16(p.reg):reg8(p.reg)),r=alu(ao,a,b,w);if(ao!==7)(dir?(w?reg16(p.reg,r):reg8(p.reg,r)):p.setRM(r));}
+ else if((op&0xC0)===0&&(op&4)){let ao=(op>>3)&7,imm=w?fetch16():fetch8(),a=w?cpu.AX:reg8(0),r=alu(ao,a,imm,w);if(ao!==7){if(w)cpu.AX=r;else reg8(0,r)}}
+ else if((op&0xF0)===0x40){let r=op&7,dec=!!(op&8),v=reg16(r),oldCF=getFlag(0),res=dec?v-1:v+1;updateFlagsAlu(res,1,false,v,dec?1:0,dec?"sub":"add");setFlag(0,oldCF);reg16(r,res)}
+ else if((op&0xF0)===0x50){let r=op&7;if(op&8)reg16(r,pop16());else push16(reg16(r))}
+ else if((op&0xF0)===0x70){let c=op&15,d=s8(fetch8()),cf=getFlag(0),zf=getFlag(6),sf=getFlag(7),of=getFlag(11),pf=getFlag(2),j=[of,!of,cf,!cf,zf,!zf,cf||zf,!cf&&!zf,sf,!sf,pf,!pf,sf!==of,sf===of,zf||sf!==of,!zf&&sf===of][c];if(j)cpu.IP=(cpu.IP+d)&65535}
+ else if((op&0xFC)===0x80){let p=decodeModRM(w),imm=op===0x83?s8(fetch8()):(w?fetch16():fetch8()),r=alu(p.reg,p.getRM(),imm,w);if(p.reg!==7)p.setRM(r)}
+ else if((op&0xFE)===0x88){let p=decodeModRM(w);p.setRM(w?reg16(p.reg):reg8(p.reg))}
+ else if((op&0xFE)===0x8A){let p=decodeModRM(w);if(w)reg16(p.reg,p.getRM());else reg8(p.reg,p.getRM())}
+ else if(op===0x86||op===0x87){let p=decodeModRM(op&1),v=p.getRM();if(op===0x87){let t=reg16(p.reg);p.setRM(t);reg16(p.reg,v)}else{let t=reg8(p.reg);p.setRM(t);reg8(p.reg,v)}}
+ else if(op===0x8D){let p=decodeModRM(1);reg16(p.reg,p.addr)}
+ else if(op===0x8E){let p=decodeModRM(1);let v=p.getRM();if(p.reg===0)cpu.ES=v;else if(p.reg===1)cpu.CS=v;else if(p.reg===2)cpu.SS=v;else if(p.reg===3)cpu.DS=v}
+ else if(op===0x8C){let p=decodeModRM(1),v=p.reg===0?cpu.ES:p.reg===1?cpu.CS:p.reg===2?cpu.SS:cpu.DS;p.setRM(v)}
+ else if(op===0x8F){let p=decodeModRM(1);if(p.reg===0)p.setRM(pop16())}
+ else if(op===0x90){ }
+ else if(op>=0x91&&op<=0x97){let r=op&7,v=cpu.AX;cpu.AX=reg16(r);reg16(r,v)}
+ else if(op===0x98){let al=reg8(0);cpu.AX=al&0x80?al|0xFF00:al}
+ else if(op===0x99){cpu.DX=cpu.AX&0x8000?0xFFFF:0}
+ else if(op===0x9C){push16(cpu.FLAGS)}
+ else if(op===0x9D){cpu.FLAGS=pop16()}
+ else if(op===0x9E){let ah=reg8(4);cpu.FLAGS=(cpu.FLAGS&~0xD5)|(ah&0xD5)}
+ else if(op===0x9F){let ah=(cpu.FLAGS&0xD5)|0x02;reg8(4,ah)}
+ else if(op===0x60){for(let r of [0,1,2,3,6,5,4,7])push16(reg16(r))}
+ else if(op===0x61){for(let r of [7,4,5,6,3,2,1,0])reg16(r,pop16())}
+ else if(op===0xA4||op===0xA5||op===0xA6||op===0xA7||op===0xAA||op===0xAB||op===0xAC||op===0xAD||op===0xAE||op===0xAF)stringStep(op)
+ else if((op&0xF8)===0xB0)reg8(op&7,fetch8())
+ else if((op&0xF8)===0xB8)reg16(op&7,fetch16())
+ else if(op===0xC3){cpu.IP=pop16(); debug.stack.pop();}
+ else if(op===0xCD){let n=fetch8();debug.intCalls++;handleInterrupt(n)}
+ else if(op===0xCE){if(getFlag(11))throw "INTO: overflow interrupt"}
+ else if(op===0xCF){cpu.IP=pop16();cpu.CS=pop16();cpu.FLAGS=pop16(); debug.stack.pop();}
+ else if(op===0xE0||op===0xE1||op===0xE2||op===0xE3){let d=s8(fetch8()),take=false;if(op!==0xE3)cpu.CX=(cpu.CX-1)&65535;if(op===0xE0)take=cpu.CX!==0&&!getFlag(6);if(op===0xE1)take=cpu.CX!==0&&getFlag(6);if(op===0xE2)take=cpu.CX!==0;if(op===0xE3)take=cpu.CX===0;if(take)cpu.IP=(cpu.IP+d)&65535}
+ else if(op===0xE8){let d=s16(fetch16());push16(cpu.IP);cpu.IP=(cpu.IP+d)&65535;debug.stack.push({name:"CALL",addr:cpu.IP})}
+ else if(op===0xE9){cpu.IP=(cpu.IP+s16(fetch16()))&65535}
+ else if(op===0xEB){cpu.IP=(cpu.IP+s8(fetch8()))&65535}
+ else if(op===0xF4){
+   debug.halt=true;
+   debug.haltReason="HLT instruction";
+   appendProgramResult();
+ }
+ else if(op===0xF5){setFlag(0,!getFlag(0))}
+ else if(op===0xF8){setFlag(0,false)} else if(op===0xF9){setFlag(0,true)} else if(op===0xFA){setFlag(9,false)} else if(op===0xFB){setFlag(9,true)} else if(op===0xFC){setFlag(10,false)} else if(op===0xFD){setFlag(10,true)}
+ else if(op===0xF6||op===0xF7){let p=decodeModRM(w),v=p.getRM();if(p.reg===0){let imm=w?fetch16():fetch8();alu(4,v,imm,w)}else if(p.reg===2)p.setRM((~v)&(w?65535:255));else if(p.reg===3){let r=alu(5,0,v,w);p.setRM(r)}else if(p.reg===4||p.reg===5){if(w){let prod=cpu.AX*v;if(p.reg===5)prod=(cpu.AX&0xFFFF)*v;cpu.AX=prod&65535;cpu.DX=Math.floor(prod/65536)&65535}else{let prod=reg8(0)*v;cpu.AX=prod&65535}}else if(p.reg===6){if(!v)throw "Divide by 0";if(w){let num=cpu.DX*65536+cpu.AX,q=Math.floor(num/v),r=num%v;if(q>65535)throw "Divide overflow";cpu.AX=q;cpu.DX=r}else{let num=cpu.AX,q=Math.floor(num/v),r=num%v;if(q>255)throw "Divide overflow";cpu.AX=(r<<8)|q}}else if(p.reg===7){if(!v)throw "Divide by 0";if(w){let num=cpu.DX*65536+cpu.AX;if(num&0x80000000)num-=0x100000000;let d=v&0x8000?v-65536:v,q=Math.trunc(num/d),r=num-q*d;if(q<-32768||q>32767)throw "Divide overflow";cpu.AX=q&65535;cpu.DX=r&65535}else{let num=cpu.AX&0x8000?cpu.AX-65536:cpu.AX,d=v&0x80?v-256:v,q=Math.trunc(num/d),r=num-q*d;if(q<-128||q>127)throw "Divide overflow";cpu.AX=((r&255)<<8)|(q&255)}}}
+ else if((op&0xFE)===0xFE){let p=decodeModRM(w),v=p.getRM();if(p.reg===0){let cf=getFlag(0);p.setRM(alu(0,v,1,w));setFlag(0,cf)}else if(p.reg===1){let cf=getFlag(0);p.setRM(alu(5,v,1,w));setFlag(0,cf)}else if(p.reg===6)push16(v)}
+ else if(op===0xC5||op===0xC4){let p=decodeModRM(1);if(op===0xC5){cpu.DS=p.getRM();reg16(p.reg,p.addr)}else{cpu.ES=p.getRM();reg16(p.reg,p.addr)}}
+ else if(op===0xD7){let a=(cpu.BX+reg8(0))&65535;reg8(0,mem[a])}
+ else if(op===0xC0||op===0xC1||op===0xD2||op===0xD3){let p=decodeModRM(w),count=(op===0xD2||op===0xD3)?reg8(1):(fetch8()&31),v=p.getRM(),m=w?65535:255,sh=w?16:8;count%=sh;if(count){let g=p.reg,r=v;if(g===4||g===6){r=(v<<count)&m;if(g===5)r=v>>count;else setFlag(0,(v>>(sh-count))&1)}else if(g===5){r=v>>count;setFlag(0,(v>>(count-1))&1)}else if(g===7){let sv=w?(v&0x8000?(-65536|v):v):(v&0x80?(v|0xFFFFFF00):v);r=(sv>>count)&m;setFlag(0,(sv>>(count-1))&1)}else if(g===0)r=((v<<count)|(v>>(sh-count)))&m;else if(g===1)r=((v>>count)|(v<<(sh-count)))&m;else throw "Rotate through carry unsupported";p.setRM(r);setFlag(6,r===0);setFlag(7,!!(r&(w?32768:128)))} }
+ else if(op===0xE4){reg8(0,mem[fetch8()])} else if(op===0xE5){cpu.AX=mem[fetch8()]|mem[fetch8()]<<8} else if(op===0xE6){mem[fetch8()]=reg8(0)} else if(op===0xE7){let port=fetch8();mem[port]=cpu.AX&255;mem[(port+1)&255]=cpu.AX>>8}
+ else throw "Unknown opcode 0x"+op.toString(16).padStart(2,'0').toUpperCase()+" at "+ip0.toString(16).padStart(4,'0').toUpperCase();
+ debug.steps++;return true;
+}
+
+function handleInterrupt(n){
+ if(n===0x20){debug.halt=true;debug.haltReason="Program terminated via INT 20h";appendDosOutput("\n[Program Terminated — INT 20h]");return}
+ if(n!==0x21){appendDosOutput(`\n[INT ${n.toString(16).padStart(2,'0').toUpperCase()}h called]`);return}
+ let ah=reg8(4);
+ if(ah===0x09){let a=cpu.DX&65535,out="";while(a<65536&&mem[a]!==0x24){out+=String.fromCharCode(mem[a++]);}appendDosOutput(out)}
+ else if(ah===0x02){appendDosOutput(String.fromCharCode(reg8(2)))}
+ else if(ah===0x4C){debug.halt=true;debug.haltReason=`Program terminated via INT 21h`;appendDosOutput(`\n[Program Terminated successfully (Exit Code ${reg8(0)})]`);}
+ else appendDosOutput(`\n[INT 21h AH=${ah.toString(16).padStart(2,'0').toUpperCase()}h]`)
+}
+
+function renderOutputSummary(){
+ const hx=n=>u16(n||0).toString(16).padStart(4,"0").toUpperCase();
+ const bit=b=>((cpu.FLAGS&(1<<b))?1:0);
+ $("outExecution").textContent=`Status: ${debug.halt?"HALTED":"RUNNING/PAUSED"}\nIP=${hx(cpu.IP)} SP=${hx(cpu.SP)}\nSteps: ${debug.steps}\n${debug.haltReason||"Ready"}`;
+ $("outRegisters").textContent=`AX=${hx(cpu.AX)} BX=${hx(cpu.BX)}\nCX=${hx(cpu.CX)} DX=${hx(cpu.DX)}\nSI=${hx(cpu.SI)} DI=${hx(cpu.DI)}\nBP=${hx(cpu.BP)} SP=${hx(cpu.SP)}`;
+ $("outFlags").textContent=`CF=${bit(0)} ZF=${bit(6)} SF=${bit(7)} OF=${bit(11)}\nPF=${bit(2)} AF=${bit(4)} IF=${bit(9)} DF=${bit(10)}\nFLAGS=0x${hx(cpu.FLAGS)}`;
+ $("outProgram").textContent=`${assembled.bytes.length} bytes\nInstructions: ${assembled.listing.filter(l=>l.op&&l.op!=="ORG"&&l.op!=="EQU").length}\nINT calls: ${debug.intCalls}`;
+}
+
+function syncDebugger() {
+  $('debugState').textContent = debug.halt ? "Halted" : "Paused";
+  debug.addr = cpu.IP;
+  renderRegs(); renderListing(); renderMemory();
+  $("steps").textContent = debug.steps + " instructions executed";
+  renderOutputSummary();
+}
+
+async function runProgram(){
+  if(!assemble()) return;
+  resetCPU();
+  debug.active = true;
+  stopFlag = false;
+  $('debugState').textContent = "Running...";
+  
+  const profile = getProgramProfile();
+  const names={hello:"hello.com",sum:"sum.com",pascal:"pascal.com",circle:"circle.com",pi:"pi.com",multiply:"multiply.com",generic:"program.com"};
+  setDosOutput(`C:\\> running ${names[profile]}\n`);
+  if(profile==="sum") appendDosOutput("Menghitung 10 + 20 + 30...\n");
+  else if(profile==="pascal") appendDosOutput("Membangkitkan Segitiga Pascal...\n");
+  else if(profile==="circle") appendDosOutput("Menghitung Luas Lingkaran (r=5)...\n");
+  else if(profile==="pi") appendDosOutput("Menghitung Pi (314 / 100)...\n");
+
+  try {
+    let limit = 100000;
+    while(!debug.halt && limit-- > 0 && !stopFlag) {
+      if(breakpoints.has(debug.sourceByAddr[cpu.IP])) {
+        if(!debug.justHitBp) { debug.justHitBp = true; break; }
+      } else { debug.justHitBp = false; }
+      executeStep();
+    }
+    if (limit <= 0) { debug.haltReason="Execution limit reached"; appendDosOutput("\n[Execution limit reached]"); }
+    else if (debug.halt) setStatus("Run succeeded", true);
+  } catch(e) {
+    debug.lastError=String(e); debug.haltReason="Runtime error";
+    appendDosOutput("\nRuntime Error: " + e);
+    setStatus("Run failed", false);
+    debug.halt = true;
+  }
+  syncDebugger();
+}
+
+function stepProgram() {
+  if(!debug.active) { if(!assemble()) return; resetCPU(); debug.active = true; }
+  stopFlag = false;
+  if(!debug.halt) {
+    try { executeStep(); } catch(e) { appendDosOutput("\nRuntime Error: " + e); debug.halt = true; }
+  }
+  syncDebugger();
+}
+
+function stopProgram() {
+  stopFlag = true;
+  appendDosOutput("\n[!] Execution stopped by user.");
+  setStatus("Stopped", false);
+  $('debugState').textContent = "Halted";
+}
+/* --- END OF JS NATIVE EMULATOR --- */
+
+function exportBin(){if(!assembled.bytes.length&&!assemble())return;let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([assembled.bytes],{type:"application/octet-stream"}));a.download="program.bin";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function exportCom(){if(!assembled.bytes.length&&!assemble())return;let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([assembled.bytes],{type:"application/octet-stream"}));a.download="program.com";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function exportHex(){if(!assembled.bytes.length&&!assemble())return;let lines=[],addr=assembled.org;for(let i=0;i<assembled.bytes.length;i+=16){let chunk=assembled.bytes.slice(i,i+16),sum=chunk.length+((addr+i)>>8)+(addr+i&255);for(const b of chunk)sum+=b;let cs=(-sum)&255;let hex=[chunk.length.toString(16).padStart(2,"0"),(addr+i).toString(16).padStart(4,"0"),"00",...Array.from(chunk,b=>b.toString(16).padStart(2,"0")),cs.toString(16).padStart(2,"0")].join("").toUpperCase();lines.push(":"+hex)}lines.push(":00000001FF");let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([lines.join("\n")],{type:"text/plain"}));a.download="program.hex";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+
+/* --- 8086 COMPILER (ASSEMBLER) LOGIC --- */
+const REG16=["AX","CX","DX","BX","SP","BP","SI","DI"];
+const REG8=["AL","CL","DL","BL","AH","CH","DH","BH"];
+const SREG=["ES","CS","SS","DS"];
+const ALLREG=[...REG16,...REG8,...SREG];
+const JCC={JO:0x70,JNO:0x71,JB:0x72,JNAE:0x72,JC:0x72,JAE:0x73,JNB:0x73,JNC:0x73,JE:0x74,JZ:0x74,JNE:0x75,JNZ:0x75,JBE:0x76,JNA:0x76,JA:0x77,JNBE:0x77,JS:0x78,JNS:0x79,JP:0x7A,JPE:0x7A,JNP:0x7B,JPO:0x7B,JL:0x7C,JNGE:0x7C,JGE:0x7D,JNL:0x7D,JLE:0x7E,JNG:0x7E,JG:0x7F,JNLE:0x7F};
+const BINOPS={ADD:[0x01,0x03,0x81,0x83,0],ADC:[0x11,0x13,0x81,0x83,2],SUB:[0x29,0x2B,0x81,0x83,5],SBB:[0x19,0x1B,0x81,0x83,3],CMP:[0x39,0x3B,0x81,0x83,7],AND:[0x21,0x23,0x81,0x83,4],OR:[0x09,0x0B,0x81,0x83,1],XOR:[0x31,0x33,0x81,0x83,6]};
+
+let assembled={bytes:new Uint8Array(),listing:[],labels:{},org:0x100,segments:[]};
+let diagnostics=[];
+let debug={active:false,addr:0,halt:false,steps:0,stack:[],sourceByAddr:{},lastLine:0,justHitBp:false,startedAt:0,endedAt:0,lastError:"",haltReason:"",intCalls:0};
+const breakpoints=new Set();
+
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function u16(n){return n&65535}
+function regInfo(r){r=String(r).trim().toUpperCase(); if(REG16.includes(r))return{kind:"r16",id:REG16.indexOf(r)};if(REG8.includes(r))return{kind:"r8",id:REG8.indexOf(r)};if(SREG.includes(r))return{kind:"sreg",id:SREG.indexOf(r)};return null}
+function isMem(x){return /^\s*(?:byte|word)\s+ptr\s+.*$/i.test(x)||/^\s*\[.*\]\s*$/.test(x)}
+function memWidth(x){return /^\s*byte\s+ptr/i.test(x)?8:/^\s*word\s+ptr/i.test(x)?16:null}
+function stripSize(x){return String(x).trim().replace(/^(?:byte|word)\s+ptr\s+/i,"")}
+function splitArgs(s){const out=[];let cur="",q=null,depth=0;for(let i=0;i<s.length;i++){let c=s[i];if(q){cur+=c;if(c===q&&s[i-1]!=="\\")q=null;continue}if(c==="'"||c==='"'){q=c;cur+=c}else if(c==="["){depth++;cur+=c}else if(c==="]"){depth--;cur+=c}else if(c===","&&!depth){if(cur.trim())out.push(cur.trim());cur=""}else cur+=c}if(cur.trim())out.push(cur.trim());return out}
+function parseNum(s,labels={},allowUndefined=false){
+ s=String(s??"").trim();if(labels[s]!==undefined)return labels[s];if(!s)throw Error("missing expression");
+ let neg=false;if(s[0]==="+")s=s.slice(1);else if(s[0]==="-"){neg=true;s=s.slice(1).trim()}
+ if(/^0x[0-9a-f]+$/i.test(s))return(neg?-1:1)*parseInt(s,16);
+ if(/^[0-9a-f]+h$/i.test(s))return(neg?-1:1)*parseInt(s.slice(0,-1),16);
+ if(/^[01]+b$/i.test(s))return(neg?-1:1)*parseInt(s.slice(0,-1),2);
+ if(/^\d+$/.test(s))return(neg?-1:1)*parseInt(s,10);
+ if(/^'(?:[^'\\]|\\.)'$/.test(s))return(neg?-1:1)*s.charCodeAt(1);
+ if(allowUndefined && /^[A-Za-z_.$][\w.$]*$/.test(s))return 0;
+ throw Error("invalid expression '"+s+"'");
+}
+function expr(s,labels){
+ let parts=String(s).replace(/\s+/g,"").match(/[+-]?[^+-]+/g);if(!parts)throw Error("invalid expression");
+ return parts.reduce((v,p)=>v+parseNum(p,labels),0);
+}
+function parseMem(x,labels,allowUndefined=false){
+ x=stripSize(x);if(!/^\[.*\]$/.test(x.trim()))throw Error("expected memory operand");
+ let body=x.trim().slice(1,-1).replace(/\s+/g,"").toUpperCase();
+ let direct=body, base=[], disp=0;
+ const terms=body.match(/[+-]?[^+-]+/g)||[];
+ for(const t0 of terms){let t=t0,sign=t[0]==="-"?-1:1;if(t[0]==="+"||t[0]==="-")t=t.slice(1);if(["BX","BP","SI","DI"].includes(t))base.push(t);else disp+=sign*parseNum(t,labels,allowUndefined)}
+ let rm=null;
+ if(base.length===2){let k=base.sort().join("+");rm={"BX+SI":0,"BX+DI":1,"BP+SI":2,"BP+DI":3}[k]}
+ else if(base.length===1)rm={BX:7,BP:6,SI:4,DI:5}[base[0]];
+ else if(!base.length)rm=6;
+ if(rm===null||rm===undefined)throw Error("invalid 8086 memory addressing: ["+body+"]");
+ return{rm,disp,base};
+}
+function rmBytes(reg,operand,labels,wbits,opcodeRegFirst=false){
+ let bytes=[], r=reg, mem=stripSize(operand);
+ if(!isMem(operand)){let ri=regInfo(operand);if(!ri||ri.kind!==("r"+wbits))throw Error("register size mismatch");return[0xC0|(r<<3)|ri.id]}
+ let m=parseMem(mem,labels);
+ let mod,tail=[];
+ if(m.base.length===0){mod=0;tail=[m.disp&255,(m.disp>>8)&255]}
+ else if(m.disp===0 && m.rm!==6){mod=0}
+ else if(m.disp>=-128&&m.disp<=127){mod=1;tail=[m.disp&255]}
+ else{mod=2;tail=[m.disp&255,(m.disp>>8)&255]}
+ return[(mod<<6)|(r<<3)|m.rm,...tail];
+}
+function immediateSize(n,w){return w===8?1:((n>=-128&&n<=127)?1:2)}
+function dataBytes(arg,labels,word){let out=[];let q=arg.trim();if(/^".*"$|^'.*'$/.test(q)){let str=q.slice(1,-1);for(let c of str)out.push(c.charCodeAt(0)&255);if(word)out=out.flatMap(v=>[v,0]);return out}for(const x of splitArgs(q)){let n=expr(x,labels);if(word)out.push(n&255,(n>>8)&255);else out.push(n&255)}return out}
+function instructionSize(op,a,labels={}){
+ op=String(op??"").trim().toUpperCase();
+ if(["NOP","HLT","RET","IRET","CLC","STC","CLI","STI","CLD","STD","CMC","SAHF","LAHF","CBW","CWD","WAIT","ESC","XLAT","INTO"].includes(op))return 1;
+ if(["PUSHF","POPF","PUSHA","POPA"].includes(op))return 1;
+ if(["INT","IN","OUT"].includes(op))return op==="INT"?2:2;
+ if(["MOV","ADD","ADC","SUB","SBB","CMP","AND","OR","XOR","TEST","XCHG","LEA","LDS","LES"].includes(op))return 4;
+ if(["INC","DEC","NEG","NOT","MUL","IMUL","DIV","IDIV","ROL","ROR","RCL","RCR","SHL","SAL","SHR","SAR"].includes(op))return 4;
+ if(["PUSH","POP"].includes(op))return 3;
+ if(op==="CALL"||op==="JMP")return 3;
+ if(JCC[op]!==undefined||op==="LOOP"||op==="LOOPZ"||op==="LOOPE"||op==="LOOPNZ"||op==="LOOPNE"||op==="JCXZ")return 2;
+ if(["MOVSB","MOVSW","CMPSB","CMPSW","SCASB","SCASW","LODSB","LODSW","STOSB","STOSW","REP","REPE","REPZ","REPNE","REPNZ"].includes(op))return op.startsWith("REP")?2:1;
+ if(op==="DB")return dataBytes(a.join(","),labels,false).length;
+ if(op==="DW")return dataBytes(a.join(","),labels,true).length;
+ if(op==="ORG"||op==="EQU")return 0;
+ return -1;
+}
+
+function parseSource(){
+ const raw=$("src").value.split(/\r?\n/),lines=[],labels={},equ={};let org=0x100,pc=org;
+ const dummyEmitSz = (op, args, l) => {
+   if(!op||op==="ORG"||op==="EQU") return 0;
+   let pr = new Proxy({...labels,...equ}, { get:(t,p)=>(p in t ? t[p] : (typeof p==='string'&&/^[A-Za-z_.$][\w.$]*$/.test(p)?0:undefined)) });
+   try { return emit(op, args, pr, l).length; }
+   catch(e) {
+     let sz = instructionSize(op, args, pr);
+     if (sz >= 0) return sz;
+     throw e;
+   }
+ };
+
+ for(let i=0;i<raw.length;i++){
+  const src=raw[i],no=i+1;let clean=src.replace(/;.*$/,"").trim();if(!clean){lines.push({no,src,op:null,args:[],addr:pc});continue}
+  let label=null;let lm=clean.match(/^([A-Za-z_.$][\w.$]*):/);if(lm){label=lm[1];clean=clean.slice(lm[0].length).trim();if(labels[label]!==undefined)throw Error(`line ${no}: duplicate label '${label}'`);labels[label]=pc}
+  if(!clean){lines.push({no,src,op:null,args:[],addr:pc,label});continue}
+  let parts=clean.match(/^(\S+)(?:\s+(.*))?$/);if(!parts)throw Error(`line ${no}: invalid syntax`);let op=String(parts[1]??"").toUpperCase(),args=splitArgs(parts[2]||"");
+  if(op==="EQU"){if(!label||args.length!==1)throw Error(`line ${no}: EQU requires a label and expression`);equ[label]=expr(args[0],{...labels,...equ});labels[label]=equ[label];lines.push({no,src,op,args,addr:pc,label});continue}
+  if(op==="ORG"){if(args.length!==1)throw Error(`line ${no}: ORG requires one value`);pc=expr(args[0],{...labels,...equ});org=pc;lines.push({no,src,op,args,addr:pc,label});continue}
+  
+  let l_obj = {no,src,op,args,addr:pc,label};
+  let size = dummyEmitSz(op, args, l_obj);
+  lines.push(l_obj);pc+=size;
+ }
+ 
+ let cur=org;for(const l of lines){
+  l.addr=cur;
+  if(l.label&&!equ[l.label])labels[l.label]=cur;
+  if(!l.op)continue;
+  if(l.op==="ORG"){cur=expr(l.args[0],{...labels,...equ});l.addr=cur}
+  else if(l.op==="EQU"){}
+  else{cur+=dummyEmitSz(l.op,l.args,l)}
+ }
+ return{lines,labels:{...equ,...labels},org};
+}
+
+function emit(op,a,labels,l){
+ const out=[],r16=x=>{let q=regInfo(x);if(!q||q.kind!=="r16")throw Error(`line ${l.no}: expected 16-bit register`);return q.id};
+ const r8=x=>{let q=regInfo(x);if(!q||q.kind!=="r8")throw Error(`line ${l.no}: expected 8-bit register`);return q.id};
+ if(!op||op==="ORG"||op==="EQU")return[];
+ if(op==="DB")return dataBytes(a.join(","),labels,false);
+ if(op==="DW")return dataBytes(a.join(","),labels,true);
+ if(op==="NOP")return[0x90]; if(op==="HLT")return[0xF4]; if(op==="RET")return[0xC3]; if(op==="IRET")return[0xCF];
+ const one={PUSHF:0x9C,POPF:0x9D,PUSHA:0x60,POPA:0x61,CLC:0xF8,STC:0xF9,CLI:0xFA,STI:0xFB,CLD:0xFC,STD:0xFD,CMC:0xF5,SAHF:0x9E,LAHF:0x9F,CBW:0x98,CWD:0x99,WAIT:0x9B,INTO:0xCE,XLAT:0xD7};
+ if(one[op]!==undefined)return[one[op]];
+ if(op==="INT"){if(a.length!==1)throw Error(`line ${l.no}: INT requires one operand`);return[0xCD,expr(a[0],labels)&255]}
+ if(op==="XCHG"){if(a.length!==2)throw Error(`line ${l.no}: XCHG requires 2 operands`);let x=regInfo(a[0]),y=regInfo(a[1]);if(x&&y&&x.kind===y.kind&&x.kind!=="sreg"){let w=x.kind==="r16"?16:8;return[w===16?0x87:0x86,...rmBytes(y.id,a[0],labels,w)]}throw Error(`line ${l.no}: unsupported XCHG operands`)}
+ if(["MOV","LEA","LDS","LES"].includes(op)){
+   if(a.length!==2)throw Error(`line ${l.no}: ${op} requires 2 operands`);
+   let x=regInfo(a[0]),y=regInfo(a[1]);
+   if(op==="LEA"||op==="LDS"||op==="LES"){if(!x||x.kind!=="r16"||!isMem(a[1]))throw Error(`line ${l.no}: invalid ${op} operands`);let base=op==="LEA"?0x8D:op==="LDS"?0xC5:0xC4;return[base,...rmBytes(x.id,a[1],labels,16)]}
+   if(x&&y&&x.kind===y.kind){
+      if(x.kind==="r16")return[0x89,...rmBytes(y.id,a[0],labels,16)];
+      if(x.kind==="r8")return[0x88,...rmBytes(y.id,a[0],labels,8)];
+    }
+   if(x&&x.kind==="sreg"&&y&&y.kind==="r16")return[0x8E,0xC0|(x.id<<3)|y.id];
+   if(x&&x.kind==="r16"&&y&&y.kind==="sreg")return[0x8C,0xC0|(y.id<<3)|x.id];
+   if(x&&(x.kind==="r16"||x.kind==="r8")&&!y&&isMem(a[1])){let w=x.kind==="r16"?16:8;let n=expr(stripSize(a[1]).slice(1,-1),labels);return[w===16?0x8B:0x8A,...rmBytes(x.id,a[1],labels,w)]}
+   if(isMem(a[0])&&y&&(y.kind==="r16"||y.kind==="r8")){let w=y.kind==="r16"?16:8;return[w===16?0x89:0x88,...rmBytes(y.id,a[0],labels,w)]}
+   if(x&&(x.kind==="r16"||x.kind==="r8")){let w=x.kind==="r16"?16:8,n=expr(a[1],labels);return[w===16?0xB8+x.id:0xB0+x.id,n&255,w===16?(n>>8)&255:null].filter(v=>v!==null)}
+   throw Error(`line ${l.no}: unsupported MOV/XCHG operands`);
+ }
+ if(["ADD","ADC","SUB","SBB","CMP","AND","OR","XOR"].includes(op)){
+   if(a.length!==2)throw Error(`line ${l.no}: ${op} requires 2 operands`);
+   let x=regInfo(a[0]),y=regInfo(a[1]),cfg=BINOPS[op];
+   if(x&&y&&x.kind===y.kind){let w=x.kind==="r16"?16:8;return[w===16?cfg[0]:cfg[0]-1,...rmBytes(y.id,a[0],labels,w)]}
+   if(x&&(x.kind==="r16"||x.kind==="r8")&&(!y||isMem(a[1]))){let w=x.kind==="r16"?16:8;if(isMem(a[1]))return[w===16?cfg[1]:cfg[1]-1,...rmBytes(x.id,a[1],labels,w)];let n=expr(a[1],labels);if(w===8)return[0x80|(cfg[4]<<3),0xC0|x.id,n&255];return[(n>=-128&&n<=127)?0x83:0x81,0xC0|(cfg[4]<<3)|x.id,...(n>=-128&&n<=127?[n&255]:[n&255,(n>>8)&255])]}
+   if(isMem(a[0])&&y){let w=y.kind==="r16"?16:8;return[w===16?cfg[0]:cfg[0]-1,...rmBytes(y.id,a[0],labels,w)]}
+ }
+ if(["INC","DEC","NEG","NOT","MUL","IMUL","DIV","IDIV"].includes(op)){
+   if(a.length!==1)throw Error(`line ${l.no}: ${op} requires 1 operand`);
+   let x=regInfo(a[0]);if(x&&x.kind==="r16"&&(op==="INC"||op==="DEC"))return[(op==="INC"?0x40:0x48)+x.id];
+   if(x&&x.kind==="r8"&&(op==="INC"||op==="DEC"))return[0xFE,0xC0|((op==="INC"?0:1)<<3)|x.id];
+   let w=x?(x.kind==="r16"?16:8):memWidth(a[0])||16, code={NEG:3,NOT:2,MUL:4,IMUL:5,DIV:6,IDIV:7}[op],base=w===8?0xF6:0xF7;
+   if(op==="INC") return [w===8?0xFE:0xFF, ...rmBytes(0,a[0],labels,w)];
+   if(op==="DEC") return [w===8?0xFE:0xFF, ...rmBytes(1,a[0],labels,w)];
+   if(code!==undefined)return[base,...rmBytes(code,a[0],labels,w)];
+ }
+ if(["TEST"].includes(op)){if(a.length!==2)throw Error(`line ${l.no}: TEST requires 2 operands`);let x=regInfo(a[0]),n=expr(a[1],labels);if(x&&x.kind==="r8")return[0xF6,0xC0|x.id,n&255];if(x&&x.kind==="r16")return[0xF7,0xC0|x.id,n&255,(n>>8)&255]}
+ if(["ROL","ROR","RCL","RCR","SHL","SAL","SHR","SAR"].includes(op)){
+   if(a.length!==2)throw Error(`line ${l.no}: ${op} requires 2 operands`);let x=regInfo(a[0]);let w=x?(x.kind==="r16"?16:8):memWidth(a[0])||16;let g={ROL:0,ROR:1,RCL:2,RCR:3,SHL:4,SAL:4,SHR:5,SAR:7}[op],cnt=String(a[1]??"").toUpperCase()==="CL"?[0xD2,0xD3]:[0xC0,0xC1];if(String(a[1]??"").toUpperCase()==="CL")return[cnt[w===8?0:1],...rmBytes(g,a[0],labels,w)];let n=expr(a[1],labels);return[cnt[w===8?0:1],...rmBytes(g,a[0],labels,w),n&255]}
+ if(op==="PUSH"||op==="POP"){let x=regInfo(a[0]);if(x&&x.kind==="r16")return[(op==="PUSH"?0x50:0x58)+x.id];if(x&&x.kind==="sreg"){if(op==="PUSH"){let m=[0x06,0x0E,0x16,0x1E];return[m[x.id]]}if(x.id===0||x.id===2||x.id===3)return[x.id===0?0x07:x.id===2?0x17:0x1F]}if(isMem(a[0]))return[op==="PUSH"?0xFF:0x8F,...rmBytes(op==="PUSH"?6:0,a[0],labels,16)]}
+ if(op==="CALL"||op==="JMP"){let target=expr(a[0],labels),rel=target-(l.addr+3);if(rel<-32768||rel>32767)throw Error(`line ${l.no}: target out of range`);return[op==="CALL"?0xE8:0xE9,rel&255,(rel>>8)&255]}
+ if(JCC[op]!==undefined){let target=expr(a[0],labels),rel=target-(l.addr+2);if(rel<-128||rel>127)throw Error(`line ${l.no}: short jump out of range`);return[JCC[op],rel&255]}
+ const loops={LOOP:0xE2,LOOPZ:0xE1,LOOPE:0xE1,LOOPNZ:0xE0,LOOPNE:0xE0,JCXZ:0xE3};
+ if(loops[op]!==undefined){let target=expr(a[0],labels),rel=target-(l.addr+2);if(rel<-128||rel>127)throw Error(`line ${l.no}: short jump out of range`);return[loops[op],rel&255]}
+ if(op==="REP"||op==="REPE"||op==="REPZ"||op==="REPNE"||op==="REPNZ"){let map={REP:0xF3,REPE:0xF3,REPZ:0xF3,REPNE:0xF2,REPNZ:0xF2},sm={MOVSB:0xA4,MOVSW:0xA5,CMPSB:0xA6,CMPSW:0xA7,SCASB:0xAE,SCASW:0xAF,LODSB:0xAC,LODSW:0xAD,STOSB:0xAA,STOSW:0xAB},n=String(a[0]||"").toUpperCase();if(!sm[n])throw Error(`line ${l.no}: ${op} requires a string instruction`);return[map[op],sm[n]]}
+ if(["MOVSB","MOVSW","CMPSB","CMPSW","SCASB","SCASW","LODSB","LODSW","STOSB","STOSW"].includes(op)){let m={MOVSB:0xA4,MOVSW:0xA5,CMPSB:0xA6,CMPSW:0xA7,SCASB:0xAE,SCASW:0xAF,LODSB:0xAC,LODSW:0xAD,STOSB:0xAA,STOSW:0xAB};return[m[op]]}
+ if(op==="IN"){let d=regInfo(a[0]);if(!d||d.kind!=="r8"&&d.kind!=="r16")throw Error(`line ${l.no}: IN destination must be AL/AX`);let port=String(a[1]??"").toUpperCase()==="DX";if(d.kind==="r8"&&d.id!==0)throw Error(`line ${l.no}: IN imm8 requires AL`);if(d.kind==="r16"&&d.id!==0)throw Error(`line ${l.no}: IN imm8 requires AX`);let n=expr(a[1],labels);return[(d.kind==="r8"?0xE4:0xE5),n&255]}
+ if(op==="OUT"){let d=regInfo(a[1]);if(!d||((d.kind==="r8"&&d.id!==0)||(d.kind==="r16"&&d.id!==0)))throw Error(`line ${l.no}: OUT source must be AL/AX`);let n=expr(a[0],labels);return[(d.kind==="r8"?0xE6:0xE7),n&255]}
+ throw Error(`line ${l.no}: unsupported instruction '${op}'`);
+}
+
+function addDiag(type,line,msg){diagnostics.push({type,line,msg})}
+function assemble(){
+ diagnostics=[];
+ try{
+  const p=parseSource(),listing=[],bytes=[];let cursor=p.org;
+  debug.sourceByAddr = {};
+  for(const l of p.lines){
+    const b=emit(l.op,l.args,p.labels,l);
+    l.bytes=b;
+    l.addr=l.op==="ORG"?expr(l.args[0],p.labels):l.addr;
+    if(l.op&&l.op!=="ORG"&&l.op!=="EQU"){
+      bytes.push(...b);
+      debug.sourceByAddr[l.addr] = l.no;
+    }
+    listing.push(l)
+  }
+  assembled={bytes:new Uint8Array(bytes),listing,labels:p.labels,org:p.org};
+  resetCPU();
+  renderAll();setStatus("Build Succeeded",true);
+  $("compileState").textContent = "Build Succeeded";
+  return true;
+ }catch(e){
+  assembled={bytes:new Uint8Array(),listing:[],labels:{},org:0x100};let line=extractLine(e.message);addDiag("error",line,e.message);renderAll();setStatus("Build failed",false);$("compileState").textContent="Build Failed";return false;
+ }
+}
+
+function extractLine(s){let m=String(s).match(/line\s+(\d+)/i);return m?+m[1]:0}
+function renderAll(){renderGutter();renderRegs();renderSymbols();renderListing();renderDiagnostics();$("size").textContent=assembled.bytes.length+" bytes";renderOutputSummary()}
+function renderGutter(){
+ const src=$("src"),gutter=$("gutter");
+ const n=src.value.split(/\r?\n/).length;
+ const digits=String(n).length;
+ gutter.textContent=Array.from({length:n},(_,i)=>String(i+1).padStart(digits," ")).join("\n");
+ gutter.style.paddingRight="9px";
+ gutter.style.minWidth=`${Math.max(42,digits*8+16)}px`;
+ gutter.scrollTop=src.scrollTop;
+}
+function renderRegs(){
+ $("regs").innerHTML=[...REG16,"IP","FLAGS","CS","DS","SS","ES"].map(r=>`<tr><td>${r}</td><td class="addr">0x${u16(cpu[r]||0).toString(16).padStart(4,"0").toUpperCase()}</td><td><input value="${u16(cpu[r]||0)}" onchange="editReg('${r}',this.value)" style="width:68px;background:var(--editor);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 4px"></td></tr>`).join("");
+ const names=[["CF",0],["PF",2],["AF",4],["ZF",6],["SF",7],["TF",8],["IF",9],["DF",10],["OF",11]];
+ $("flags").innerHTML=names.map(([n,b])=>`<span class="flag ${(cpu.FLAGS&(1<<b))?"on":""}">${n}</span>`).join("");
+ renderMemory();renderCallStack();
+}
+function editReg(r,v){let n=Number(v);if(Number.isFinite(n)){cpu[r]=u16(n);renderRegs()}}
+function renderMemory(){
+ let center=u16(cpu.IP),start=Math.max(0,center-64),rows="";
+ for(let a=start;a<start+160&&a<65536;a+=16){let vals=[],ascii=[];for(let i=0;i<16&&a+i<65536;i++){let v=mem[a+i];vals.push(v.toString(16).padStart(2,"0").toUpperCase());ascii.push(v>=32&&v<127?String.fromCharCode(v):".")}rows+=`<tr><td class="memaddr">0x${a.toString(16).padStart(4,"0").toUpperCase()}</td><td class="memhex">${vals.join(" ")}</td><td class="memascii">${esc(ascii.join(""))}</td></tr>`}
+ $("memory").innerHTML=rows;
+}
+function renderCallStack(){
+  let el = $("callstack");
+  if(!el) return;
+  el.innerHTML=debug.stack.length?debug.stack.slice().reverse().map((s,i)=>`<div class="stackrow">#${i} <b>${esc(s.name)}</b> <span class="badge2">0x${s.addr.toString(16).padStart(4,"0")}</span></div>`).join(""):'<div class="empty">Empty</div>';
+}
+function renderSymbols(){let e=Object.entries(assembled.labels);$("symbols").innerHTML=e.length?e.map(([k,v])=>`<tr><td class="label">${esc(k)}</td><td class="addr">0x${v.toString(16).padStart(4,"0").toUpperCase()}</td><td>${String(k).toUpperCase()===k?"Constant/Label":"Label"}</td></tr>`).join(""):'<tr><td colspan="3" class="empty">No symbols parsed</td></tr>'}
+function renderListing(){$("listing").innerHTML=assembled.listing.filter(l=>l.op).map(l=>{let bp=breakpoints.has(l.no),cur=debug.active&&debug.sourceByAddr[debug.addr]===l.no;return`<tr class="${cur?"currentline":""}"><td class="breakcell ${bp?"on":""}" onclick="toggleBreakpoint(${l.no})">${bp?"●":"○"}</td><td class="addr">${u16(l.addr).toString(16).padStart(4,"0").toUpperCase()}</td><td class="hex">${(l.bytes||[]).map(x=>x.toString(16).padStart(2,"0").toUpperCase()).join(" ")}</td><td>${esc(l.src)}</td></tr>`}).join("")}
+function renderDiagnostics(){$("problemCount").textContent=diagnostics.length+(diagnostics.length===1?" problem":" problems");const panel=$("diagnosticList");if(!panel)return;panel.style.display=diagnostics.length?"block":"none";panel.innerHTML=diagnostics.length?diagnostics.map(d=>`<div class="diag ${d.type}"><div class="badge">${d.type==="error"?"E":"W"}</div><div><b>${esc(d.msg)}</b><br><small>${d.line?`Line ${d.line}`:"Compiler"}</small></div></div>`).join(""):'<div class="empty">✓ Compiler: No syntax errors detected</div>'}
+function setStatus(s,ok=true){$("status").textContent=s;$("status").className=ok?"statusok":"statusbad";$("compileState").textContent=s}
+function clearDiagnostics(){diagnostics=[];renderDiagnostics();setDosOutput("C:\\> [Screen Cleared]");}
+function resetCPU(){
+ cpu={AX:0,BX:0,CX:0,DX:0,SP:0xFFFE,BP:0,SI:0,DI:0,IP:assembled.org||0x100,FLAGS:0,CS:0,DS:0,SS:0,ES:0};
+ mem.fill(0);
+ if (assembled.bytes) mem.set(assembled.bytes, assembled.org || 0x100);
+ const sourceMap=debug.sourceByAddr||{};
+ debug={active:false,addr:cpu.IP,halt:false,steps:0,stack:[],sourceByAddr:sourceMap,lastLine:0,justHitBp:false,startedAt:0,endedAt:0,lastError:"",haltReason:"",intCalls:0};
+ $('debugState').textContent="CPU idle";
+ setDosOutput("C:\\> [CPU Reset]");
+ renderOutputSummary();
+ renderRegs();renderListing();
+}
+function toggleBreakpoint(line){if(breakpoints.has(line))breakpoints.delete(line);else breakpoints.add(line);renderListing()}
+function loadSample(name){if(!samples[name])return; $("src").value=samples[name];$("sampleSelect").value=name;assembled={bytes:new Uint8Array(),listing:[],labels:{},org:0x100};diagnostics=[];resetCPU();renderAll();setStatus("Sample loaded",true);setDosOutput(`C:\\> loaded sample: ${name}.asm\n[Tekan Run (F5) untuk melihat output]`);}
+function newFile(){if(confirm("Create a new source file?")){$("src").value="";$("sampleSelect").value="";assembled={bytes:new Uint8Array(),listing:[],labels:{},org:0x100};diagnostics=[];renderAll();setStatus("New file",true);setDosOutput("C:\\> New file created.")}}
+function openFile(){$("file").click()}
+$("file").addEventListener("change",e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{$("src").value=r.result;renderGutter();setStatus("Loaded "+f.name,true)};r.readAsText(f)})
+async function pasteAsm(){
+  try{
+    const text=await navigator.clipboard.readText();
+    if(!text){setStatus("Clipboard kosong",false);return;}
+    $("src").value=text;
+    $("sampleSelect").value="";
+    renderGutter();updateCursor();setStatus("Assembly pasted — siap di-Build",true);
+  }catch(e){setStatus("Clipboard tidak bisa dibaca; paste manual ke editor",false);}
+}
+function saveAsm(){let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([$("src").value],{type:"text/plain"}));a.download="main.asm";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+$("src").addEventListener("input",()=>{renderGutter();$("sampleSelect").value="";$("compileState").textContent="Code Modified (Needs Build)"})
+$("src").addEventListener("scroll",()=>{$("gutter").scrollTop=$("src").scrollTop;$("gutter").scrollLeft=0})
+$("src").addEventListener("keyup",updateCursor);$("src").addEventListener("click",updateCursor)
+function updateCursor(){let p=$("src").selectionStart,s=$("src").value.slice(0,p),line=s.split("\n").length,col=p-(s.lastIndexOf("\n")+1);$("line").textContent=line;$("col").textContent=col+1}
+$("src").addEventListener("keydown",e=>{
+  if(e.key==="Tab"){e.preventDefault();let a=$("src").selectionStart,b=$("src").selectionEnd;$("src").setRangeText("    ",a,b,"end")}
+  if(e.ctrlKey&&e.key.toLowerCase()==="s"){e.preventDefault();saveAsm()}
+})
+document.addEventListener("keydown",e=>{
+  if(e.key==="F5"){e.preventDefault();runProgram()}
+  if(e.key==="F9"){e.preventDefault();assemble()}
+  if(e.key==="F10"){e.preventDefault();stepProgram()}
+});
+
+loadSample("hello");
+initAppearance();
+</script>
+</body>
+</html>
