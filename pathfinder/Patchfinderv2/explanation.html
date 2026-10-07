@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta
+    name="description"
+    content="Penjelasan konsep, algoritma, dan fitur Patchfinder."
+  >
+  <title>Patchfinder — Explanation</title>
+
+  <style>
+    :root {
+      --bg: #07101d;
+      --card: #111827;
+      --text: #e5e7eb;
+      --heading: #f8fafc;
+      --muted: #94a3b8;
+      --border: #263449;
+      --code-bg: #020617;
+      --accent: #93c5fd;
+      --note: #60a5fa;
+      --warning: #fb7185;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.65;
+    }
+
+    .wrap {
+      width: min(100%, 900px);
+      margin: auto;
+      padding: 28px 18px;
+    }
+
+    .card {
+      margin: 16px 0;
+      padding: 22px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--card);
+    }
+
+    h1,
+    h2 {
+      color: var(--heading);
+    }
+
+    h1 {
+      margin-top: 0;
+    }
+
+    code {
+      padding: 2px 6px;
+      border-radius: 5px;
+      background: var(--code-bg);
+      color: var(--accent);
+    }
+
+    .formula {
+      overflow-x: auto;
+      padding: 12px;
+      border-radius: 8px;
+      background: var(--code-bg);
+      color: var(--accent);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .note,
+    .warn {
+      padding: 10px 14px;
+      background: #0b1220;
+      border-left: 4px solid;
+    }
+
+    .note {
+      border-left-color: var(--note);
+    }
+
+    .warn {
+      border-left-color: var(--warning);
+    }
+
+    a {
+      color: var(--accent);
+    }
+
+    .navigation {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .navigation a {
+      display: inline-block;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      text-decoration: none;
+      background: var(--card);
+    }
+
+    @media (max-width: 600px) {
+      .wrap {
+        padding: 18px 12px;
+      }
+
+      .card {
+        padding: 18px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="wrap">
+    <nav class="navigation" aria-label="Navigasi Patchfinder">
+      <a href="Patchfinderv2.html">← Buka Patchfinder v2</a>
+      <a href="../Index.html">⌂ Halaman utama</a>
+    </nav>
+
+    <div class="card">
+      <h1>Patchfinder — Explanation</h1>
+      <p>
+        Patchfinder adalah visualizer pathfinding berbasis HTML/JavaScript
+        untuk maze grid. Aplikasi memungkinkan pengguna membuat maze,
+        mengatur beberapa Start dan Goal, memilih algoritma pencarian,
+        lalu melihat proses pencarian dan path secara visual.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>1. Multi Start / Multi Goal</h2>
+      <p>Marker dipasangkan berdasarkan nomor, bukan berdasarkan jarak:</p>
+      <p><code>S1 → G1</code>, <code>S2 → G2</code>, …, <code>Sn → Gn</code>.</p>
+      <p>
+        Setiap pasangan diproses satu per satu. Jika jumlah Start dan Goal
+        berbeda, hanya pasangan sampai jumlah terkecil yang diproses.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>2. Path Tidak Berpotongan</h2>
+      <p>
+        Setelah sebuah pasangan menemukan path, seluruh cell pada path tersebut
+        dimasukkan ke dalam <code>reservedPath</code>. Pencarian pasangan
+        berikutnya dilarang melewati cell yang sudah reserved, kecuali cell
+        tersebut adalah Start atau Goal dari pasangan yang sedang diproses.
+      </p>
+      <p>
+        Dengan mekanisme ini, path yang sudah selesai tidak dipakai kembali oleh
+        pasangan berikutnya sehingga rute tidak berbagi jalur atau berpotongan
+        pada cell yang sama.
+      </p>
+      <div class="note">
+        <b>Catatan:</b> Jika maze tidak menyediakan rute bebas untuk suatu
+        pasangan, pasangan tersebut dapat menghasilkan <b>NO PATH</b> atau
+        dilewati agar aturan non-crossing tetap dipertahankan. Sistem tidak
+        memaksa path yang berpotongan.
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>3. Tombol Acak</h2>
+      <p>
+        Tombol <b>Acak Start / Goal</b> menempatkan marker secara acak pada cell
+        yang bukan wall, tanpa overlap antar marker. Nomor marker tetap
+        menentukan pasangan: marker pertama menjadi S1/G1, marker kedua S2/G2,
+        dan seterusnya.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>4. Algoritma</h2>
+      <ul>
+        <li>Dijkstra</li>
+        <li>A*</li>
+        <li>Breadth-First Search (BFS)</li>
+        <li>Blind Search / DFS</li>
+        <li>Greedy Best-First Search</li>
+        <li>Bidirectional BFS</li>
+        <li>Bidirectional Dijkstra</li>
+        <li>Bidirectional A*</li>
+        <li>Uniform Cost Search (UCS)</li>
+        <li>IDA*</li>
+      </ul>
+      <p>
+        Pada grid tanpa bobot, BFS dan Dijkstra/UCS dapat menghasilkan
+        shortest path. A* menggunakan estimasi Manhattan, sedangkan
+        Greedy Best-First memprioritaskan heuristic.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>5. Cara Menggunakan</h2>
+      <ol>
+        <li>Buka <code>Patchfinderv2.html</code> di browser modern.</li>
+        <li>Pilih ukuran maze dan algoritma.</li>
+        <li>Atur jumlah Start dan Goal.</li>
+        <li>Buat atau edit wall sesuai kebutuhan.</li>
+        <li>Gunakan <b>Acak Start / Goal</b> jika ingin posisi marker baru.</li>
+        <li>Tekan tombol Run untuk memproses pasangan S1→G1, S2→G2, dan seterusnya.</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2>6. Struktur Paket</h2>
+      <ul>
+        <li><code>Index.html</code> — halaman utama/navigasi.</li>
+        <li><code>Patchfinderv2/Patchfinderv2.html</code> — aplikasi utama.</li>
+        <li><code>Patchfinderv2/explanation.html</code> — penjelasan konsep dan cara kerja.</li>
+        <li><code>README.md</code> — dokumentasi repository GitHub.</li>
+      </ul>
+    </div>
+  </main>
+</body>
+</html>

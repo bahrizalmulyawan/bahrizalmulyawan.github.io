@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Patchfinder v1 — Explanation</title>
+  <style>
+    :root {
+      --bg: #f5f5f5;
+      --card: #fff;
+      --text: #222;
+      --muted: #666;
+      --border: #ddd;
+      --link: #2563eb;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 15px/1.65 Arial, sans-serif;
+    }
+
+    main {
+      max-width: 900px;
+      margin: auto;
+      padding: 28px 18px;
+    }
+
+    .card {
+      margin: 14px 0;
+      padding: 22px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--card);
+    }
+
+    h1 {
+      margin-top: 0;
+    }
+
+    h2 {
+      margin-bottom: 8px;
+    }
+
+    code {
+      padding: 2px 5px;
+      border-radius: 4px;
+      background: #eee;
+    }
+
+    .formula {
+      overflow-x: auto;
+      padding: 12px;
+      border-radius: 7px;
+      background: #111;
+      color: #eee;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    a {
+      color: var(--link);
+    }
+
+    .navigation {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <nav class="navigation" aria-label="Navigasi Patchfinder">
+      <a href="Patchfinderv1.html">← Buka Patchfinder v1</a>
+      <a href="../Index.html">⌂ Halaman utama</a>
+    </nav>
+
+    <h1>Patchfinder v1</h1>
+    <p>Visualisasi algoritma pencarian rute terpendek pada maze/grid.</p>
+
+    <div class="card">
+      <h2>Tujuan</h2>
+      <p>
+        Patchfinder dibuat sebagai media visual untuk melihat bagaimana
+        algoritma pathfinding bekerja, bukan hanya melihat hasil akhir rutenya.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>Algoritma</h2>
+      <ul>
+        <li>Dijkstra</li>
+        <li>A*</li>
+        <li>Breadth-First Search (BFS)</li>
+        <li>Blind Search</li>
+        <li>Greedy Best-First Search</li>
+        <li>Bidirectional BFS</li>
+        <li>Bidirectional Dijkstra</li>
+        <li>Bidirectional A*</li>
+        <li>Uniform Cost Search (UCS)</li>
+        <li>IDA*</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Rumus utama</h2>
+
+      <p><b>Dijkstra / UCS</b></p>
+      <div class="formula">d(v) = min(d(v), d(u) + w(u,v))</div>
+
+      <p><b>A*</b></p>
+      <div class="formula">f(n) = g(n) + h(n)</div>
+
+      <p><b>Greedy Best-First</b></p>
+      <div class="formula">f(n) = h(n)</div>
+
+      <p><b>IDA*</b></p>
+      <div class="formula">f(n) = g(n) + h(n)</div>
+
+      <p>
+        Maze menggunakan edge berbobot 1, sehingga BFS dan beberapa algoritma
+        berbasis cost dapat menunjukkan perilaku yang mirip pada kondisi tertentu.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>Bidirectional</h2>
+      <p>
+        Algoritma bidirectional melakukan pencarian dari dua sisi: Start dan
+        Goal. Pencarian berhenti ketika kedua frontier bertemu.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>Fitur</h2>
+      <ul>
+        <li>Maze Small, Medium, dan Large</li>
+        <li>Custom wall</li>
+        <li>Start dan Goal dapat dipindahkan</li>
+        <li>Animasi proses pencarian</li>
+        <li>CLI dengan perhitungan live</li>
+        <li>Light / Dark mode</li>
+        <li>Bahasa Indonesia / English</li>
+        <li>Responsive untuk HP dan desktop</li>
+      </ul>
+    </div>
+  </main>
+</body>
+</html>
