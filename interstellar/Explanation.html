@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Black Hole — Explanation</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;color:#eee;font-family:system-ui,-apple-system,Segoe UI,sans-serif}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+#shade{position:fixed;inset:0;background:radial-gradient(circle at 50% 45%,transparent 0%,rgba(0,0,0,.12) 45%,rgba(0,0,0,.48) 100%);pointer-events:none}
+#panel{
+ position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
+ width:min(650px,calc(100vw - 30px));max-height:82vh;overflow:auto;
+ padding:26px 28px;border-radius:24px;
+ background:rgba(255,255,255,.075);
+ border:1px solid rgba(255,255,255,.22);
+ box-shadow:0 24px 80px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.12);
+ backdrop-filter:blur(12px) saturate(125%);
+ -webkit-backdrop-filter:blur(12px) saturate(125%);
+}
+#panel::-webkit-scrollbar{width:6px}
+#panel::-webkit-scrollbar-thumb{background:rgba(255,255,255,.25);border-radius:10px}
+.top{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+button,select{
+ border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.09);
+ color:#eee;border-radius:12px;padding:9px 13px;font:600 13px system-ui,sans-serif;
+ backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);cursor:pointer
+}
+button:hover,select:hover{background:rgba(255,255,255,.16)}
+select{position:fixed;right:16px;top:16px;z-index:4}
+h1{margin:0;font-size:25px;letter-spacing:.1px}
+h2{font-size:17px;margin:20px 0 8px}
+p,li{font-size:14px;line-height:1.58;color:#e4e4e4}
+ul{padding-left:22px}
+.back{margin-right:auto}
+.note{font-size:12px;color:#bbb;margin-top:18px}
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+<div id="shade"></div>
+
+<select id="lang" aria-label="Language">
+ <option value="en">English</option>
+ <option value="id">Bahasa Indonesia</option>
+</select>
+
+<div id="panel">
+ <div class="top"><button class="back" id="back">← Back</button></div>
+ <div id="content"></div>
+</div>
+
+<script>
+const content={
+en:{
+ title:"Black Hole Explanation",
+ a:"A. What is a black hole?",
+ about:[
+  "A black hole is an object with gravity so strong that, beyond its event horizon, light cannot escape.",
+  "The bright ring and glowing material in the main simulation are visual representations of strongly lensed light and an accretion disk around the black hole."
+ ],
+ b:"B. How to use",
+ use:[
+  "Drag with one finger on a phone, or left-click and drag with a mouse, to orbit and tilt the main view.",
+  "Use Zoom In / Out to change visual magnification.",
+  "Use Jarak kamera (Camera distance) to move the camera closer or farther. Its maximum is 10.50.",
+  "Inklinasi (Inclination) is limited to −15.0° through +20.5°.",
+  "Use Play, Pause, Reset, Normal, Fast, and Faster for animation control."
+ ],
+ note:"This Explanation page intentionally renders only the moving star background. No black hole is rendered here."
+},
+id:{
+ title:"Penjelasan Black Hole",
+ a:"A. Apa itu black hole?",
+ about:[
+  "Black hole adalah objek dengan gravitasi yang sangat kuat sehingga, setelah melewati event horizon, cahaya tidak dapat keluar.",
+  "Lingkaran terang dan materi bercahaya pada simulasi utama merupakan representasi visual cahaya yang mengalami pembelokan gravitasi kuat dan piringan akresi di sekitar black hole."
+ ],
+ b:"B. Cara penggunaan",
+ use:[
+  "Geser dengan satu jari di ponsel, atau klik-kiri lalu drag dengan mouse, untuk memutar dan memiringkan tampilan utama.",
+  "Gunakan Zoom In / Out untuk mengubah pembesaran visual.",
+  "Gunakan Jarak kamera untuk mendekatkan atau menjauhkan kamera. Maksimumnya 10.50.",
+  "Inklinasi dibatasi dari −15.0° sampai +20.5°.",
+  "Gunakan Play, Pause, Reset, Normal, Fast, dan Faster untuk mengatur animasi."
+ ],
+ note:"Halaman Explanation ini sengaja hanya menampilkan latar bintang yang bergerak. Black hole tidak dirender di sini."
+}
+};
+
+function renderText(lang){
+ const d=content[lang];
+ document.getElementById("content").innerHTML=
+ `<h1>${d.title}</h1><h2>${d.a}</h2><ul>${d.about.map(x=>`<li>${x}</li>`).join("")}</ul>`+
+ `<h2>${d.b}</h2><ul>${d.use.map(x=>`<li>${x}</li>`).join("")}</ul>`+
+ `<p class="note">${d.note}</p>`;
+}
+lang.onchange=()=>renderText(lang.value);
+renderText("en");
+
+document.getElementById("back").onclick=()=>location.href="Blackholev2.html";
+
+/*
+  Star background:
+  Derived from the same procedural star/noise approach used by Blackholev2:
+  hash21/noise-style deterministic star distribution and uBgTime-like motion.
+  The black-hole ray-tracing/disk portion is deliberately omitted.
+*/
+const canvas=document.getElementById("stars");
+const ctx=canvas.getContext("2d");
+let stars=[];
+let dpr=1;
+
+function hash21(x,y){
+ let p=x*123.34+y*345.45;
+ p=(p-Math.floor(p))*43758.5453;
+ return p-Math.floor(p);
+}
+function buildStars(){
+ const count=Math.max(220,Math.floor(innerWidth*innerHeight/4200));
+ stars=[];
+ for(let i=0;i<count;i++){
+  const gx=Math.floor(Math.random()*1600);
+  const gy=Math.floor(Math.random()*1000);
+  stars.push({
+   x:Math.random()*innerWidth,
+   y:Math.random()*innerHeight,
+   r:0.35+Math.pow(Math.random(),2.5)*1.8,
+   a:0.38+Math.random()*0.62,
+   speed:0.25+Math.random()*1.15,
+   twinkle:1.2+Math.random()*5.0,
+   phase:Math.random()*Math.PI*2,
+   seed:hash21(gx,gy)
+  });
+ }
+}
+function resize(){
+ dpr=Math.min(devicePixelRatio||1,2);
+ canvas.width=innerWidth*dpr; canvas.height=innerHeight*dpr;
+ canvas.style.width=innerWidth+"px";canvas.style.height=innerHeight+"px";
+ ctx.setTransform(dpr,0,0,dpr,0,0);
+ buildStars();
+}
+function animate(ms){
+ const t=ms*.001;
+ ctx.clearRect(0,0,innerWidth,innerHeight);
+
+ // Slow starfield motion + individual twinkle.
+ for(const s of stars){
+  const x=(s.x + t*s.speed*3.0)%(innerWidth+24)-12;
+  const y=s.y + Math.sin(t*.18+s.seed*6.28)*.55;
+
+  // Smooth brightness oscillation, different for every star.
+  const pulse=0.5+0.5*Math.sin(t*s.twinkle+s.phase);
+  const a=s.a*(0.52+0.48*pulse);
+
+  ctx.globalAlpha=a;
+  ctx.fillStyle="#fff";
+  ctx.beginPath();
+  ctx.arc(x,y,s.r,0,Math.PI*2);
+  ctx.fill();
+
+  // A small soft glow on brighter stars.
+  if(pulse>.82 && s.r>.9){
+   ctx.globalAlpha=a*.22;
+   ctx.beginPath();
+   ctx.arc(x,y,s.r*3.2,0,Math.PI*2);
+   ctx.fill();
+  }
+ }
+ ctx.globalAlpha=1;
+ requestAnimationFrame(animate);
+}
+addEventListener("resize",resize);
+resize();
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>

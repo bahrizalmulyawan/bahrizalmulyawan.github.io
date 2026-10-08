@@ -1,0 +1,734 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Kerr Black Hole — Rotation & Gravitational Lensing</title>
+<style>
+  html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;font-family:system-ui,sans-serif}
+  canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+  canvas.dragging{cursor:grabbing}
+  #ui{
+    position:fixed;left:16px;top:16px;z-index:5;
+    color:#eee;background:rgba(5,4,3,.72);backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,.12);border-radius:14px;
+    padding:12px 14px;width:min(270px,calc(100vw - 54px));
+    box-shadow:0 8px 30px #0008
+  }
+  #ui b{font-size:14px}
+  .row{display:flex;justify-content:space-between;gap:12px;margin-top:9px;font-size:12px}
+  input{width:100%;accent-color:#f1c58d}
+  button{
+    margin-top:10px;width:100%;padding:8px 10px;border-radius:9px;
+    border:1px solid #ffffff22;background:#ffffff0d;color:#eee;cursor:pointer
+  }
+  #hint{margin-top:8px;color:#aaa;font-size:11px;line-height:1.35}
+  #fpsTop{
+    position:fixed;right:66px;top:14px;z-index:11;
+    min-width:98px;height:38px;padding:0 10px;
+    box-sizing:border-box;display:flex;align-items:center;justify-content:center;
+    border:1px solid rgba(255,255,255,.14);border-radius:10px;
+    background:rgba(5,4,3,.72);backdrop-filter:blur(8px);
+    color:#eee;font:600 11px/1 system-ui,sans-serif;
+    box-shadow:0 6px 20px #0008;white-space:nowrap;
+  }
+  #fpsTop.hidden{display:none!important}
+
+  .fpsPanelRow{
+    display:grid;grid-template-columns:1fr auto auto;
+    align-items:center;gap:8px;margin-top:10px;
+    color:#aaa;font-size:11px;
+  }
+  #fps{
+    min-width:54px;text-align:right;
+    color:#eee;font:600 11px/1 system-ui,sans-serif;
+  }
+  #fpsToggle{
+    margin:0;width:auto;min-width:72px;
+    padding:7px 9px;border-radius:8px;
+    font:600 11px/1 system-ui,sans-serif;
+  }
+
+body.controlsHidden #ui,
+body.controlsHidden #footerControls,
+body.controlsHidden #fps,
+body.controlsHidden #fpsToggle,
+body.controlsHidden #toggle{
+    display:none !important;
+  }
+  
+  #hideAllBtn{
+    position:fixed;left:50%;bottom:6px;transform:translateX(-50%);
+    z-index:20;width:auto;min-width:150px;height:34px;padding:0 12px;
+    border-radius:10px;border:1px solid rgba(255,255,255,.18);
+    background:rgba(5,4,3,.72);backdrop-filter:blur(8px);
+    color:#eee;font:600 11px/1 system-ui,sans-serif;
+    cursor:pointer;box-shadow:0 6px 20px #0008;
+    white-space:nowrap;
+  }
+  #hideAllBtn.hidden-state{opacity:.7}
+  #toggle{
+    position:fixed;right:14px;top:14px;z-index:11;
+    width:38px;height:38px;padding:0;margin:0;border-radius:50%;
+    border:1px solid rgba(255,255,255,.18);
+    background:rgba(5,4,3,.72);backdrop-filter:blur(8px);
+    color:#eee;font-size:17px;cursor:pointer;
+    box-shadow:0 6px 20px #0008
+  }
+  #ui.hidden{display:none}
+
+  #footerControls{
+    position:fixed;left:50%;bottom:48px;transform:translateX(-50%);
+    z-index:10;display:flex;flex-direction:column;gap:6px;
+    padding:8px;border-radius:13px;
+    border:1px solid rgba(255,255,255,.14);
+    background:rgba(5,4,3,.72);backdrop-filter:blur(10px);
+    box-shadow:0 8px 28px #0008;
+  }
+  .footerMain,.footerSpeed{
+    display:flex;gap:8px;flex-wrap:nowrap;
+  }
+  .footerSpeed{
+    border-top:1px solid rgba(255,255,255,.10);
+    padding-top:6px;
+  }
+  #footerControls button{
+    margin:0;width:auto;min-width:78px;padding:9px 13px;
+    border-radius:9px;border:1px solid #ffffff22;
+    background:#ffffff0d;color:#eee;cursor:pointer;
+    font:600 12px/1 system-ui,sans-serif;
+  }
+  #footerControls button:hover{background:#ffffff18}
+  #footerControls button.active{
+    background:#ffffff1c;border-color:#ffffff35;
+  }
+  @media(max-width:520px){
+    #ui{top:70px}
+    #fpsTop{
+      right:66px;top:14px;min-width:46px;width:46px;
+      height:38px;padding:0 4px;font-size:10px;
+    }
+    #hideAllBtn{
+      left:50%;right:auto;bottom:5px;
+      width:145px;min-width:145px;height:34px;
+      padding:0 6px;font-size:10px;
+    }
+    #footerControls{
+      bottom:48px;
+      max-width:calc(100vw - 16px);
+    }
+    .fpsPanelRow{
+      grid-template-columns:1fr auto auto;
+      gap:6px;
+    }
+    #fpsToggle{min-width:68px;padding:7px 7px}
+  }</style>
+</head>
+<body>
+<div id="fpsTop">FPS: --</div>
+<button id="hideAllBtn" title="Hide/show all controls">Hide all controls</button>
+<button id="toggle" title="Hide/show settings">⚙</button>
+
+<div id="footerControls">
+  <div class="footerMain">
+    <button id="playBtn" title="Play">▶ Play</button>
+    <button id="pauseBtn" title="Pause">⏸ Pause</button>
+    <button id="resetFooter" title="Reset">↺ Reset</button>
+    <button id="explanationBtn" title="Open Explanation">ℹ Explanation</button>
+  </div>
+  <div class="footerSpeed">
+    <button id="normalBtn" class="active" title="Normal speed">Normal</button>
+    <button id="fastBtn" title="Fast speed">Fast</button>
+    <button id="fasterBtn" title="Faster speed">Faster</button>
+  </div>
+</div>
+
+<div id="ui">
+  <b>KERR BLACK HOLE · AUTO LENSING</b>
+  <div class="row"><span>Spin</span><span id="sv">0.92</span></div>
+  <input id="spin" type="range" min="0" max=".998" step=".001" value=".92">
+  <div class="row"><span>Disk brightness</span><span id="bv">1.00</span></div>
+  <input id="bright" type="range" min=".35" max="2" step=".01" value="1">
+  <div class="row"><span>Rotation</span><span id="rv">0.00</span></div>
+  <input id="rot" type="range" min="-1" max="1" step=".001" value="0">
+  <div class="row"><span>Zoom In / Out</span><span id="zv">1.00×</span></div>
+  <input id="zoom" type="range" min=".35" max="2.50" step=".01" value="1">
+
+  <div class="row"><span>Jarak kamera</span><span id="dv">9.00</span></div>
+  <input id="distance" type="range" min="3.2" max="10.5" step=".01" value="9">
+
+  <div class="row"><span>Inklinasi</span><span id="iv">0°</span></div>
+  <input id="inclination" type="range" min="-15" max="20.5" step=".1" value="10.6">
+
+  <div class="fpsPanelRow">
+    <span>FPS</span>
+    <span id="fps">FPS: --</span>
+    <button id="fpsToggle" title="Show/hide FPS">Hide FPS</button>
+  </div>
+  <button id="reset">Reset camera</button>
+  <div id="hint">Optimasi FPS tanpa mengubah visual black hole<br>Drag = orbit + tilt · Zoom = pembesaran seluruh tampilan · Jarak kamera = ikut membesarkan/mengecilkan ring + halo secara sinkron · Inklinasi = kemiringan<br>⚙ hide/show panel · FPS bisa hide/show (optional) · 📱 1 jari / 🖱️ klik-kiri + drag · scroll/pinch untuk zoom.</div>
+</div>
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.168.0/build/three.module.js"}}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+
+const ui=document.getElementById('ui');
+const toggle=document.getElementById('toggle');
+const fpsEl=document.getElementById('fps');
+const fpsTopEl=document.getElementById('fpsTop');
+const fpsToggle=document.getElementById('fpsToggle');
+let fpsVisible=true;
+fpsToggle.addEventListener('click',()=>{
+  fpsVisible=!fpsVisible;
+  fpsEl.style.display=fpsVisible?'block':'none';
+  fpsTopEl.classList.toggle('hidden',!fpsVisible);
+  fpsToggle.classList.toggle('off',!fpsVisible);
+});
+toggle.addEventListener('click',()=>{
+  ui.classList.toggle('hidden');
+  toggle.textContent=ui.classList.contains('hidden')?'⚙':'×';
+});
+const renderer = new THREE.WebGLRenderer({
+  antialias:false,
+  powerPreference:"high-performance",
+  preserveDrawingBuffer:false
+});
+let renderScale = Math.min(devicePixelRatio, 1.0);
+const MIN_RENDER_SCALE = 0.70;
+const MAX_RENDER_SCALE = Math.min(devicePixelRatio, 1.0);
+
+renderer.setPixelRatio(renderScale);
+renderer.setSize(innerWidth,innerHeight);
+document.body.appendChild(renderer.domElement);
+
+const initialBufferSize=new THREE.Vector2();
+renderer.getDrawingBufferSize(initialBufferSize);
+
+const scene = new THREE.Scene();
+const camera = new THREE.Camera();
+const geo = new THREE.PlaneGeometry(2,2);
+
+const uniforms = {
+  uRes:{value:initialBufferSize},
+  uTime:{value:0},
+  uSpin:{value:.92},
+  uBright:{value:1},
+  uRot:{value:0},
+  uCam:{value:new THREE.Vector3(0,1.15,9.0)},
+  uFocal:{value:1.0},
+  uUpNoDistort:{value:1.0},
+  uBgRotate:{value:1.0},
+  uBgTime:{value:0.0}
+};
+
+const material = new THREE.ShaderMaterial({
+  uniforms,
+  vertexShader:`
+    void main(){ gl_Position=vec4(position,1.0); }
+  `,
+  fragmentShader:`
+    precision highp float;
+    uniform vec2 uRes;
+    uniform float uTime,uSpin,uBright,uRot,uFocal;
+    uniform vec3 uCam;
+
+    #define PI 3.14159265359
+    #define STEPS 105
+    #define TAU 6.28318530718
+
+    mat2 rot(float a){float c=cos(a),s=sin(a);return mat2(c,-s,s,c);}
+
+    float hash21(vec2 p){
+      p=fract(p*vec2(123.34,345.45)); p+=dot(p,p+34.345);
+      return fract(p.x*p.y);
+    }
+
+    float noise(vec2 p){
+      vec2 i=floor(p), f=fract(p);
+      f=f*f*(3.0-2.0*f);
+      float a=hash21(i),b=hash21(i+vec2(1,0));
+      float c=hash21(i+vec2(0,1)),d=hash21(i+vec2(1,1));
+      return mix(mix(a,b,f.x),mix(c,d,f.x),f.y);
+    }
+
+    vec3 starfield(vec3 rd){
+      vec3 c=vec3(0);
+      vec3 q=rd;
+      float n=noise(q.xy*91.0+q.z*17.0);
+      float s=pow(max(n-.94,0.0)*23.0,5.0);
+      c+=vec3(1.0,.82,.65)*s*.65;
+      float n2=noise(q.yz*153.0-q.x*31.0);
+      float s2=pow(max(n2-.97,0.0)*40.0,6.0);
+      c+=vec3(.75,.85,1.0)*s2*.8;
+      return c*.58;
+    }
+
+    // Approximate null-ray integration. The ray is bent toward the
+    // black hole; this is why the disk automatically moves when the camera rotates.
+    void main(){
+      vec2 uv=(gl_FragCoord.xy-.5*uRes)/uRes.y;
+      // Zoom must affect EVERY visual element from the same coordinate system.
+      // This keeps the shadow, photon ring, brown halo and lensed disk locked
+      // together instead of leaving the halo/ring behind when zooming.
+      float zoomSafe=max(uFocal,0.001);
+      vec2 zuv=uv/zoomSafe;
+
+      // Camera is controlled outside; build a stable camera basis.
+      vec3 target=vec3(0.0,0.0,0.0);
+      vec3 f=normalize(target-uCam);
+      vec3 worldUp=vec3(0,1,0);
+      vec3 r=normalize(cross(f,worldUp));
+      vec3 up=normalize(cross(r,f));
+      vec3 ro=uCam;
+      // Use the same zoomed screen coordinates for the ray and all
+      // screen-space black-hole features below.
+      vec3 rd=normalize(f+r*zuv.x+up*zuv.y);
+
+      // Background ray tracing:
+      // gravitational bending + Kerr frame dragging. The distant sky is not
+      // rotated as one flat layer; each ray accumulates a different azimuthal
+      // shift, strongest close to the hole and fading rapidly outward.
+      vec3 bp=ro;
+      vec3 bv=rd;
+      float bmin=1000.0;
+      float accumulatedDrag=0.0;
+      bool bcaptured=false;
+
+      for(int j=0;j<82;j++){
+        float bt=.06+float(j)*.095;
+        float br=length(bp);
+        if(br<bmin) bmin=br;
+
+        if(br<1.035){
+          bcaptured=true;
+          break;
+        }
+
+        vec3 brad=bp/br;
+
+        // Gravitational deflection.
+        float bbend=1.72/(br*br);
+        bv=normalize(bv-brad*bbend*bt*.235);
+
+        // Kerr frame dragging: local inertial frames twist around the spin axis.
+        // The 1/r^3 falloff is characteristic of the Lense-Thirring scaling.
+        vec3 baxis=vec3(0,1,0);
+        vec3 btang=cross(baxis,brad);
+        float bframe=.235*uSpin/(br*br*br);
+        float localDrag=bframe*bt*(1.0+.35*uSpin);
+        bv=normalize(bv+btang*localDrag);
+
+        accumulatedDrag += localDrag;
+        bp+=bv*bt;
+      }
+
+      // Camera looking upward: preserve the user's requested stable upper sky.
+      vec3 lookDir=normalize(-uCam);
+      float lookingUp=smoothstep(0.02,0.42,lookDir.y);
+      float noUpDistort=1.0-lookingUp;
+
+      float bendAmt=clamp((1.0/bmin-0.105)*2.4,0.0,1.0)*noUpDistort;
+
+      // Convert the accumulated frame dragging into a screen-visible
+      // azimuthal rotation of the celestial background. It is strongest
+      // around the photon region and weak far from the black hole.
+      float proximity=clamp(exp(-max(bmin-1.0,0.0)*1.35),0.0,1.0);
+      // Slow automatic celestial rotation. Very low angular speed keeps the
+      // motion subtle and reduces unnecessary visual churn.
+      float autoSkyRotation=uTime*0.018*uSpin;
+      float bgTwist=accumulatedDrag*1.85 + uSpin*0.055*proximity + autoSkyRotation;
+      bgTwist*=noUpDistort;
+
+      // Rotate the sky ray around the Kerr spin axis.
+      float ca=cos(bgTwist), sa=sin(bgTwist);
+      vec3 skyRay=vec3(
+        ca*bv.x-sa*bv.z,
+        bv.y,
+        sa*bv.x+ca*bv.z
+      );
+      skyRay=normalize(mix(rd,skyRay,0.78*bendAmt));
+
+      vec3 col=starfield(skyRay);
+
+      // Moving/lensed background filaments make the frame dragging visible.
+      float skyGlow=exp(-pow((length(zuv)-.30)/.12,2.0))*bendAmt;
+      float swirl=0.5+0.5*sin(7.0*atan(zuv.y,zuv.x)+bgTwist*4.0);
+      col += vec3(.42,.24,.10)*skyGlow*(.05+.06*swirl);
+
+      // Tiny rotating star streak contribution near the critical curve.
+      float starTwist=exp(-pow((length(zuv)-.28)/.10,2.0))*proximity*noUpDistort;
+      col += vec3(.65,.52,.34)*starTwist*.018;
+
+      vec3 p=ro;
+      vec3 v=rd;
+
+      float glow=0.0;
+      float disk=0.0;
+      float hot=0.0;
+      float inner=0.0;
+
+      float bh=1.02;
+      float horizon=1.0;
+
+      for(int i=0;i<STEPS;i++){
+        float t=float(i)/float(STEPS-1);
+        float ds=.075 + t*.12;
+        float rr=length(p);
+
+        // Schwarzschild-like bending, with a Kerr-inspired azimuthal twist.
+        if(rr>horizon){
+          vec3 radial=p/rr;
+          float bend=1.55/(rr*rr);
+          v=normalize(v-radial*bend*ds*.22);
+
+          vec3 axis=vec3(0,1,0);
+          vec3 tang=cross(axis,radial);
+          float frame=.22*uSpin/(rr*rr*rr);
+          v=normalize(v+tang*frame*ds*(1.0+0.35*uSpin));
+        }
+
+        // Hot, extremely thin equatorial accretion disk.
+        float radial=length(p.xz);
+        float thin=exp(-pow(abs(p.y)/(.055+radial*.003),2.0));
+        float ann=smoothstep(1.15,1.8,radial)*(1.0-smoothstep(7.0,8.0,radial));
+        float spiral=sin(11.0*log(max(radial,1.02))-5.0*atan(p.z,p.x)+uRot*7.0+uTime*(0.75+1.9*uSpin));
+        float turbulent=noise(p.xz*3.0+vec2(uTime*.015,-uTime*.01));
+        float bands=.45+.55*(.5+.5*spiral);
+        float temp=clamp(1.25/(.55+radial*.22),0.0,1.0);
+        float emiss=thin*ann*(.28+.72*bands)*(1.0+.9*turbulent)*(.55+.8*temp);
+
+        // Relativistic-looking Doppler asymmetry from disk orbital velocity.
+        vec3 tang=normalize(vec3(-p.z,0.0,p.x));
+        float approaching=dot(tang,-v);
+        float dop=pow(max(.18,1.0+1.15*uSpin*approaching),2.65);
+        emiss*=dop;
+
+        disk += emiss*ds*1.55;
+        hot += emiss*temp*ds*.55;
+
+        // Compact photon-ring/glow around the shadow.
+        float ring=exp(-pow((rr-1.55)/.22,2.0));
+        glow += ring*ds*.24;
+
+        // Absorb rays that enter the event horizon.
+        if(rr<bh) break;
+
+        p+=v*ds;
+      }
+
+      // Keep the screen-space ring/halo locked to the actual camera distance.
+      // The ray-traced scene gets larger on screen as the camera approaches,
+      // so the circular shadow and halo must use the same distance scale.
+      // radius=9 is the neutral/default camera distance.
+      float camRadius=max(length(uCam),3.2);
+      float distanceScale=9.0/camRadius;
+      float center=length(zuv)/distanceScale;
+      float shadow=smoothstep(.180,.162,center);
+      col*=1.0-shadow*.995;
+
+      // Lensed disk color: hotter near inner radii.
+      vec3 warm=vec3(1.0,.66,.28);
+      vec3 white=vec3(1.0,.93,.82);
+      vec3 diskCol=mix(warm,white,clamp(hot*.32,0.0,1.0));
+      col += diskCol*disk*uBright*1.18;
+
+      // Photon ring + brown halo use the exact same zoom + camera-distance
+      // radial coordinate as the black-hole shadow, so they stay concentric
+      // when either Zoom or Jarak kamera is changed.
+      float pr=center;
+      float ring=exp(-pow((pr-.193)/.0060,2.0));
+      float ring2=exp(-pow((pr-.207)/.013,2.0));
+      col += vec3(1.0,.76,.48)*ring*(.65+.35*uSpin);
+      col += vec3(1.0,.45,.16)*ring2*.08;
+
+      // Brown halo hugs the photon-ring region instead of being a separate
+      // screen-fixed glow. Its radius therefore scales exactly with the ring
+      // and follows the camera-distance change as well.
+      float halo=exp(-pow((pr-.205)/.050,2.0));
+      col += vec3(1.0,.36,.09)*halo*glow*.16*uBright;
+
+      // Vignette + warm cinematic exposure.
+      float vig=1.0-smoothstep(.35,1.15,length(uv));
+      col*=.72+.28*vig;
+      col=1.0-exp(-col*1.65);
+      col=pow(col,vec3(.88));
+
+      gl_FragColor=vec4(col,1.0);
+    }
+  `
+});
+
+scene.add(new THREE.Mesh(geo,material));
+
+let theta=0.0, phi=0.0, radius=9.0;
+let dragging=false,px=0,py=0;
+
+const INCLINATION_MIN=-15.0*Math.PI/180;
+const INCLINATION_MAX=20.5*Math.PI/180;
+function clampInclination(){
+  phi=Math.max(INCLINATION_MIN,Math.min(INCLINATION_MAX,phi));
+}
+
+function updateCamera(){
+  clampInclination();
+  const ivEl=document.getElementById("iv");
+  if(ivEl) ivEl.textContent=(phi*180/Math.PI>=0?"+":"")+((phi*180/Math.PI).toFixed(1))+"°";
+  phi=Math.max(-15*Math.PI/180,Math.min(20.5*Math.PI/180,phi));
+  const cp=Math.cos(phi);
+  uniforms.uCam.value.set(
+    radius*cp*Math.sin(theta),
+    radius*Math.sin(phi)+.0,
+    radius*cp*Math.cos(theta)
+  );
+}
+updateCamera();
+
+renderer.domElement.addEventListener('pointerdown',e=>{
+  // One finger on phone or left mouse button on desktop = drag the black hole view.
+  if(e.pointerType==='mouse' && e.button!==0)return;
+  dragging=true;
+  px=e.clientX; py=e.clientY;
+  renderer.domElement.classList.add('dragging');
+  renderer.domElement.setPointerCapture?.(e.pointerId);
+});
+renderer.domElement.addEventListener('pointermove',e=>{
+  if(!dragging)return;
+  const dx=e.clientX-px;
+  const dy=e.clientY-py;
+  px=e.clientX; py=e.clientY;
+
+  // Horizontal = orbit, vertical = tilt, as in the original version.
+  // The black-hole screen-space center remains fixed independently of camera tilt.
+  theta-=dx*.006;
+  phi+=dy*.005;
+  // Drag inclination is locked to -15.0° ... +20.5°.
+  phi=Math.max(-15*Math.PI/180,Math.min(20.5*Math.PI/180,phi));
+  updateCamera();
+});
+function endDrag(e){
+  dragging=false;
+  renderer.domElement.classList.remove('dragging');
+  try{renderer.domElement.releasePointerCapture?.(e.pointerId)}catch(_){}
+}
+renderer.domElement.addEventListener('pointerup',endDrag);
+renderer.domElement.addEventListener('pointercancel',endDrag);
+renderer.domElement.addEventListener('pointerleave',e=>{
+  if(e.pointerType==='mouse' && dragging) endDrag(e);
+});
+renderer.domElement.addEventListener('wheel',e=>{
+  e.preventDefault();
+  radius*=Math.exp(e.deltaY*.0008);
+  radius=Math.max(3.2,Math.min(10.5,radius));
+  updateCamera();
+},{passive:false});
+
+const spin=document.getElementById('spin');
+const bright=document.getElementById('bright');
+const rot=document.getElementById('rot');
+const zoom=document.getElementById('zoom');
+const zv=document.getElementById('zv');
+const distance=document.getElementById('distance');
+const dv=document.getElementById('dv');
+const inclination=document.getElementById('inclination');
+const iv=document.getElementById('iv');
+
+spin.oninput=()=>{uniforms.uSpin.value=+spin.value;document.getElementById('sv').textContent=(+spin.value).toFixed(3)};
+bright.oninput=()=>{uniforms.uBright.value=+bright.value;document.getElementById('bv').textContent=(+bright.value).toFixed(2)};
+rot.oninput=()=>{uniforms.uRot.value=+rot.value;document.getElementById('rv').textContent=(+rot.value).toFixed(2)};
+
+function setZoom(v){
+  const z=Math.max(.35,Math.min(2.50,+v));
+  uniforms.uFocal.value=z;
+  zv.textContent=z.toFixed(2)+'×';
+  zoom.value=String(z);
+}
+
+function setDistance(v){
+  radius=Math.max(3.2,Math.min(10.5,+v));
+  dv.textContent=radius.toFixed(2);
+  distance.value=String(radius);
+  updateCamera();
+}
+
+function setInclination(v){
+  const deg=Math.max(-15,Math.min(20.5,+v));
+  phi=deg*Math.PI/180;
+  iv.textContent=(deg>0?'+':'')+deg.toFixed(1)+'°';
+  inclination.value=String(deg);
+  updateCamera();
+}
+
+zoom.oninput=()=>setZoom(zoom.value);
+distance.oninput=()=>setDistance(distance.value);
+inclination.oninput=()=>setInclination(inclination.value);
+
+document.getElementById('reset').onclick=()=>{
+  theta=0.0;
+  phi=10.6*Math.PI/180;
+  radius=9;
+  uniforms.uFocal.value=1.0;
+
+  zoom.value='1';
+  distance.value='9';
+  inclination.value='10.6';
+  zv.textContent='1.00×';
+  dv.textContent='9.00';
+  iv.textContent='+10.6°';
+  updateCamera();
+};
+
+function syncRenderResolution(){
+  const size=new THREE.Vector2();
+  renderer.getDrawingBufferSize(size);
+  uniforms.uRes.value.copy(size);
+}
+
+function applyRenderScale(){
+  renderer.setPixelRatio(renderScale);
+  renderer.setSize(innerWidth,innerHeight,false);
+  syncRenderResolution();
+}
+
+addEventListener('resize',()=>{
+  renderer.setSize(innerWidth,innerHeight,false);
+  syncRenderResolution();
+});
+
+const clock=new THREE.Clock();
+let isPlaying=true;
+let frames=0, fpsStamp=performance.now();
+let lastFrame=performance.now();
+let qualityStamp=performance.now();
+let frameTime=16.67;
+
+const playBtn=document.getElementById('playBtn');
+const pauseBtn=document.getElementById('pauseBtn');
+const resetFooter=document.getElementById('resetFooter');
+
+let animationSpeed=1.0;
+
+const normalBtn=document.getElementById('normalBtn');
+const fastBtn=document.getElementById('fastBtn');
+const fasterBtn=document.getElementById('fasterBtn');
+
+function setAnimationSpeed(speed){
+  animationSpeed=speed;
+  normalBtn.classList.toggle('active',speed===1.0);
+  fastBtn.classList.toggle('active',speed===2.0);
+  fasterBtn.classList.toggle('active',speed===4.0);
+}
+
+normalBtn.onclick=()=>setAnimationSpeed(1.0);
+fastBtn.onclick=()=>setAnimationSpeed(2.0);
+fasterBtn.onclick=()=>setAnimationSpeed(4.0);
+
+function updatePlayState(){
+  playBtn.classList.toggle('active',isPlaying);
+  pauseBtn.classList.toggle('active',!isPlaying);
+}
+
+playBtn.onclick=()=>{
+  isPlaying=true;
+  clock.start();
+  updatePlayState();
+};
+
+pauseBtn.onclick=()=>{
+  isPlaying=false;
+  clock.stop();
+  updatePlayState();
+};
+
+resetFooter.onclick=()=>{
+  theta=0.0;
+  phi=10.6*Math.PI/180;
+  radius=9;
+
+  zoom.value='1';
+  distance.value='9';
+  inclination.value='10.6';
+  uniforms.uFocal.value=1.0;
+  zv.textContent='1.00×';
+  dv.textContent='9.00';
+  iv.textContent='+10.6°';
+
+  uniforms.uTime.value=0;
+  uniforms.uBgTime.value=0;
+  setAnimationSpeed(1.0);
+  clock.start();
+  isPlaying=true;
+  updatePlayState();
+  updateCamera();
+};
+
+updatePlayState();
+
+function animate(now){
+  
+
+
+requestAnimationFrame(animate);
+
+  const delta=Math.min(50,now-lastFrame);
+  lastFrame=now;
+
+  // Smooth frame-time measurement.
+  frameTime=frameTime*.90+delta*.10;
+
+  // Adaptive pixel density only. The shader and black-hole geometry remain untouched.
+  if(now-qualityStamp>1200){
+    if(frameTime>18.5 && renderScale>MIN_RENDER_SCALE){
+      renderScale=Math.max(MIN_RENDER_SCALE,renderScale-0.05);
+      applyRenderScale();
+    }else if(frameTime<15.5 && renderScale<MAX_RENDER_SCALE){
+      renderScale=Math.min(MAX_RENDER_SCALE,renderScale+0.025);
+      applyRenderScale();
+    }
+    qualityStamp=now;
+  }
+
+  const t=clock.getElapsedTime()*animationSpeed;
+  if(isPlaying){
+    uniforms.uTime.value=t;
+    uniforms.uBgTime.value=t;
+  }
+
+  renderer.render(scene,camera);
+
+  frames++;
+  if(now-fpsStamp>=500){
+    const fps=frames*1000/(now-fpsStamp);
+    const fpsText='FPS: '+Math.round(fps);
+    fpsEl.textContent=fpsText;
+    fpsTopEl.textContent=fpsText;
+    frames=0;
+    fpsStamp=now;
+  }
+}
+
+
+const hideAllBtn=document.getElementById('hideAllBtn');
+let allControlsHidden=false;
+function setAllControlsHidden(hidden){
+  allControlsHidden=hidden;
+  document.querySelectorAll('#ui,#footerControls,#fps,#fpsToggle,#toggle,#fpsTop').forEach(el=>{
+    el.style.display=hidden?'none':'';
+  });
+  hideAllBtn.textContent=hidden?'Show all controls':'Hide all controls';
+  hideAllBtn.classList.toggle('hidden-state',hidden);
+}
+hideAllBtn.onclick=()=>setAllControlsHidden(!allControlsHidden);
+
+const explanationBtn=document.getElementById('explanationBtn');
+if(explanationBtn){
+  explanationBtn.onclick=()=>window.open('Explanation.html','_blank');
+}
+
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>
