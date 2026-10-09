@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About Perceptron OCR</title>
+<style>
+:root{color-scheme:dark;--bg:#08111f;--panel:#111e30;--line:#263850;--text:#e6eef8;--muted:#9db0c8;--cyan:#67e8f9;--blue:#60a5fa}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#122644 0,#08111f 58%);color:var(--text);font:16px/1.7 system-ui,-apple-system,Segoe UI,Arial,sans-serif}
+main{max-width:900px;margin:auto;padding:30px 20px 60px}header,.card{background:rgba(17,30,48,.94);border:1px solid var(--line);border-radius:18px;padding:24px;margin-bottom:18px}
+.eyebrow{font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--cyan);font-weight:800}h1{font-size:clamp(28px,5vw,42px);line-height:1.15;margin:8px 0}h2{font-size:21px;margin:0 0 10px}p{margin:8px 0;color:#d6e2f0}.muted{color:var(--muted)}.formula{padding:14px;border:1px solid #29415c;border-radius:12px;background:#061321;color:var(--cyan);font:14px/1.8 ui-monospace,Consolas,monospace;overflow-wrap:anywhere}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.item{background:#0a1929;border:1px solid #263d58;border-radius:12px;padding:14px}.item b{color:var(--cyan)}a{color:var(--cyan)}.nav{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}.nav a{display:inline-block;padding:9px 13px;border:1px solid #36516f;border-radius:9px;text-decoration:none}
+@media(max-width:600px){main{padding:16px 12px 36px}.grid{grid-template-columns:1fr}header,.card{padding:18px}}
+</style>
+</head>
+<body><main>
+<header>
+<div class="eyebrow">Machine Learning · OCR Lab</div>
+<h1>🧠 Apa Itu Perceptron?</h1>
+<p>Perceptron adalah salah satu model paling dasar dalam jaringan saraf tiruan (Artificial Neural Network). Model ini belajar membuat keputusan dengan menyesuaikan bobot berdasarkan contoh berlabel.</p>
+<div class="nav"><a href="Perceptron.html">Buka Perceptron OCR</a></div>
+</header>
+<section class="card">
+<h2>Bagaimana Perceptron bekerja?</h2>
+<p>Dalam aplikasi ini, gambar angka diubah menjadi grid 16 × 16, sehingga menghasilkan 256 nilai input. Setiap sel aktif bernilai 1 dan setiap sel kosong bernilai 0. Model menghitung skor untuk sepuluh kelas angka, yaitu 0 sampai 9, lalu memilih skor tertinggi.</p>
+<div class="formula">sₖ = Σᵢ (wₖᵢ × xᵢ) + bₖ<br>ŷ = argmaxₖ(sₖ)</div>
+<p class="muted">x adalah input, w adalah bobot, b adalah bias, s adalah skor kelas, dan ŷ adalah angka yang diprediksi.</p>
+</section>
+<section class="card">
+<h2>Bagaimana proses belajar dilakukan?</h2>
+<p>Pengguna memilih label yang benar, menggambar angka, lalu menekan <b>Train Sample</b>. Jika prediksi salah, model memperbarui bobot kelas target dan kelas yang diprediksi. Proses berulang membantu model membedakan pola yang diberikan.</p>
+<div class="formula">w_target ← w_target + ηx<br>w_pred ← w_pred − ηx</div>
+<p class="muted">η (eta) adalah learning rate yang mengatur besar langkah pembaruan bobot.</p>
+</section>
+<section class="card">
+<h2>Fitur aplikasi</h2>
+<div class="grid">
+<div class="item"><b>Input gambar</b><br>Gambar angka pada grid 16 × 16 atau muat contoh demo.</div>
+<div class="item"><b>Training</b><br>Latih menggunakan label manual atau dataset sintetis bawaan.</div>
+<div class="item"><b>Visualisasi</b><br>Amati skor kelas, rumus, log perhitungan, dan bobot neuron.</div>
+<div class="item"><b>Simpan model</b><br>Simpan bobot di browser atau ekspor/impor file JSON.</div>
+</div>
+</section>
+<section class="card">
+<h2>Batasan yang perlu diketahui</h2>
+<p>Perceptron multiclass pada aplikasi ini adalah model linear tanpa hidden layer. Pola demo dibuat secara sintetis dan tidak mewakili keragaman tulisan tangan manusia. Hasilnya dapat keliru pada gambar yang berbeda dari data latih. Untuk OCR yang lebih kuat, gunakan dataset nyata yang beragam, evaluasi pada data uji terpisah, dan pertimbangkan model CNN yang dilatih dengan benar.</p>
+</section>
+<section class="card">
+<h2>Tujuan pembelajaran</h2>
+<p>Aplikasi ini dibuat sebagai laboratorium edukasi untuk memahami input, bobot, bias, skor kelas, prediksi, dan pembaruan parameter dalam perceptron. Gunakan sebagai titik awal eksperimen machine learning, bukan sebagai jaminan pengenalan tulisan tangan yang akurat.</p>
+</section>
+</main></body></html>
