@@ -1,0 +1,401 @@
+<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Perceptron OCR Huruf A–Z — Pretrained Lab</title><style>:root{color-scheme:dark;--bg:#08111f;--panel:#111e30;--panel2:#0b1626;--line:#263850;--muted:#9db0c8;--text:#e6eef8;--blue:#60a5fa;--cyan:#67e8f9;--green:#4ade80;--red:#fb7185;--purple:#c4b5fd}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#122644 0,#08111f 55%);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,Arial,sans-serif}.container{max-width:1400px;margin:auto;padding:26px 20px 50px}header{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}.eyebrow{color:var(--cyan);text-transform:uppercase;letter-spacing:.14em;font-size:12px;font-weight:800}h1{margin:2px 0;font-size:clamp(26px,4vw,38px);line-height:1.15}h2{font-size:18px;margin:0 0 12px}h3{font-size:14px;margin:0 0 8px;color:#d8e6f7}.subtitle,.muted,.small{color:var(--muted)}.subtitle{margin:8px 0 0}.pill{border:1px solid #28506b;color:var(--cyan);padding:7px 11px;border-radius:999px;font-size:12px;font-weight:700}.layout{display:grid;grid-template-columns:minmax(300px,390px) minmax(0,1fr);gap:18px;margin-top:24px}.stack{display:grid;gap:18px;align-content:start}.card{background:#111e30;border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 12px 28px #0002}.card p{margin:6px 0 12px}.small{font-size:12px}#drawingGrid{width:min(100%,320px);aspect-ratio:1;display:grid;grid-template-columns:repeat(16,1fr);grid-template-rows:repeat(16,1fr);border:2px solid #526783;margin:14px auto;background:#020817;user-select:none;touch-action:none;border-radius:5px;overflow:hidden}.cell{border:1px solid #142238;background:#020817}.cell.active{background:#f8fafc;box-shadow:0 0 5px #dbeafe}.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}button,select,input{font:inherit}button{border:1px solid transparent;border-radius:9px;padding:9px 13px;cursor:pointer;background:#2563eb;color:white;font-weight:750}button:hover{filter:brightness(1.12)}button:disabled{opacity:.45;cursor:not-allowed}.secondary{background:#26384f;border-color:#3a506b}.success{background:#15803d}.danger{background:#9f1239}.purple{background:#6d28d9}.digit-buttons{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin:12px 0}.digit-btn{background:#1c3049;border:1px solid #344c69}.digit-btn.selected{background:#6d28d9;border-color:#c4b5fd;box-shadow:0 0 0 2px #8b5cf655}.result{display:flex;gap:16px;align-items:center;justify-content:center;text-align:center;margin-top:15px;padding:14px;border-radius:12px;background:#071321;border:1px solid #203650}.prediction{font-size:58px;font-weight:850;line-height:1;color:var(--cyan)}.result .small{margin-bottom:4px}.status{margin-top:12px;padding:10px 12px;background:#071321;border:1px solid #203650;border-radius:9px;color:#c4d4e7;min-height:42px;font-size:13px}.status.ok{border-color:#166534}.status.warn{border-color:#9f1239}.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}.stat{background:#091727;border:1px solid #233750;padding:10px;border-radius:10px}.stat strong{display:block;font-size:19px}.stat span{font-size:11px;color:var(--muted)}.arch{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:10px;margin:14px 0}.layer{padding:13px 8px;text-align:center;border:1px solid #35506e;background:#0a1829;border-radius:12px;min-width:0}.layer strong{display:block;font-size:19px;color:var(--cyan)}.layer span{font-size:11px;color:var(--muted)}.arrow{color:#7dd3fc;font-size:23px}.formula{background:#061321;border:1px solid #243b56;border-radius:10px;padding:12px;overflow-wrap:anywhere;margin:8px 0;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:#dbeafe}.formula b{color:var(--cyan)}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}.weights{display:grid;grid-template-columns:repeat(16,1fr);width:min(100%,320px);aspect-ratio:1;margin:12px auto;border:1px solid #40536b;overflow:hidden}.weight-cell{border:1px solid #182a3e;min-width:0;min-height:0}.bar-list{display:grid;gap:7px}.score-row{display:grid;grid-template-columns:24px minmax(30px,1fr) 66px;gap:8px;align-items:center;font:12px ui-monospace,monospace}.bar{height:8px;background:#1b2d43;border-radius:99px;overflow:hidden}.bar span{display:block;height:100%;background:#38bdf8;width:0}.score-row.best .digit-label{color:var(--green);font-weight:800}.log{background:#020914;border:1px solid #1d344e;border-radius:10px;overflow:hidden}.log-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px;background:#0c1a2b;border-bottom:1px solid #1d344e}.terminal-dots{display:inline-flex;gap:5px;margin-right:8px}.terminal-dots i{width:8px;height:8px;border-radius:50%;background:#fb7185}.terminal-dots i:nth-child(2){background:#fbbf24}.terminal-dots i:nth-child(3){background:#4ade80}.log-body{height:300px;overflow:auto;padding:12px;font:12px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;color:#b7c9df}.log-line{display:block}.log-line.info{color:#7dd3fc}.log-line.good{color:#86efac}.log-line.warn{color:#fda4af}.log-line.calc{color:#e9d5ff}.weights-meta{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.footer{color:var(--muted);font-size:12px;margin-top:18px}@media(max-width:900px){.layout{grid-template-columns:1fr}.left-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}.two-col{grid-template-columns:1fr 1fr}}@media(max-width:560px){.container{padding:18px 12px 35px}.card{padding:14px}.arch{gap:4px}.layer{padding:10px 3px}.layer strong{font-size:15px}.layer span{font-size:10px}.arrow{font-size:17px}.two-col{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}.stat{padding:8px 5px}.stat strong{font-size:16px}.log-body{height:260px}}
+/* Advanced OCR Lab upgrade */
+.adv-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:16px}
+.adv-toolbar button,.adv-toolbar select,.adv-toolbar input{font:inherit}
+.adv-panel{background:linear-gradient(145deg,#101f33,#091525);border:1px solid #29415f;border-radius:16px;padding:18px;margin-top:18px;box-shadow:0 12px 30px #0002}
+.adv-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.adv-stat{padding:12px;border:1px solid #263d58;background:#071423;border-radius:12px;min-width:0}
+.adv-stat strong{font-size:22px;display:block;color:#67e8f9}
+.adv-stat span{font-size:12px;color:#9db0c8}
+.adv-actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.adv-actions button{font-size:13px}
+.adv-select{background:#0a1728;color:#e6eef8;border:1px solid #36516f;border-radius:9px;padding:9px}
+.adv-note{color:#9db0c8;font-size:12px;line-height:1.55}
+.adv-bars{display:grid;gap:8px;margin-top:12px}
+.adv-bar-row{display:grid;grid-template-columns:34px minmax(40px,1fr) 72px;gap:8px;align-items:center;font:12px ui-monospace,monospace}
+.adv-bar{height:9px;background:#203149;border-radius:99px;overflow:hidden}
+.adv-bar i{display:block;height:100%;background:linear-gradient(90deg,#38bdf8,#a78bfa);border-radius:99px}
+.adv-bar-row.top i{background:linear-gradient(90deg,#4ade80,#67e8f9)}
+.adv-matrix{display:grid;grid-template-columns:repeat(26,minmax(0,1fr));gap:2px;margin-top:10px;overflow-x:auto}.adv-matrix span{min-width:10px;font-size:8px}
+.adv-matrix span{display:grid;place-items:center;aspect-ratio:1;background:#13263c;border:1px solid #2a415d;border-radius:4px;font-size:10px;color:#e6eef8}
+.adv-matrix .diag{border-color:#34d399}
+.adv-mini{font-size:11px;color:#9db0c8}
+.adv-status{padding:10px 12px;border:1px solid #2b4967;border-radius:9px;background:#061321;color:#c4d4e7;font-size:13px;overflow-wrap:anywhere}
+.adv-status.good{border-color:#166534}.adv-status.warn{border-color:#9f1239}
+.adv-top3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+.adv-top3 div{background:#0a1929;border:1px solid #29415c;border-radius:10px;padding:10px;text-align:center}
+.adv-top3 b{display:block;font-size:22px;color:#67e8f9}.adv-top3 span{font-size:11px;color:#9db0c8}
+@media(max-width:560px){.adv-grid{grid-template-columns:1fr}.adv-panel{padding:14px}.adv-matrix span{font-size:8px}.adv-top3 b{font-size:18px}}
+
+.save-note{font-size:12px;color:#9db0c8;margin-top:8px;overflow-wrap:anywhere}
+</style></head><body><div class="container"><header><div><div class="eyebrow">Machine Learning • Lite Edition</div><h1>🧠 Perceptron OCR</h1><p class="subtitle">Gambar huruf A–Z, latih model, lihat rumus, dan telusuri log perhitungan secara langsung.</p></div><span class="pill">Demo-pretrained · 26 kelas · 256 input</span></header><div class="layout"><div class="stack left-grid"><section class="card"><h2>✏️ 1. Input huruf</h2><p class="small">Gambar huruf di grid 16 × 16. Setiap sel aktif menjadi input bernilai 1, sel kosong bernilai 0.</p><div id="drawingGrid" aria-label="Grid menggambar huruf"></div><div class="controls"><button class="danger" id="clearBtn">Clear</button><button id="recognizeBtn">🔍 Recognize</button><button class="secondary" id="exampleBtn">Contoh acak</button><button class="success" id="saveModelBtn">💾 Save Model</button><button class="secondary" id="loadModelBtn">Load Model</button><button class="secondary" id="exportModelBtn">Export JSON</button><button class="secondary" id="importModelBtn">Import JSON</button><input id="importModelFile" type="file" accept=".json,application/json" hidden></div><div class="result"><div><div class="small">Prediksi model</div><div id="prediction" class="prediction">?</div></div><div><div class="small">Confidence heuristik (model asli)</div><strong id="confidence">—</strong><div id="resultDetail" class="small">Belum ada prediksi</div></div></div><div class="stats"><div class="stat"><strong id="inputCount">0/256</strong><span>Input aktif</span></div><div class="stat"><strong id="trainCount">0</strong><span>Langkah training</span></div><div class="stat"><strong id="modelStatus">Siap</strong><span>Status model</span></div></div></section><section class="card"><h2>🎓 2. Training model huruf</h2><p class="small">Pilih label huruf yang benar, gambar huruf lalu tekan Train Sample. Dataset demo memakai pola huruf sintetis sederhana, bukan dataset tulisan tangan nyata.</p><div id="digitButtons" class="digit-buttons"></div><div class="controls"><button class="success" id="trainSampleBtn">Train Sample</button><button id="trainDatasetBtn">⚡ Train Dataset</button><button class="secondary" id="resetBtn">Reset Model</button></div><div id="status" class="status">Model siap. Pilih label huruf, gambar huruf, lalu latih. Simpan model kapan saja.</div><p class="small">Tombol Save Model menyimpan bobot dan bias di browser. Export JSON membuat backup portabel. Anda dapat melatih model dengan contoh bawaan atau gambar dan label yang dimasukkan manual.</p><p class="small">Training dataset memakai 26 pola huruf bawaan selama 40 epoch. Untuk hasil yang lebih baik pada tulisan tangan, model perlu dilatih dengan dataset yang beragam.</p></section></div><div class="stack"><section class="card"><h2>🕸️ 3. Arsitektur jaringan saraf tiruan</h2><div class="arch"><div class="layer"><strong>256</strong><span>Input neuron<br>x₁ … x₂₅₆</span></div><div class="arrow">→</div><div class="layer"><strong>10</strong><span>Neuron output<br>satu per huruf</span></div><div class="arrow">→</div><div class="layer"><strong>A–Z</strong><span>Argmax<br>kelas prediksi</span></div></div><p class="small">Model ini adalah <b>multiclass linear perceptron</b>: 26 unit skor linear, tanpa hidden layer. Setiap kelas memiliki 256 bobot dan satu bias.</p><div class="formula"><b>Input:</b> x ∈ {0,1}²⁵⁶</div><div class="formula"><b>Skor kelas k:</b> sₖ = Σᵢ₌₁²⁵⁶ (wₖᵢ × xᵢ) + bₖ</div><div class="formula"><b>Prediksi:</b> ŷ = argmaxₖ(sₖ), k ∈ {A,B,…,Z}</div><div class="formula"><b>Update jika salah:</b><br>wᵧ ← wᵧ + ηx &nbsp; dan &nbsp; wₚ ← wₚ − ηx<br>bᵧ ← bᵧ + η &nbsp; dan &nbsp; bₚ ← bₚ − η<br><span class="small">η = 0.1 · y = label target · p = prediksi model</span></div></section><section class="card"><h2>🧮 4. Skor dan perhitungan prediksi</h2><p class="small">Skor dihitung dari bobot saat ini. Skor tertinggi menjadi prediksi; confidence di aplikasi ini hanya heuristik berdasarkan selisih dua skor tertinggi, bukan probabilitas terkalibrasi.</p><div id="scoreList" class="bar-list"><span class="small">Gambar huruf lalu jalankan Recognize untuk melihat skor.</span></div><div class="formula" id="liveFormula">sₖ = Σ(wₖᵢ × xᵢ) + bₖ</div></section><section class="card"><h2>🧩 5. Visualisasi bobot neuron</h2><p class="small">Pilih huruf di panel training untuk melihat bobot 16 × 16. Terang = bobot relatif besar, gelap = relatif kecil.</p><div class="weights-meta"><span class="small" id="weightTitle">Bobot untuk huruf A</span><span class="small" id="weightRange">min 0 · max 0</span></div><div id="weights" class="weights"></div></section><section class="card"><h2>⌨️ 6. Log CLI perhitungan</h2><p class="small">Log bergaya terminal untuk melacak input, skor 26 kelas, prediksi, rumus update, dan perubahan parameter. Log ini ditampilkan oleh aplikasi browser, bukan keluaran terminal sistem operasi.</p><div class="log"><div class="log-head"><div><span class="terminal-dots"><i></i><i></i><i></i></span><span class="small">perceptron-ocr-letters / console</span></div><div class="controls"><button class="secondary" id="copyLogBtn">Copy Log</button><button class="secondary" id="clearLogBtn">Clear Log</button></div></div><div id="log" class="log-body" role="log" aria-live="polite"></div></div></section></div></div>
+<section class="adv-panel" id="advancedLab">
+  <h2>🚀 Advanced AI Lab</h2>
+  <p class="small">Mode tambahan untuk eksperimen. Fitur asli tetap tersedia. Semua pemrosesan berlangsung lokal di browser.</p>
+  <div class="adv-toolbar">
+    <label for="modelMode" class="small">Model</label>
+    <select id="modelMode" class="adv-select" aria-label="Pilih model">
+      <option value="perceptron">Multiclass Perceptron</option>
+      <option value="cnn">CNN-Lite (conv + max-pool + dense)</option>
+    </select>
+    <button id="advRecognize">🔎 Prediksi mode aktif</button>
+    <button id="advTrain" class="success">⚡ Latih mode aktif</button>
+  </div>
+  <div class="adv-grid" style="margin-top:12px">
+    <div class="adv-stat"><strong id="advModeName">Perceptron</strong><span>Model aktif</span></div>
+    <div class="adv-stat"><strong id="advSamples">0</strong><span>Langkah update / training</span></div>
+    <div class="adv-stat"><strong id="advAccuracy">—</strong><span>Akurasi pola demo (bukan data nyata)</span></div>
+    <div class="adv-stat"><strong id="advSaved">Belum</strong><span>Status penyimpanan lokal</span></div>
+  </div>
+  <h3 style="margin-top:18px">Top-3 prediksi dan softmax</h3>
+  <div id="advTop3" class="adv-top3">
+    <div><b>—</b><span>Top 1</span></div><div><b>—</b><span>Top 2</span></div><div><b>—</b><span>Top 3</span></div>
+  </div>
+  <div id="advBars" class="adv-bars"><span class="adv-note">Gambar huruf lalu jalankan prediksi untuk melihat skor.</span></div>
+  <p class="adv-note">Softmax mengubah skor menjadi distribusi relatif, bukan jaminan akurasi atau confidence yang terkalibrasi. CNN-Lite memakai empat filter konvolusi tetap, ReLU, max-pooling, lalu dense softmax yang dilatih di browser. Ini demonstrator edukasi, bukan pengganti CNN end-to-end terlatih pada MNIST.</p>
+</section>
+<section class="adv-panel">
+  <h2>📈 Training Analytics</h2>
+  <p class="adv-note">Grafik menampilkan akurasi klasifikasi (%) pada 26 pola huruf demo setelah epoch/evaluasi, bukan skor softmax dari prediksi tunggal.</p>
+  <div class="adv-actions">
+    <button id="advEval" class="secondary">Evaluasi pola demo</button>
+    <button id="advClearHistory" class="secondary">Reset grafik</button>
+  </div>
+  <canvas id="advChart" width="900" height="230" style="width:100%;height:auto;background:#061321;border:1px solid #263d58;border-radius:10px"></canvas>
+  <h3 style="margin-top:16px">Confusion matrix · 26 kelas</h3>
+  <p class="adv-note">Evaluasi memakai 26 pola huruf sintetis bawaan yang sama dengan demo training. Gunakan dataset tulisan tangan nyata dan test set terpisah untuk mengukur performa OCR yang sesungguhnya.</p>
+  <div id="advMatrix" class="adv-matrix"></div>
+  <div id="advAnalyticsStatus" class="adv-status" style="margin-top:10px">Belum ada evaluasi.</div>
+</section>
+<section class="adv-panel">
+  <h2>💾 Model & data lokal</h2>
+  <p class="small">Simpan model ke LocalStorage browser, atau ekspor/impor snapshot JSON untuk backup dan pemindahan manual.</p>
+  <div class="adv-actions">
+    <button id="advSave" class="success">Simpan lokal</button>
+    <button id="advLoad" class="secondary">Muat lokal</button>
+    <button id="advExport">Ekspor JSON</button>
+    <button id="advImportBtn" class="purple">Impor JSON</button>
+    <input id="advImportFile" type="file" accept="application/json,.json" hidden>
+  </div>
+  <div id="advStorageStatus" class="adv-status">Model belum disimpan.</div>
+  <p class="adv-note">LocalStorage bergantung pada browser dan origin tempat file dibuka. Ekspor JSON disarankan sebagai backup. Impor hanya menerima format snapshot aplikasi ini.</p>
+</section>
+
+<div class="footer">Catatan: perceptron linear tidak menjamin mengenali tulisan tangan bebas. Gunakan dataset nyata, preprocessing, dan validasi terpisah jika ingin membangun OCR yang siap digunakan.</div></div>
+<script>
+"use strict";
+const SIZE=16, INPUTS=SIZE*SIZE, CLASSES=26, learningRate=0.1;
+let selectedDigit=0, isDrawing=false, weights=[], biases=[], trainingSteps=0, lastInput=null, lastScores=null;
+const $=id=>document.getElementById(id);
+const grid=$("drawingGrid"), logBox=$("log");
+const MAX_LOG_LINES=350;
+function log(message,type=""){const line=document.createElement("span");line.className="log-line "+type;line.textContent=message;logBox.appendChild(line);logBox.appendChild(document.createTextNode("\n"));while(logBox.childNodes.length>MAX_LOG_LINES*2)logBox.removeChild(logBox.firstChild);logBox.scrollTop=logBox.scrollHeight;}
+function initModel(){weights=Array.from({length:CLASSES},()=>Array(INPUTS).fill(0));biases=Array(CLASSES).fill(0);trainingSteps=0;lastInput=null;lastScores=null;$("trainCount").textContent="0";$("modelStatus").textContent="Siap";updateWeightsView();log("[INIT] Multiclass perceptron diinisialisasi.","info");log(`[MODEL] input=${INPUTS}, classes=${CLASSES}, learning_rate=${learningRate}`,"info");log("[MODEL] Semua weight dan bias = 0.");}
+for(let i=0;i<INPUTS;i++){const c=document.createElement("div");c.className="cell";c.dataset.index=i;grid.appendChild(c);}
+function activateCell(e){const el=document.elementFromPoint(e.clientX,e.clientY);if(el&&el.classList.contains("cell"))el.classList.add("active");updateInputCount();}
+grid.addEventListener("pointerdown",e=>{isDrawing=true;grid.setPointerCapture?.(e.pointerId);activateCell(e);});
+grid.addEventListener("pointermove",e=>{if(isDrawing)activateCell(e);});
+window.addEventListener("pointerup",()=>isDrawing=false);
+function getInput(){return [...grid.children].map(c=>c.classList.contains("active")?1:0);}
+function updateInputCount(){$("inputCount").textContent=getInput().reduce((a,b)=>a+b,0)+"/"+INPUTS;}
+function clearCanvas(){grid.querySelectorAll(".cell").forEach(c=>c.classList.remove("active"));$("prediction").textContent="?";$("confidence").textContent="—";$("resultDetail").textContent="Belum ada prediksi";updateInputCount();}
+function setStatus(m,kind=""){ $("status").textContent=m;$("status").className="status "+kind;}
+const digitButtons=$("digitButtons");
+for(let d=0;d<26;d++){const b=document.createElement("button");b.className="digit-btn"+(d===0?" selected":"");b.textContent=String.fromCharCode(65+d);b.addEventListener("click",()=>{selectedDigit=d;document.querySelectorAll(".digit-btn").forEach(x=>x.classList.toggle("selected",x===b));updateWeightsView();log(`[UI] Label target dipilih: ${String.fromCharCode(65+d)}`,"info");});digitButtons.appendChild(b);}
+function score(d,input,verbose=false){let sum=0,activeTerms=[];for(let i=0;i<INPUTS;i++){const term=weights[d][i]*input[i];sum+=term;if(verbose&&input[i]!==0)activeTerms.push(`w${d},${i+1}(${weights[d][i].toFixed(2)})×x${i+1}(1)`);}const result=sum+biases[d];if(verbose){log(`[MATH] s_${String.fromCharCode(65+d)} = Σ(w_${d},i × x_i) + b_${d}`,"calc");log(`[MATH] kelas ${String.fromCharCode(65+d)}: jumlah ${sum.toFixed(4)} + bias ${biases[d].toFixed(4)} = ${result.toFixed(4)}`,"calc");if(activeTerms.length)log(`[MATH] kontribusi input aktif (maks 12 ditampilkan): ${activeTerms.slice(0,12).join(" + ")}${activeTerms.length>12?" …":""}`,"calc");}return result;}
+function predict(input,verbose=false){const scores=[];for(let d=0;d<CLASSES;d++)scores.push(score(d,input,verbose));let best=0;for(let d=1;d<CLASSES;d++)if(scores[d]>scores[best])best=d;return{digit:best,score:scores[best],scores};}
+function renderScores(scores){const max=Math.max(...scores),min=Math.min(...scores),span=Math.max(1e-9,max-min);$("scoreList").innerHTML="";scores.forEach((s,d)=>{const row=document.createElement("div");row.className="score-row"+(s===max?" best":"");const label=document.createElement("span");label.className="digit-label";label.textContent=String.fromCharCode(65+d);const bar=document.createElement("div");bar.className="bar";const fill=document.createElement("span");fill.style.width=(((s-min)/span)*100)+"%";bar.appendChild(fill);const val=document.createElement("span");val.textContent=s.toFixed(3);val.style.textAlign="right";row.append(label,bar,val);$("scoreList").appendChild(row);});}
+function recognize(){const input=getInput();if(!input.some(Boolean)){setStatus("Gambarkan huruf terlebih dahulu.","warn");log("[ERROR] Input kosong. Gambar huruf sebelum recognize.","warn");return;}lastInput=input;const r=predict(input,true);lastScores=r.scores;const sorted=[...r.scores].sort((a,b)=>b-a),diff=sorted[0]-sorted[1],conf=Math.min(99,Math.max(0,50+diff*10));$("prediction").textContent=String.fromCharCode(65+r.digit);$("confidence").textContent=conf.toFixed(1)+"%";$("resultDetail").textContent=`skor ${r.score.toFixed(3)} · selisih ${diff.toFixed(3)}`;renderScores(r.scores);$("liveFormula").textContent=`s_${String.fromCharCode(65+r.digit)} = Σ(w_${r.digit},i × x_i) + b_${r.digit} = ${r.score.toFixed(4)}; ŷ = ${String.fromCharCode(65+r.digit)}`;setStatus(`Prediksi huruf ${String.fromCharCode(65+r.digit)} dengan skor ${r.score.toFixed(3)}.`, "ok");log(`[PREDICT] input aktif=${input.reduce((a,b)=>a+b,0)}/${INPUTS}`,"info");log(`[PREDICT] scores=[${r.scores.map(x=>x.toFixed(3)).join(", ")}]`);log(`[PREDICT] ŷ = ${String.fromCharCode(65+r.digit)}; confidence heuristik=${conf.toFixed(1)}%`,"good");}
+function train(input,target,source="sample",verbose=true){const r=predict(input,false),p=r.digit;trainingSteps++;if(verbose){$("trainCount").textContent=trainingSteps;log(`[TRAIN ${trainingSteps}] source=${source} target=${target} predicted=${String.fromCharCode(65+p)} eta=${learningRate}`,"info");}if(p!==target){let active=0;for(let i=0;i<INPUTS;i++)if(input[i]){weights[target][i]+=learningRate;weights[p][i]-=learningRate;active++;}biases[target]+=learningRate;biases[p]-=learningRate;if(verbose){log(`[ERROR] prediksi ${p} ≠ target ${String.fromCharCode(65+target)}; update bobot pada ${active} input aktif.`,"warn");log(`[FORMULA] w_target ← w_target + ηx; w_pred ← w_pred − ηx; b_target += η; b_pred -= η`,"calc");log(`[UPDATE] b_${String.fromCharCode(65+target)}=${biases[target].toFixed(2)}; b_${String.fromCharCode(65+p)}=${biases[p].toFixed(2)}; Δw=±${learningRate} pada input aktif`,"calc");}return false;}if(verbose)log(`[OK] Prediksi sama dengan target ${String.fromCharCode(65+target)}; bobot tidak berubah.`,"good");return true;}
+function trainSample(){const input=getInput();if(!input.some(Boolean)){setStatus("Gambar huruf terlebih dahulu.","warn");log("[ERROR] Training dibatalkan: input kosong.","warn");return;}const ok=train(input,selectedDigit,"manual");setStatus(ok?`Benar: model memprediksi ${String.fromCharCode(65+selectedDigit)}. Bobot tidak berubah.`:`Salah klasifikasi. Bobot diperbarui untuk label ${String.fromCharCode(65+selectedDigit)}.`,ok?"ok":"");updateWeightsView();if(typeof window.recordTrainingAnalytics==="function")window.recordTrainingAnalytics("Training manual","perceptron");clearCanvas();}
+const digitPatterns={
+0:["01110","10001","10001","11111","10001","10001","10001"],
+1:["11110","10001","10001","11110","10001","10001","11110"],
+2:["01111","10000","10000","10000","10000","10000","01111"],
+3:["11110","10001","10001","10001","10001","10001","11110"],
+4:["11111","10000","10000","11110","10000","10000","11111"],
+5:["11111","10000","10000","11110","10000","10000","10000"],
+6:["01111","10000","10000","10111","10001","10001","01111"],
+7:["10001","10001","10001","11111","10001","10001","10001"],
+8:["11111","00100","00100","00100","00100","00100","11111"],
+9:["00111","00010","00010","00010","10010","10010","01100"],
+10:["10001","10010","10100","11000","10100","10010","10001"],
+11:["10000","10000","10000","10000","10000","10000","11111"],
+12:["10001","11011","10101","10101","10001","10001","10001"],
+13:["10001","11001","10101","10011","10001","10001","10001"],
+14:["01110","10001","10001","10001","10001","10001","01110"],
+15:["11110","10001","10001","11110","10000","10000","10000"],
+16:["01110","10001","10001","10001","10101","10010","01101"],
+17:["11110","10001","10001","11110","10100","10010","10001"],
+18:["01111","10000","10000","01110","00001","00001","11110"],
+19:["11111","00100","00100","00100","00100","00100","00100"],
+20:["10001","10001","10001","10001","10001","10001","01110"],
+21:["10001","10001","10001","10001","10001","01010","00100"],
+22:["10001","10001","10001","10101","10101","10101","01010"],
+23:["10001","10001","01010","00100","01010","10001","10001"],
+24:["10001","10001","01010","00100","00100","00100","00100"],
+25:["11111","00001","00010","00100","01000","10000","11111"]};
+function patternToInput(pattern){const input=Array(INPUTS).fill(0);for(let y=0;y<16;y++)for(let x=0;x<16;x++){const px=Math.min(4,Math.floor(x/3.2)),py=Math.min(6,Math.floor(y/2.3));input[y*16+x]=pattern[py][px]==="1"?1:0;}return input;}
+function drawInput(input){[...grid.children].forEach((c,i)=>c.classList.toggle("active",input[i]===1));updateInputCount();}
+function trainDataset(){const epochs=40;let lastCorrect=0,total=0;log(`[DATASET] start epochs=${epochs}, samples/epoch=26`,"info");for(let e=0;e<epochs;e++){lastCorrect=0;total=0;for(let d=0;d<26;d++){const ok=train(patternToInput(digitPatterns[d]),d,`epoch-${e+1}/letter-${String.fromCharCode(65+d)}`,false);if(ok)lastCorrect++;total++;}if(typeof window.recordTrainingAnalytics==="function")window.recordTrainingAnalytics(`Epoch ${e+1}`,"perceptron");if((e+1)%5===0)log(`[EPOCH ${e+1}/${epochs}] akurasi online=${lastCorrect}/${total}; evaluasi pasca-epoch dicatat`,"info");}$("trainCount").textContent=trainingSteps;updateWeightsView();$("modelStatus").textContent="Terlatih";setStatus(`Training selesai. Epoch terakhir: ${lastCorrect}/${total} sample benar. Total langkah: ${trainingSteps}.`,"ok");log(`[DONE] training huruf selesai; epoch=${epochs}; akurasi online epoch terakhir=${lastCorrect}/${total} (${(100*lastCorrect/total).toFixed(1)}%)`,"good");log("[NOTE] Akurasi pada pola sintetis, bukan uji tulisan tangan.","warn");}
+function updateWeightsView(){const box=$("weights");box.innerHTML="";if(!weights.length)return;const w=weights[selectedDigit],min=Math.min(...w),max=Math.max(...w);$("weightTitle").textContent=`Bobot untuk huruf ${String.fromCharCode(65+selectedDigit)}`;$("weightRange").textContent=`min ${min.toFixed(2)} · max ${max.toFixed(2)} · bias ${biases[selectedDigit].toFixed(2)}`;w.forEach(v=>{const c=document.createElement("div");c.className="weight-cell";let t=max===min?.5:(v-min)/(max-min);if(v<0){const strength=Math.min(1,Math.abs(v)/Math.max(Math.abs(min),1e-9));c.style.background=`rgb(${Math.round(40+100*strength)},${Math.round(55-15*strength)},${Math.round(80-20*strength)})`;}else{const g=Math.round(20+t*210);c.style.background=`rgb(${g},${g},${g})`;}box.appendChild(c);});}
+$("clearBtn").addEventListener("click",()=>{clearCanvas();log("[UI] Kanvas dibersihkan.","info");});
+$("recognizeBtn").addEventListener("click",recognize);
+$("trainSampleBtn").addEventListener("click",trainSample);
+$("trainDatasetBtn").addEventListener("click",trainDataset);
+$("resetBtn").addEventListener("click",()=>{initModel();clearCanvas();$("prediction").textContent="?";$("confidence").textContent="—";$("resultDetail").textContent="Belum ada prediksi";$("scoreList").innerHTML="";setStatus("Model di-reset. Semua bobot dan bias = 0.");log("[RESET] Model berhasil di-reset.","warn");});
+$("exampleBtn").addEventListener("click",()=>{const d=Math.floor(Math.random()*26);drawInput(patternToInput(digitPatterns[d]));selectedDigit=d;document.querySelectorAll(".digit-btn").forEach((x,i)=>x.classList.toggle("selected",i===d));updateWeightsView();setStatus(`Contoh sintetis huruf ${String.fromCharCode(65+d)} dimuat. Label target dipilih ke ${String.fromCharCode(65+d)}.`);log(`[DEMO] pola sintetis huruf ${String.fromCharCode(65+d)} dimuat ke grid.`,"info");});
+$("clearLogBtn").addEventListener("click",()=>{logBox.textContent="";log("[CLI] Log dibersihkan.","info");});
+$("copyLogBtn").addEventListener("click",async()=>{const text=logBox.innerText;try{await navigator.clipboard.writeText(text);setStatus("Log berhasil disalin ke clipboard.","ok");}catch(e){setStatus("Clipboard tidak tersedia di konteks ini. Pilih dan salin teks log secara manual.","warn");}});
+initModel();clearCanvas();log("[HELP] Alur: gambar → Recognize → pilih target → Train Sample.","info");
+
+/* ================= Advanced OCR Lab ================= */
+(function(){
+  const $a=id=>document.getElementById(id);
+  const STORE_KEY="perceptronOcrLettersAdvanced.v1";
+  let activeMode="perceptron", cnnHead=null, cnnSteps=0, history=[], latestMatrix=null;
+  const CONV_FILTERS=[
+    [[-1,0,1],[-2,0,2],[-1,0,1]],
+    [[-1,-2,-1],[0,0,0],[1,2,1]],
+    [[0,-1,0],[-1,4,-1],[0,-1,0]],
+    [[-1,-1,-1],[-1,8,-1],[-1,-1,-1]]
+  ];
+  const rand=(n)=>Array.from({length:n},()=>Array.from({length:197},()=>((Math.random()-.5)*.04)));
+  function initCnn(){cnnHead=Array.from({length:26},()=>Array.from({length:196},()=>((Math.random()-.5)*.04)));cnnSteps=0;}
+  function inputNow(){return typeof getInput==="function"?getInput():Array(256).fill(0);}
+  function softmax(scores){const mx=Math.max(...scores),ex=scores.map(v=>Math.exp(Math.max(-40,Math.min(40,v-mx)))),sum=ex.reduce((a,b)=>a+b,0)||1;return ex.map(v=>v/sum);}
+  function cnnFeatures(input){
+    const maps=[];
+    for(const f of CONV_FILTERS){
+      const m=Array.from({length:14},()=>Array(14).fill(0));
+      for(let y=0;y<14;y++)for(let x=0;x<14;x++){
+        let s=0;for(let ky=0;ky<3;ky++)for(let kx=0;kx<3;kx++)s+=input[(y+ky)*16+x+kx]*f[ky][kx];
+        m[y][x]=Math.max(0,s);
+      }
+      maps.push(m);
+    }
+    const out=[];
+    for(const m of maps)for(let y=0;y<14;y+=2)for(let x=0;x<14;x+=2){
+      out.push(Math.max(m[y][x],m[y+1][x],m[y][x+1],m[y+1][x+1]));
+    }
+    return out; // 4 x 7 x 7 = 196 features
+  }
+  function getScores(input,mode=activeMode){
+    if(mode==="cnn"){
+      const feat=cnnFeatures(input);
+      return cnnHead.map(row=>row.reduce((s,w,i)=>s+w*feat[i],0));
+    }
+    return predict(input,false).scores;
+  }
+  function argmax(scores){let b=0;for(let i=1;i<scores.length;i++)if(scores[i]>scores[b])b=i;return b;}
+  function trainCnn(input,target){
+    const feat=cnnFeatures(input),scores=getScores(input,"cnn"),p=softmax(scores),pred=argmax(scores);
+    // Dense head trained with softmax cross-entropy; convolutional feature filters remain fixed.
+    const lr=0.025;
+    for(let k=0;k<26;k++){const err=p[k]-(k===target?1:0);for(let i=0;i<196;i++)cnnHead[k][i]-=lr*err*feat[i];}
+    cnnSteps++;return pred===target;
+  }
+  function setStatus(id,msg,kind=""){const el=$a(id);el.textContent=msg;el.className="adv-status "+kind;}
+  function renderPred(scores){
+    const probs=softmax(scores),sorted=scores.map((s,d)=>({d,s,p:probs[d]})).sort((a,b)=>b.s-a.s);
+    $a("advTop3").innerHTML=sorted.slice(0,3).map((x,i)=>`<div><b>${String.fromCharCode(65+x.d)}</b><span>Top ${i+1} · ${(x.p*100).toFixed(1)}%</span></div>`).join("");
+    $a("advBars").innerHTML=probs.map((p,d)=>`<div class="adv-bar-row ${d===sorted[0].d?"top":""}"><span>${String.fromCharCode(65+d)}</span><div class="adv-bar"><i style="width:${(p*100).toFixed(2)}%"></i></div><span style="text-align:right">${(p*100).toFixed(2)}%</span></div>`).join("");
+    if(typeof renderScores==="function")renderScores(scores);
+    if(typeof $==="function"){
+      $("prediction").textContent=String.fromCharCode(65+sorted[0].d);
+      $("confidence").textContent=(sorted[0].p*100).toFixed(1)+"%*";
+      $("resultDetail").textContent=`softmax relatif · top-1 ${String.fromCharCode(65+sorted[0].d)}`;
+    }
+  }
+  function recognizeActive(){
+    const input=inputNow();if(!input.some(Boolean)){setStatus("advAnalyticsStatus","Gambar huruf terlebih dahulu.","warn");return;}
+    const scores=getScores(input);renderPred(scores);
+    setStatus("advAnalyticsStatus",`Prediksi ${String.fromCharCode(65+argmax(scores))} pada mode ${activeMode}. Probabilitas softmax bersifat relatif.`);
+    $a("advModeName").textContent=activeMode==="cnn"?"CNN-Lite":"Perceptron";
+    if(typeof log==="function")log(`[ADV PREDICT] mode=${activeMode}; scores=[${scores.map(x=>x.toFixed(3)).join(", ")}]`,"info");
+  }
+  function loadPatterns(){
+    if(typeof digitPatterns==="undefined"||typeof patternToInput!=="function")return [];
+    return Object.keys(digitPatterns).map(k=>({x:patternToInput(digitPatterns[k]),y:Number(k)}));
+  }
+  function trainActive(){
+    const input=inputNow();if(!input.some(Boolean)){setStatus("advAnalyticsStatus","Gambar huruf terlebih dahulu.","warn");return;}
+    const target=typeof selectedDigit==="number"?selectedDigit:0;
+    if(activeMode==="cnn"){
+      const ok=trainCnn(input,target);
+      $a("advSamples").textContent=cnnSteps;
+      setStatus("advAnalyticsStatus",`CNN-Lite diperbarui untuk label ${String.fromCharCode(65+target)}. Prediksi sebelum update ${ok?"benar":"berbeda"}; filter konvolusi tetap, dense head dilatih.`);
+    }else{
+      const ok=train(input,target,"advanced-manual",true);
+      $a("advSamples").textContent=trainingSteps;
+      setStatus("advAnalyticsStatus",`Perceptron: ${ok?"prediksi cocok; tidak perlu update":"update bobot dilakukan"} untuk label ${String.fromCharCode(65+target)}.`);
+    }
+    recognizeActive();if(typeof window.recordTrainingAnalytics==="function")window.recordTrainingAnalytics("Update manual",activeMode);saveLocal(false);
+  }
+  function recordTrainingAnalytics(label="Evaluasi", showStatus=false, mode=activeMode){
+    const samples=loadPatterns();if(!samples.length)return null;
+    const matrix=Array.from({length:26},()=>Array(26).fill(0));let correct=0;
+    for(const sample of samples){const predicted=argmax(getScores(sample.x,mode));matrix[sample.y][predicted]++;if(predicted===sample.y)correct++;}
+    const accuracy=100*correct/samples.length;
+    latestMatrix=matrix;
+    $a("advAccuracy").textContent=accuracy.toFixed(0)+"%";
+    $a("advMatrix").innerHTML=matrix.flatMap((row,y)=>row.map((v,x)=>`<span class="${x===y?"diag":""}" title="aktual ${String.fromCharCode(65+y)}, prediksi ${String.fromCharCode(65+x)}: ${v}">${v||"·"}</span>`)).join("");
+    history.push({step:history.length+1,score:accuracy,label});if(history.length>100)history=history.slice(-100);
+    drawChart();
+    if(showStatus)setStatus("advAnalyticsStatus",`${label}: akurasi ${correct}/${samples.length} (${accuracy.toFixed(1)}%) pada 26 pola huruf sintetis. Bukan estimasi performa tulisan tangan nyata.`,correct===samples.length?"good":"");
+    return {correct,total:samples.length,accuracy};
+  }
+  // Expose a narrow callback so the original dataset trainer can log each epoch.
+  window.recordTrainingAnalytics=(label="Epoch",mode=activeMode)=>recordTrainingAnalytics(label,false,mode);
+  function evaluate(){
+    const result=recordTrainingAnalytics("Evaluasi pola demo",true);
+    if(result&&typeof log==="function")log(`[ANALYTICS] evaluasi=${result.correct}/${result.total}; accuracy=${result.accuracy.toFixed(1)}%` ,"info");
+  }
+  function drawChart(){
+    const c=$a("advChart");if(!c)return;const ctx=c.getContext("2d"),w=c.width,h=c.height;
+    ctx.clearRect(0,0,w,h);ctx.strokeStyle="#243b56";ctx.lineWidth=1;
+    for(let i=0;i<=4;i++){const y=15+(h-35)*i/4;ctx.beginPath();ctx.moveTo(42,y);ctx.lineTo(w-14,y);ctx.stroke();ctx.fillStyle="#9db0c8";ctx.font="12px system-ui";ctx.fillText(String(100-i*25)+"%",5,y+4);}
+    if(history.length<1){ctx.fillStyle="#9db0c8";ctx.font="14px system-ui";ctx.fillText("Belum ada data — jalankan training atau evaluasi",55,h/2);return;}
+    ctx.strokeStyle="#67e8f9";ctx.lineWidth=2;ctx.beginPath();
+    history.forEach((p,i)=>{const x=42+(w-56)*(history.length===1?0:i/(history.length-1)),y=15+(h-35)*(1-Math.max(0,Math.min(100,p.score))/100);if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});ctx.stroke();
+    history.forEach((p,i)=>{const x=42+(w-56)*(history.length===1?0:i/(history.length-1)),y=15+(h-35)*(1-Math.max(0,Math.min(100,p.score))/100);ctx.fillStyle="#67e8f9";ctx.beginPath();ctx.arc(x,y,3.5,0,Math.PI*2);ctx.fill();});
+    ctx.fillStyle="#9db0c8";ctx.font="11px system-ui";ctx.fillText("Urutan epoch / evaluasi →",w-170,h-5);
+  }
+  function snapshot(){
+    return {format:"perceptron-ocr-letters-advanced",version:1,savedAt:new Date().toISOString(),activeMode,
+      perceptron:{weights:typeof weights!=="undefined"?weights:null,biases:typeof biases!=="undefined"?biases:null,trainingSteps:typeof trainingSteps!=="undefined"?trainingSteps:0},
+      cnn:{head:cnnHead,steps:cnnSteps},history};
+  }
+  function validateSnapshot(o){
+    return o&&o.format==="perceptron-ocr-letters-advanced"&&o.version===1&&o.perceptron&&Array.isArray(o.perceptron.weights)&&o.perceptron.weights.length===26&&o.perceptron.weights.every(r=>Array.isArray(r)&&r.length===256)&&Array.isArray(o.perceptron.biases)&&o.perceptron.biases.length===26&&o.cnn&&Array.isArray(o.cnn.head)&&o.cnn.head.length===26&&o.cnn.head.every(r=>Array.isArray(r)&&r.length===196);
+  }
+  function applySnapshot(o){
+    if(!validateSnapshot(o))throw new Error("Format snapshot tidak valid atau dimensinya tidak cocok.");
+    weights=o.perceptron.weights.map(r=>r.map(Number));biases=o.perceptron.biases.map(Number);
+    trainingSteps=Number(o.perceptron.trainingSteps)||0;cnnHead=o.cnn.head.map(r=>r.map(Number));cnnSteps=Number(o.cnn.steps)||0;
+    activeMode=o.activeMode==="cnn"?"cnn":"perceptron";history=Array.isArray(o.history)?o.history.slice(-100):[];
+    $a("modelMode").value=activeMode;$a("advSamples").textContent=activeMode==="cnn"?cnnSteps:trainingSteps;
+    $a("trainCount").textContent=trainingSteps;$a("modelStatus").textContent="Terlatih";
+    if(typeof updateWeightsView==="function")updateWeightsView();drawChart();
+  }
+  function saveLocal(show=true){
+    try{localStorage.setItem(STORE_KEY,JSON.stringify(snapshot()));$a("advSaved").textContent="Tersimpan";if(show)setStatus("advStorageStatus","Snapshot model berhasil disimpan di LocalStorage browser.","good");return true;}
+    catch(e){$a("advSaved").textContent="Gagal";if(show)setStatus("advStorageStatus","Penyimpanan gagal: "+e.message+". Coba ekspor JSON.","warn");return false;}
+  }
+  function loadLocal(){
+    try{const raw=localStorage.getItem(STORE_KEY);if(!raw){setStatus("advStorageStatus","Belum ada snapshot tersimpan pada browser ini.","warn");return;}
+      applySnapshot(JSON.parse(raw));$a("advSaved").textContent="Tersimpan";setStatus("advStorageStatus","Snapshot berhasil dimuat dari LocalStorage.","good");
+    }catch(e){setStatus("advStorageStatus","Gagal memuat snapshot: "+e.message,"warn");}
+  }
+  function exportJson(){
+    const blob=new Blob([JSON.stringify(snapshot(),null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="perceptron-ocr-letters-model.json";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+    setStatus("advStorageStatus","Ekspor JSON dimulai.","good");
+  }
+  function importJson(file){
+    if(!file)return;const reader=new FileReader();
+    reader.onload=()=>{try{const obj=JSON.parse(String(reader.result));applySnapshot(obj);saveLocal(false);setStatus("advStorageStatus","JSON berhasil diimpor dan diterapkan.","good");}
+      catch(e){setStatus("advStorageStatus","Impor ditolak: "+e.message,"warn");}};
+    reader.onerror=()=>setStatus("advStorageStatus","File tidak dapat dibaca.","warn");reader.readAsText(file);
+  }
+  function initAdvanced(){
+    initCnn();
+    $a("modelMode").addEventListener("change",e=>{activeMode=e.target.value;$a("advModeName").textContent=activeMode==="cnn"?"CNN-Lite":"Perceptron";$a("advSamples").textContent=activeMode==="cnn"?cnnSteps:trainingSteps;});
+    $a("advRecognize").addEventListener("click",recognizeActive);
+    $a("advTrain").addEventListener("click",trainActive);
+    $a("advEval").addEventListener("click",evaluate);
+    $a("advClearHistory").addEventListener("click",()=>{history=[];drawChart();});
+    $a("advSave").addEventListener("click",()=>saveLocal(true));
+    $a("advLoad").addEventListener("click",loadLocal);
+    $a("advExport").addEventListener("click",exportJson);
+    $a("advImportBtn").addEventListener("click",()=>$a("advImportFile").click());
+    $a("advImportFile").addEventListener("change",e=>{importJson(e.target.files&&e.target.files[0]);e.target.value="";});
+    drawChart();
+    try{const raw=localStorage.getItem(STORE_KEY);if(raw){applySnapshot(JSON.parse(raw));$a("advSaved").textContent="Tersimpan";setStatus("advStorageStatus","Snapshot lokal ditemukan. Tekan Muat lokal untuk memulihkan model.","good");}}
+    catch(e){setStatus("advStorageStatus","LocalStorage tidak tersedia pada konteks ini. Ekspor JSON tetap dapat digunakan.","warn");}
+    $a("advSamples").textContent=trainingSteps;
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initAdvanced);else initAdvanced();
+})();
+
+
+/* Save/load and import/export for standalone Perceptron.html */
+(function(){
+  const KEY="perceptronOCR.letters.pretrained.v1";
+  const el=id=>document.getElementById(id);
+  function snapshot(){
+    return {
+      format:"perceptron-ocr-letters-model", version:1, savedAt:new Date().toISOString(),
+      weights:weights.map(row=>row.slice()), biases:biases.slice(),
+      trainingSteps, selectedDigit,
+      note:"Perceptron OCR letters local model snapshot"
+    };
+  }
+  function validate(obj){
+    return obj && obj.format==="perceptron-ocr-letters-model" && obj.version===1 &&
+      Array.isArray(obj.weights) && obj.weights.length===26 &&
+      obj.weights.every(row=>Array.isArray(row)&&row.length===256&&row.every(Number.isFinite)) &&
+      Array.isArray(obj.biases)&&obj.biases.length===26&&obj.biases.every(Number.isFinite);
+  }
+  function apply(obj){
+    if(!validate(obj)) throw new Error("Format model tidak valid atau dimensi bobot tidak cocok.");
+    weights=obj.weights.map(row=>row.map(Number)); biases=obj.biases.map(Number);
+    trainingSteps=Number(obj.trainingSteps)||0;
+    selectedDigit=Number.isInteger(obj.selectedDigit)&&obj.selectedDigit>=0&&obj.selectedDigit<=25?obj.selectedDigit:0;
+    $("trainCount").textContent=String(trainingSteps);
+    $("modelStatus").textContent=trainingSteps>0?"Terlatih":"Dimuat";
+    document.querySelectorAll(".digit-btn").forEach((b,i)=>b.classList.toggle("selected",i===selectedDigit));
+    updateWeightsView();
+    setStatus("Model berhasil dimuat. Bobot, bias, dan label terpilih telah dipulihkan.","ok");
+    log("[MODEL] Snapshot berhasil dimuat.","good");
+  }
+  function save(){
+    try{
+      localStorage.setItem(KEY,JSON.stringify(snapshot()));
+      setStatus("Model berhasil disimpan di LocalStorage browser.","ok");
+    }catch(e){setStatus("Gagal menyimpan model: "+e.message+". Gunakan Export JSON.","warn");}
+  }
+  function load(){
+    try{
+      const raw=localStorage.getItem(KEY);
+      if(!raw){setStatus("Belum ada model tersimpan di browser ini.","warn");return;}
+      apply(JSON.parse(raw));
+    }catch(e){setStatus("Gagal memuat model: "+e.message,"warn");}
+  }
+  function exportJson(){
+    const blob=new Blob([JSON.stringify(snapshot(),null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob),a=document.createElement("a");
+    a.href=url;a.download="perceptron-ocr-letters-model.json";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+    setStatus("Ekspor JSON dimulai.","ok");
+  }
+  function importJson(file){
+    if(!file)return;
+    const reader=new FileReader();
+    reader.onload=()=>{
+      try{const obj=JSON.parse(String(reader.result));apply(obj);save();}
+      catch(e){setStatus("Impor ditolak: "+e.message,"warn");}
+    };
+    reader.onerror=()=>setStatus("File JSON tidak dapat dibaca.","warn");
+    reader.readAsText(file);
+  }
+  el("saveModelBtn").addEventListener("click",save);
+  el("loadModelBtn").addEventListener("click",load);
+  el("exportModelBtn").addEventListener("click",exportJson);
+  el("importModelBtn").addEventListener("click",()=>el("importModelFile").click());
+  el("importModelFile").addEventListener("change",e=>{importJson(e.target.files&&e.target.files[0]);e.target.value="";});
+  // Auto-restore a previously saved model for a pretrained-like ready-to-use experience.
+  try{
+    const raw=localStorage.getItem(KEY);
+    if(raw){apply(JSON.parse(raw));log("[MODEL] Model lokal sebelumnya dipulihkan otomatis.","info");}
+    else{
+      // First-run starter model: train on the built-in synthetic A-Z letter patterns.
+      // This is a synthetic demo-pretrained letter model, not a model pretrained on real handwriting data.
+      trainDataset();
+      setStatus("Model demo-pretrained huruf A–Z siap. Model dilatih otomatis dari 26 pola sintetis bawaan; latih lagi dengan contoh manual untuk menyesuaikan.","ok");
+      log("[MODEL] Model huruf A–Z awal dilatih otomatis pada dataset sintetis demo.","info");
+    }
+  }catch(e){setStatus("Penyimpanan lokal tidak tersedia. Gunakan Export JSON untuk backup.","warn");}
+})();
+
+</script>
+</body></html>
