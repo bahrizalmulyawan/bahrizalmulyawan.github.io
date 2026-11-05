@@ -1,0 +1,146 @@
+/* Lightweight animated gradient background for MikroTik Hotspot. */
+:root {
+  --bg-color: #111827;
+  --gradient-a: #6d28d9;
+  --gradient-b: #2563eb;
+  --gradient-c: #ec4899;
+  --gradient-d: #06b6d4;
+}
+
+/* Keep the document canvas and page background consistent on desktop.
+   This prevents the dark fallback canvas from appearing as a black strip. */
+html {
+  min-height: 100%;
+  background-color: var(--bg-color);
+  background-image:
+    radial-gradient(ellipse at 15% 20%, rgba(109, 40, 217, 0.58), transparent 42%),
+    radial-gradient(ellipse at 85% 25%, rgba(37, 99, 235, 0.52), transparent 40%),
+    radial-gradient(ellipse at 50% 90%, rgba(236, 72, 153, 0.42), transparent 45%),
+    linear-gradient(135deg, #080b1a, #111827 55%, #0f172a);
+  background-size: 150% 150%;
+  background-attachment: fixed;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  color: #f8fafc;
+  background-color: transparent;
+  background-image:
+    radial-gradient(ellipse at 15% 20%, rgba(109, 40, 217, 0.58), transparent 42%),
+    radial-gradient(ellipse at 85% 25%, rgba(37, 99, 235, 0.52), transparent 40%),
+    radial-gradient(ellipse at 50% 90%, rgba(236, 72, 153, 0.42), transparent 45%),
+    linear-gradient(135deg, #080b1a, #111827 55%, #0f172a);
+  background-size: 150% 150%;
+  background-attachment: fixed;
+  animation: gradient-shift 18s ease-in-out infinite alternate;
+}
+
+/* The original hotspot theme uses white cards; keep their text dark. */
+.card {
+  color: #2f353a;
+}
+
+@keyframes gradient-shift {
+  from { background-position: 0% 0%; }
+  to { background-position: 100% 100%; }
+}
+
+@media (max-width: 600px) {
+  html,
+  body {
+    background-attachment: scroll;
+    background-size: cover;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body {
+    animation: none;
+  }
+}
+
+
+/* Consistent vertical Login and QR actions with matching icon alignment. */
+.login-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  width: 100%;
+  margin-top: 10px;
+  box-sizing: border-box;
+}
+
+.login-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  height: 48px;
+  padding: 10px 14px;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 8px;
+  color: #ffffff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.16);
+  transition: filter 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.action-icon {
+  display: block;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.login-action-login { background: #249b59; }
+.login-action-qr { background: #168bc2; }
+.login-action:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.2);
+}
+.login-action:active { transform: translateY(1px); }
+.login-action:focus-visible {
+  outline: 3px solid rgba(255, 255, 255, 0.9);
+  outline-offset: 2px;
+}
+
+/* Tidy, consistent section headers so titles remain centered and balanced. */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 9px 12px;
+  box-sizing: border-box;
+  text-align: center;
+}
+.card-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 360px) {
+  .login-action { height: 46px; font-size: 14px; }
+  .card-header h3 { font-size: 15px; }
+}

@@ -1,0 +1,354 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+<title id="title"></title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta http-equiv="pragma" content="no-cache" />
+<meta http-equiv="expires" content="-1" />
+<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0;"/>
+
+<link rel="stylesheet" href="css/mikhmon-ui-light.css">
+<link rel="stylesheet" href="css/background.css">
+<link rel="icon" href="img/favicon.png" />
+
+</head>
+
+<body class="background">
+
+<div class="container">
+<div class="row">
+
+<div class="col-8 mr-a" id="main" style="float:none;">
+<div class="row">
+
+<!-- LOGIN COLUMN -->
+
+<div class="col-4">
+
+<div class="row">
+
+<div class="col-12">
+<div class="box bmh-80 bg-primary box-shadow text-center">
+<img src="img/logo.png" alt="Lorem Ipsum" style="border-radius: 5px; width:100%; max-width: 200px; height:auto;"/>
+</div>
+</div>
+
+</div>
+
+<div class="row">
+
+<div class="col-12">
+
+<div class="card box-shadow">
+
+<div class="card-header bg-primary">
+<h3>Silakan Login</h3>
+</div>
+
+<div class="card-body">
+
+$(if chap-id)
+
+<form name="sendin" action="$(link-login-only)" method="post">
+<input type="hidden" name="username" />
+<input type="hidden" name="password" />
+<input type="hidden" name="dst" value="$(link-orig)" />
+<input type="hidden" name="popup" value="true" />
+</form>
+
+<script type="text/javascript" src="/md5.js"></script>
+
+<script type="text/javascript">
+function doLogin() {
+    document.sendin.username.value = document.login.username.value;
+    document.sendin.password.value = hexMD5('$(chap-id)' + document.login.password.value + '$(chap-challenge)');
+    document.sendin.submit();
+    return false;
+}
+</script>
+
+$(endif)
+
+<div>
+
+<form autocomplete="off" name="login" action="$(link-login-only)" method="post"
+$(if chap-id) onSubmit="return doLogin()" $(endif)>
+
+<input type="hidden" name="dst" value="$(link-orig)" />
+<input type="hidden" name="popup" value="true" />
+
+<input class="form-control-md mr-t-10 plch-center"
+name="username" type="text" value="$(username)" placeholder="Username" />
+
+<input class="form-control-md mr-t-10 plch-center"
+name="password" type="password" placeholder="Password" />
+
+<!-- LOGIN ACTIONS -->
+
+<div class="login-actions mr-t-10">
+
+<!-- LOGIN BUTTON -->
+
+<button type="submit" class="login-action login-action-login">
+<svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true">
+<path d=""/>
+</svg>
+<span>LOGIN</span>
+</button>
+
+<!-- QR CODE BUTTON -->
+
+<a class="login-action login-action-qr" id="qr" href="">
+<svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true">
+<path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h3v3h-3zM19 14v2M14 19v2M19 19h2v2h-2M17 17h2"/>
+</svg>
+<span>QR CODE</span>
+</a>
+
+<!-- ABOUT BUTTON -->
+
+<a class="login-action login-action-login" href="status.html">
+<span>Status</span>
+</a>
+<a class="login-action login-action-login" href="logout.html">
+<span>logout</span>
+</a>
+<a class="login-action login-action-login" a href="https://github.com/bahrizalmulyawan/Mikrotik-login-page">
+<span>github</span>
+</a>
+
+</a>
+
+</div>
+
+</form>
+
+</div>
+
+$(if error)
+<div class="alert bg-danger text-center mr-t-10">
+$(error)
+</div>
+$(endif)
+
+</div>
+
+<div class="card-footer bg-primary mr-t-10 text-center">
+
+$(if trial == 'yes')
+Coba gratis klik
+<a class="text-pink text-bold" href="$(link-login-only)?dst=$(link-orig-esc)&amp;username=T-$(mac-esc)">di sini</a>
+$(endif)
+
+</div>
+
+</div>
+</div>
+
+<!-- CATATAN -->
+
+<div class="col-12">
+
+<div class="card box-shadow">
+
+<div class="card-header bg-warning">
+<h3>Catatan</h3>
+</div>
+
+<div class="card-body align-middle">
+DEMO ONLY.<br>
+Klik pada tab QR Code, jika kamera tidak tampil klik "Open in Chrome" dan izinkan akses kamera.
+</div>
+
+</div>
+</div>
+
+</div>
+</div>
+
+<!-- RIGHT CONTENT -->
+
+<div class="col-8">
+<div class="row">
+
+<!-- LIVE DEMO -->
+
+<div class="col-12">
+
+<div class="card box-shadow">
+
+<div class="card-header bg-success">
+<h3>lorem ipsum</h3>
+</div>
+
+<div class="card-body">
+
+<h4>LIVE DEMO</h4>
+
+<p>SELAMAT DATANG</p>
+
+<p class="lead-text">
+Selamat datang di LOREM IPSUM.NET.
+</p>
+
+<p>
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+</p>
+
+</div>
+</div>
+</div>
+
+<!-- INFORMATION -->
+
+<div class="col-12">
+
+<div class="card box-shadow">
+
+<div class="card-header bg-success">
+<h3>LOREM IPSUM</h3>
+</div>
+
+<div class="card-body">
+
+<center><h3>AAAA</h3></center>
+
+<center><p><strong></strong></p></center>
+
+<center><p class="muted-line"></p></center>
+
+<div class="alert alert-info compact-alert text-left">
+
+<h4>lorem ipsum</h4>
+
+<ul class="clean-list">
+
+<li>
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+</li>
+
+<li>
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+</li>
+
+<li>
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+</li>
+
+</ul>
+
+</div>
+</div>
+</div>
+</div>
+
+<!-- INTERNET PACKAGE -->
+
+<div class="col-12">
+
+<div class="card box-shadow">
+
+<div class="card-header bg-cyan">
+<h3>Internet</h3>
+</div>
+
+<div class="card-body">
+
+<div class="row">
+
+<center>
+<p><strong>PAKET INTERNET</strong></p>
+</center>
+
+<div class="col-6">
+
+<div class="box bg-pink bmh-60">
+
+<div class="box-group">
+
+<div class="box-group-icon">1</div>
+
+<div class="box-group-area">
+<span>
+Rp XXX<br>
+Masa Aktif XX JAM<br>
+</span>
+</div>
+
+</div>
+</div>
+</div>
+
+<div class="col-6">
+
+<div class="box bg-red bmh-60">
+
+<div class="box-group">
+
+<div class="box-group-icon">2</div>
+
+<div class="box-group-area">
+<span>
+Rp XXXXXXXX<br>
+Masa Aktif XX HARI<br>
+</span>
+</div>
+
+</div>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+</div>
+
+<!-- JAVASCRIPT -->
+
+<script type="text/javascript">
+
+document.getElementById('title').innerHTML =
+window.location.hostname + " > login";
+
+document.addEventListener('DOMContentLoaded', function() {
+
+    // LOGIN: DEMO ONLY
+    document.querySelector('.login-action-login[type="submit"]')
+    .addEventListener('click', function(e) {
+        e.preventDefault();
+        alert('demo only');
+    });
+
+    // QR CODE: DEMO ONLY
+    document.querySelector('.login-action-qr')
+    .addEventListener('click', function(e) {
+        e.preventDefault();
+        alert('demo only');
+    });
+
+
+
+    document.login.username.focus();
+
+});
+
+</script>
+
+</body>
+</html>
