@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CNN Pengenalan Angka 16×16</title>
+<style>
+:root{--bg:#0b1020;--panel:#141c30;--panel2:#1b2740;--line:#2b3a59;--text:#e8eefc;--muted:#a7b4d0;--blue:#6ea8fe;--green:#5ee0a0;--orange:#ffca7a}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#172544 0,#0b1020 48%);color:var(--text);font:15px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+header{padding:32px 18px 24px;text-align:center;border-bottom:1px solid var(--line)}header h1{margin:0 0 7px;font-size:clamp(25px,4vw,38px)}header p{margin:0;color:var(--muted)}
+main{max-width:1200px;margin:24px auto;padding:0 16px 40px}.layout{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px}.panel{background:linear-gradient(160deg,var(--panel),#11192b);border:1px solid var(--line);border-radius:16px;padding:19px;min-width:0}.span4{grid-column:span 4}.span5{grid-column:span 5}.span7{grid-column:span 7}.span8{grid-column:span 8}.span12{grid-column:span 12}h2{font-size:18px;margin:0 0 12px}h3{font-size:15px;margin:14px 0 7px;color:#d6e4ff}.muted{color:var(--muted)}.small{font-size:12px;color:var(--muted)}button,.filelabel{background:#2c65d8;color:white;border:0;border-radius:9px;padding:10px 13px;font-weight:650;cursor:pointer;font-size:13px;display:inline-block}button:hover,.filelabel:hover{filter:brightness(1.12)}button.secondary{background:#26344f;border:1px solid #3b4d70}button.green{background:#167a58}button.orange{background:#8d5b18}button:disabled{opacity:.5;cursor:wait}.actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.drawarea{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}.grid16{display:grid;grid-template-columns:repeat(16, minmax(0,1fr));gap:2px;width:min(100%,320px);aspect-ratio:1;touch-action:none;background:#26334d;padding:4px;border-radius:9px;border:1px solid #415274}.cell{background:#0a1121;border-radius:2px;min-width:0;aspect-ratio:1;cursor:crosshair}.cell.on{background:#f4f8ff;box-shadow:0 0 4px #d9e7ff}#drawCanvas{display:block;width:min(100%,320px);aspect-ratio:1;height:auto;background:#050a14;border:2px solid #415274;border-radius:12px;touch-action:none;cursor:crosshair;box-shadow:inset 0 0 0 1px #17233b}.sideinfo{flex:1;min-width:145px}.digitbig{font-size:52px;font-weight:800;color:var(--green);line-height:1}.stat{padding:10px 12px;border-radius:10px;background:#0c1426;border:1px solid #263652;margin:8px 0}.barrow{display:grid;grid-template-columns:25px 1fr 42px;gap:8px;align-items:center;margin:7px 0}.bar{height:10px;background:#27334a;border-radius:99px;overflow:hidden}.bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,#4e86ff,#5ee0a0);border-radius:99px}.barrow b{font-size:12px;text-align:right}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.metric{padding:12px;background:#0c1426;border:1px solid #263652;border-radius:10px}.metric strong{display:block;font-size:21px}.metric span{font-size:11px;color:var(--muted)}.progress{height:9px;background:#27334a;border-radius:99px;overflow:hidden;margin:8px 0}.progress div{height:100%;width:0;background:linear-gradient(90deg,#4e86ff,#5ee0a0);transition:width .1s}.log{max-height:155px;overflow:auto;background:#0a1121;border:1px solid #263652;border-radius:9px;padding:10px;font:12px/1.7 ui-monospace,monospace;color:#b9c9e7;white-space:pre-wrap}.architecture{display:flex;align-items:stretch;gap:7px;flex-wrap:wrap}.layer{flex:1;min-width:100px;padding:12px 8px;text-align:center;background:#1b2a46;border:1px solid #395176;border-radius:10px}.layer b{display:block;color:#a9c8ff}.arrow{align-self:center;color:var(--blue);font-size:22px}.notice{border-left:3px solid var(--orange);padding:9px 12px;background:#2b2117;color:#ffe1ad;border-radius:0 8px 8px 0;font-size:12px;margin-top:12px}.footer{text-align:center;color:var(--muted);font-size:12px;padding-top:20px}
+@media(max-width:800px){.span4,.span5,.span7,.span8{grid-column:span 12}.grid16{width:min(100%,340px)}}
+</style>
+</head>
+<body>
+<header><h1>🔢 CNN Pengenalan Angka</h1><p>Demo Convolutional Neural Network • gambar 16 × 16 piksel • berjalan langsung di browser</p></header>
+<main><div class="layout">
+<section class="panel span5">
+<h2>1. Gambar angka</h2><p class="muted small">Gambar angka 0–9 secara bebas seperti di kertas. Gunakan mouse, stylus, atau sentuh layar.</p>
+<div class="drawarea"><canvas id="drawCanvas" width="256" height="256" aria-label="Area gambar bebas untuk angka" role="img"></canvas><div class="sideinfo">
+<div class="small">Prediksi model</div><div class="digitbig" id="prediction">—</div><div id="confidence" class="muted small">Menyiapkan model bawaan…</div>
+<div class="actions"><button id="predictBtn">Kenali angka</button><button class="secondary" id="clearBtn">Hapus</button></div>
+<div class="stat"><b>Tambah ke data latihan</b><p class="small">Labeli gambar ini agar model dapat belajar dari tulisanmu.</p><div class="actions"><select id="label" aria-label="Label angka" style="background:#0b1426;color:white;border:1px solid #3b4d70;border-radius:8px;padding:8px"><option value="0">Angka 0</option><option value="1">Angka 1</option><option value="2">Angka 2</option><option value="3">Angka 3</option><option value="4">Angka 4</option><option value="5">Angka 5</option><option value="6">Angka 6</option><option value="7">Angka 7</option><option value="8">Angka 8</option><option value="9">Angka 9</option></select><button class="green" id="addExample">Simpan contoh</button></div><div id="exampleCount" class="small">Contoh tambahan: 0</div></div>
+</div></div>
+<div class="notice">Model dilatih otomatis dari data sintetis bawaan saat halaman dibuka. Data dibuat dari bentuk angka pada font browser; ini bukan dataset MNIST dan tidak memerlukan internet. Prediksi berupa probabilitas model, bukan jaminan benar.</div>
+</section>
+<section class="panel span7">
+<h2>2. Hasil prediksi</h2><p class="muted small">Probabilitas untuk tiap angka (0–9). Contoh: 0 = 99,0%, 1 = 0,0%, dan seterusnya. Persentase adalah keyakinan model, bukan jaminan akurasi.</p>
+<div id="probabilities"></div>
+<h3>Ringkasan model</h3><div class="metrics"><div class="metric"><strong id="modelStatus">Belum</strong><span>Status model</span></div><div class="metric"><strong id="trainedEpochs">0</strong><span>Epoch selesai</span></div><div class="metric"><strong id="trainCount">0</strong><span>Contoh latihan</span></div></div>
+</section>
+<section class="panel span7">
+<h2>3. Training model</h2><p class="muted small">Model otomatis melakukan pretrain ringan saat halaman dibuka. Kamu tetap bisa melatih ulang dengan dataset bawaan atau fine-tune memakai contoh gambarmu.</p>
+<div class="actions"><button id="pretrainBtn">▶ Pretrain data bawaan</button><button class="green" id="trainBtn">Latih / fine-tune</button><button class="secondary" id="stopBtn" disabled>Hentikan</button></div>
+<div class="progress"><div id="progressbar"></div></div><div id="trainStatus" class="small">Menyiapkan model bawaan secara otomatis…</div>
+<div class="metrics" style="margin-top:12px"><div class="metric"><strong id="epochNow">0/0</strong><span>Epoch</span></div><div class="metric"><strong id="lossNow">—</strong><span>Loss</span></div><div class="metric"><strong id="accuracyNow">—</strong><span>Akurasi latihan</span></div></div>
+<h3>Log training</h3><div id="log" class="log">CNN siap digunakan.\nModel dan data contoh dapat disimpan ke browser atau diekspor sebagai file JSON.</div>
+</section>
+<section class="panel span5">
+<h2>4. Simpan & muat model</h2><p class="muted small">Simpan bobot hasil training beserta jumlah epoch dan contoh tambahan.</p>
+<div class="actions"><button class="green" id="saveBtn">Simpan di browser</button><button id="exportBtn">Ekspor JSON</button></div>
+<div class="actions"><label class="filelabel" for="importFile">Impor model JSON</label><input type="file" id="importFile" accept=".json,application/json" hidden><button class="secondary" id="loadBtn">Muat dari browser</button></div>
+<div id="saveStatus" class="small">Belum ada model tersimpan pada browser ini.</div>
+<h3>Arsitektur</h3><div class="architecture"><div class="layer"><b>Input</b>16 × 16 × 1</div><div class="arrow">→</div><div class="layer"><b>Conv + ReLU</b>4 filter 3 × 3</div><div class="arrow">→</div><div class="layer"><b>Max Pool</b>7 × 7 × 4</div><div class="arrow">→</div><div class="layer"><b>Softmax</b>10 angka</div></div>
+<p class="small" style="margin-top:10px">Implementasi edukasi: filter konvolusi awal diinisialisasi untuk mendeteksi pola/tepi, sedangkan lapisan klasifikasi dilatih dengan backpropagation. Bukan pengganti model produksi.</p>
+</section>
+<section class="panel span12">
+<h2>Bagaimana cara menggunakannya?</h2><div class="architecture">
+<div class="layer"><b>1. Pretrain</b>Bangun data sintetis angka dan latih model awal.</div><div class="layer"><b>2. Gambar</b>Buat angka pada grid 16 × 16.</div><div class="layer"><b>3. Koreksi</b>Pilih label yang benar lalu simpan contoh.</div><div class="layer"><b>4. Fine-tune</b>Latih lagi dengan data tambahan.</div><div class="layer"><b>5. Simpan</b>Ekspor JSON untuk dipakai lagi.</div>
+</div><p class="muted small" style="margin-top:12px">File ini mandiri dan tidak membutuhkan server, library eksternal, atau koneksi internet. Untuk hasil yang lebih kuat, gunakan dataset angka berlabel yang lebih besar dan beragam.</p>
+</section></div>
+<section class="panel span12">
+<h2>5. Rumus-rumus CNN (CLI / Console)</h2>
+<p class="muted small">Panel ini menampilkan rumus inti yang dipakai dalam proses prediksi dan training. Buka Developer Tools → Console untuk melihat log langkah perhitungan yang sama.</p>
+<div class="architecture">
+ <div class="layer"><b>Konvolusi</b><code>z(i,j) = Σ x(i+u,j+v) · k(u,v) + b</code></div>
+ <div class="layer"><b>ReLU</b><code>ReLU(z) = max(0, z)</code></div>
+ <div class="layer"><b>Max Pooling</b><code>p = max(z₁, z₂, z₃, z₄)</code></div>
+ <div class="layer"><b>Dense</b><code>zₖ = Σ wₖᵢxᵢ + bₖ</code></div>
+ <div class="layer"><b>Softmax</b><code>P(k) = eᶻᵏ / Σⱼ eᶻʲ</code></div>
+</div>
+<h3>Langkah perhitungan saat prediksi</h3>
+<div class="actions"><button id="formulaBtn">Jalankan simulasi rumus</button><button id="consoleBtn" class="secondary">Tampilkan ringkasan di Console</button></div>
+<div id="formulaOutput" class="log">Klik “Jalankan simulasi rumus” untuk melihat contoh angka dari gambar yang sedang ada di grid.</div>
+</section>
+<section class="panel span12">
+<h2>6. Simulasi neuron interaktif</h2>
+<p class="muted small">Atur input, bobot, dan bias. Simulasi menghitung jumlah berbobot (z), lalu aktivasi neuron. Ini merupakan ilustrasi neuron pada lapisan dense, bukan seluruh CNN.</p>
+<div class="layout" style="gap:12px">
+ <div class="panel span4" style="background:#0c1426">
+  <h3>Input neuron</h3>
+  <label class="small" for="nX1">Input x₁: <b id="nX1v">0.8</b></label><input id="nX1" type="range" min="0" max="1" step="0.01" value="0.8" style="width:100%">
+  <label class="small" for="nW1">Bobot w₁: <b id="nW1v">0.7</b></label><input id="nW1" type="range" min="-2" max="2" step="0.05" value="0.7" style="width:100%">
+ </div>
+ <div class="panel span4" style="background:#0c1426">
+  <h3>Input neuron</h3>
+  <label class="small" for="nX2">Input x₂: <b id="nX2v">0.4</b></label><input id="nX2" type="range" min="0" max="1" step="0.01" value="0.4" style="width:100%">
+  <label class="small" for="nW2">Bobot w₂: <b id="nW2v">-0.3</b></label><input id="nW2" type="range" min="-2" max="2" step="0.05" value="-0.3" style="width:100%">
+ </div>
+ <div class="panel span4" style="background:#0c1426">
+  <h3>Bias & aktivasi</h3>
+  <label class="small" for="nBias">Bias b: <b id="nBiasv">0.1</b></label><input id="nBias" type="range" min="-2" max="2" step="0.05" value="0.1" style="width:100%">
+  <label class="small" for="nAct">Fungsi aktivasi</label><select id="nAct" style="width:100%;background:#0b1426;color:white;border:1px solid #3b4d70;border-radius:8px;padding:8px"><option value="relu">ReLU</option><option value="sigmoid">Sigmoid</option><option value="tanh">Tanh</option><option value="linear">Linear</option></select>
+ </div>
+</div>
+<div class="drawarea" style="margin-top:14px;align-items:center">
+ <svg id="neuronSvg" viewBox="0 0 620 220" style="width:min(100%,620px);background:#0c1426;border:1px solid #263652;border-radius:12px" role="img" aria-label="Diagram neuron dengan dua input menuju neuron keluaran">
+  <defs><marker id="arrowHead" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#6ea8fe"/></marker></defs>
+  <line x1="130" y1="65" x2="300" y2="110" stroke="#6ea8fe" stroke-width="3" marker-end="url(#arrowHead)"/>
+  <line x1="130" y1="165" x2="300" y2="110" stroke="#6ea8fe" stroke-width="3" marker-end="url(#arrowHead)"/>
+  <circle cx="90" cy="65" r="31" fill="#1b2a46" stroke="#6ea8fe" stroke-width="2"/><circle cx="90" cy="165" r="31" fill="#1b2a46" stroke="#6ea8fe" stroke-width="2"/>
+  <circle cx="345" cy="110" r="45" fill="#173b36" stroke="#5ee0a0" stroke-width="3"/><line x1="390" y1="110" x2="475" y2="110" stroke="#5ee0a0" stroke-width="3" marker-end="url(#arrowHead)"/>
+  <rect x="485" y="78" width="120" height="64" rx="10" fill="#1b2a46" stroke="#395176"/>
+  <g fill="#e8eefc" font-size="14" text-anchor="middle"><text x="90" y="70" id="svgX1">x₁=0.80</text><text x="90" y="170" id="svgX2">x₂=0.40</text><text x="345" y="105">Neuron</text><text x="345" y="124" id="svgZ">z=0.54</text><text x="545" y="105">Output</text><text x="545" y="124" id="svgOut">0.54</text></g>
+  <g fill="#a9c8ff" font-size="12"><text x="205" y="68" id="svgW1">w₁=0.70</text><text x="205" y="166" id="svgW2">w₂=-0.30</text><text x="330" y="48" id="svgBias">bias=0.10</text></g>
+ </svg>
+ <div class="sideinfo" style="min-width:230px;flex:1">
+  <div class="stat"><div class="small">Jumlah berbobot</div><code id="neuronFormula">z = (0.80 × 0.70) + (0.40 × -0.30) + 0.10</code><div class="digitbig" id="neuronZ" style="font-size:32px">0.54</div></div>
+  <div class="stat"><div class="small">Keluaran aktivasi</div><div class="digitbig" id="neuronOutput" style="font-size:32px">0.54</div><code id="activationFormula">ReLU(z) = max(0, z)</code></div>
+ </div>
+</div>
+</section>
+
+<div class="footer">CNN Digit Lab • Satu file HTML • Offline</div></main>
+<script>
+(() => {
+'use strict';
+const SIZE=16, PIXELS=256, FILTERS=4, CONV=14, POOL=7, FEATURES=FILTERS*POOL*POOL, CLASSES=10;
+const $=id=>document.getElementById(id);
+let cells=[], drawing=false, model=null, extraData=[], epochsDone=0, stopRequested=false, trained=false;
+const drawCanvas=$('drawCanvas'); const drawCtx=drawCanvas.getContext('2d',{willReadFrequently:true});
+const filters=[
+ [0,-1,0,-1,4,-1,0,-1,0], // laplacian
+ [-1,-1,-1,0,0,0,1,1,1],  // horizontal edge
+ [-1,0,1,-1,0,1,-1,0,1],  // vertical edge
+ [-1,-1,0,-1,0,1,0,1,1]   // diagonal edge
+].map(f=>f.map(x=>x/4));
+function log(s){const el=$('log');el.textContent+=`\n${s}`;el.scrollTop=el.scrollHeight}
+let gridData=new Array(PIXELS).fill(0);
+function syncCanvasToInput(){
+ const temp=document.createElement('canvas');temp.width=SIZE;temp.height=SIZE;
+ const tctx=temp.getContext('2d',{willReadFrequently:true});
+ tctx.fillStyle='#000';tctx.fillRect(0,0,SIZE,SIZE);
+ tctx.drawImage(drawCanvas,0,0,SIZE,SIZE);
+ const px=tctx.getImageData(0,0,SIZE,SIZE).data;
+ for(let i=0;i<PIXELS;i++)gridData[i]=px[i*4]/255;
+}
+function canvasPoint(e){
+ const r=drawCanvas.getBoundingClientRect();
+ return {x:(e.clientX-r.left)*drawCanvas.width/r.width,y:(e.clientY-r.top)*drawCanvas.height/r.height};
+}
+function beginDraw(e){
+ drawing=true;drawCanvas.setPointerCapture?.(e.pointerId);
+ const p=canvasPoint(e);drawCtx.beginPath();drawCtx.moveTo(p.x,p.y);drawCtx.lineTo(p.x+.1,p.y+.1);
+ drawCtx.strokeStyle='#fff';drawCtx.lineWidth=13;drawCtx.lineCap='round';drawCtx.lineJoin='round';drawCtx.stroke();
+ syncCanvasToInput();e.preventDefault();
+}
+function moveDraw(e){
+ if(!drawing)return;const p=canvasPoint(e);drawCtx.lineTo(p.x,p.y);drawCtx.strokeStyle='#fff';drawCtx.lineWidth=13;drawCtx.lineCap='round';drawCtx.lineJoin='round';drawCtx.stroke();syncCanvasToInput();e.preventDefault();
+}
+function endDraw(){drawing=false;drawCtx.closePath();syncCanvasToInput()}
+function createGrid(){
+ drawCtx.fillStyle='#000';drawCtx.fillRect(0,0,drawCanvas.width,drawCanvas.height);
+ drawCanvas.addEventListener('pointerdown',beginDraw);
+ drawCanvas.addEventListener('pointermove',moveDraw);
+ drawCanvas.addEventListener('pointerup',endDraw);
+ drawCanvas.addEventListener('pointercancel',endDraw);
+}
+function clearGrid(){
+ gridData.fill(0);drawCtx.fillStyle='#000';drawCtx.fillRect(0,0,drawCanvas.width,drawCanvas.height);
+ $('prediction').textContent='—';$('confidence').textContent='Gambar angka lalu tekan Kenali angka.';$('probabilities').innerHTML='';
+}
+function getInput(){syncCanvasToInput();return gridData.slice()}
+function makeModel(){return {W:Array.from({length:CLASSES},()=>Array.from({length:FEATURES},()=> (Math.random()-.5)*.08)),b:Array(CLASSES).fill(0),epochs:0,loss:null,accuracy:null}}
+function extract(input){const feats=new Array(FEATURES).fill(0);let fi=0;
+ for(let f=0;f<FILTERS;f++){const pooled=new Array(POOL*POOL).fill(0);
+  for(let py=0;py<POOL;py++)for(let px=0;px<POOL;px++){let max=0;
+   for(let dy=0;dy<2;dy++)for(let dx=0;dx<2;dx++){let sum=0,cy=py*2+dy,cx=px*2+dx;
+    for(let ky=0;ky<3;ky++)for(let kx=0;kx<3;kx++)sum+=input[(cy+ky)*SIZE+cx+kx]*filters[f][ky*3+kx];
+    max=Math.max(max,Math.max(0,sum));
+   }pooled[py*POOL+px]=max;
+  }for(const v of pooled)feats[fi++]=Math.min(1,v);
+ }return feats}
+function softmax(logits){const mx=Math.max(...logits),ex=logits.map(v=>Math.exp(Math.max(-30,v-mx))),sum=ex.reduce((a,b)=>a+b,0)||1;return ex.map(v=>v/sum)}
+function forward(input,m=model){const x=extract(input),p=softmax(m.W.map((row,c)=>row.reduce((s,w,i)=>s+w*x[i],m.b[c])));return {x,p}}
+function classify(input){if(!model){$('prediction').textContent='—';$('confidence').textContent='Latih model terlebih dahulu.';return}const {p}=forward(input);const order=p.map((v,i)=>({v,i})).sort((a,b)=>b.v-a.v);$('prediction').textContent=order[0].i;$('confidence').textContent=`Keyakinan model: ${(order[0].v*100).toFixed(1)}%`;const wrap=$('probabilities');wrap.innerHTML='';p.forEach((v,i)=>{const row=document.createElement('div');row.className='barrow';row.innerHTML=`<span>${i}</span><div class="bar"><i style="width:${(v*100).toFixed(2)}%"></i></div><b>${(v*100).toFixed(1)}%</b>`;wrap.appendChild(row)})}
+function makeSyntheticDigit(digit,variant=0){const c=document.createElement('canvas');c.width=32;c.height=32;const ctx=c.getContext('2d');ctx.fillStyle='#000';ctx.fillRect(0,0,32,32);ctx.save();ctx.translate(16+(Math.random()-.5)*5,16+(Math.random()-.5)*5);ctx.rotate((Math.random()-.5)*.45);const scale=.75+Math.random()*.25;ctx.scale(scale,scale);ctx.font=`${Math.random()<.5?'bold ':''}${25+Math.floor(Math.random()*5)}px ${['Arial','Verdana','Georgia','sans-serif','monospace'][Math.floor(Math.random()*5)]}`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineWidth=1;ctx.fillStyle='#fff';ctx.strokeStyle='#fff';if(Math.random()<.2){ctx.strokeText(String(digit),0,1)}else ctx.fillText(String(digit),(Math.random()-.5)*2,(Math.random()-.5)*2);ctx.restore();const small=document.createElement('canvas');small.width=16;small.height=16;const sctx=small.getContext('2d');sctx.fillStyle='#000';sctx.fillRect(0,0,16,16);sctx.drawImage(c,0,0,16,16);const data=sctx.getImageData(0,0,16,16).data;return Array.from({length:PIXELS},(_,i)=>data[i*4+0]/255)}
+function buildDataset(perDigit){const out=[];for(let d=0;d<10;d++)for(let j=0;j<perDigit;j++)out.push({x:makeSyntheticDigit(d,j),y:d});for(const ex of extraData)out.push({x:ex.x.slice(),y:ex.y});return out}
+function trainOne(sample,lr){const x=sample.f||extract(sample.x);const p=softmax(model.W.map((row,c)=>row.reduce((s,w,i)=>s+w*x[i],model.b[c])));let loss=-Math.log(Math.max(1e-8,p[sample.y]));for(let c=0;c<CLASSES;c++){const delta=p[c]-(c===sample.y?1:0);for(let i=0;i<FEATURES;i++)model.W[c][i]-=lr*delta*x[i];model.b[c]-=lr*delta}return loss}
+function accuracyOn(data){if(!data.length)return 0;let ok=0;for(const s of data){const x=s.f||extract(s.x);const p=softmax(model.W.map((row,c)=>row.reduce((sum,w,i)=>sum+w*x[i],model.b[c])));if(p.indexOf(Math.max(...p))===s.y)ok++}return ok/data.length}
+async function train(isPretrain){
+ if(!model)model=makeModel();
+ stopRequested=false;$('pretrainBtn').disabled=true;$('trainBtn').disabled=true;$('stopBtn').disabled=false;
+ const epochs=isPretrain?2:2, perDigit=isPretrain?12:8;
+ let data=[];
+ // Generate samples in small batches so the page remains responsive.
+ for(let d=0;d<10;d++){
+   for(let j=0;j<perDigit;j++){
+     data.push({x:makeSyntheticDigit(d,j),y:d});
+     if(data.length%10===0) await new Promise(r=>setTimeout(r,0));
+   }
+ }
+ for(const ex of extraData)data.push({x:ex.x.slice(),y:ex.y});
+ if(!data.length){$('pretrainBtn').disabled=false;$('trainBtn').disabled=false;$('stopBtn').disabled=true;return}
+ $('trainStatus').textContent=isPretrain?'Membuat data angka dan menyiapkan fitur…':'Menyiapkan fitur untuk fine-tuning…';
+ log(`${isPretrain?'Pretraining':'Fine-tuning'} dimulai: ${data.length} sampel, ${epochs} epoch.`);
+ try{
+   // Fitur konvolusi tetap, jadi dihitung sekali untuk mengurangi kerja berulang.
+   for(let i=0;i<data.length;i++){
+     if(stopRequested)break;
+     data[i].f=extract(data[i].x);
+     if(i%20===0){$('trainStatus').textContent=`Menyiapkan fitur ${i}/${data.length}…`;await new Promise(r=>setTimeout(r,0))}
+   }
+   for(let ep=0;ep<epochs;ep++){
+     if(stopRequested)break;
+     for(let i=data.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[data[i],data[j]]=[data[j],data[i]]}
+     let loss=0;
+     for(let i=0;i<data.length;i++){
+       if(stopRequested)break;
+       loss+=trainOne(data[i],isPretrain?.055:.035);
+       if(i%20===0){$('progressbar').style.width=((ep+i/data.length)/epochs*100).toFixed(1)+'%';$('trainStatus').textContent=`Epoch ${ep+1}/${epochs} • sampel ${i}/${data.length}`;await new Promise(r=>setTimeout(r,0))}
+     }
+     if(stopRequested)break;
+     model.epochs++;epochsDone=model.epochs;model.loss=loss/data.length;model.accuracy=accuracyOn(data);
+     $('epochNow').textContent=`${ep+1}/${epochs}`;$('lossNow').textContent=model.loss.toFixed(3);$('accuracyNow').textContent=(model.accuracy*100).toFixed(1)+'%';$('trainedEpochs').textContent=epochsDone;
+     log(`Epoch ${epochsDone}: loss=${model.loss.toFixed(3)}, akurasi=${(model.accuracy*100).toFixed(1)}%`);
+     await new Promise(r=>setTimeout(r,0));
+   }
+ }catch(e){log('Error training: '+e.message)}
+ finally{
+   $('pretrainBtn').disabled=false;$('trainBtn').disabled=false;$('stopBtn').disabled=true;
+   $('progressbar').style.width=stopRequested?'0%':'100%';trained=epochsDone>0;
+   $('modelStatus').textContent=trained?'Terlatih':'Belum';$('trainCount').textContent=buildDataset(0).length;
+   $('trainStatus').textContent=stopRequested?'Training dihentikan.':`Selesai. Akurasi pada data latihan: ${((model.accuracy||0)*100).toFixed(1)}%.`;
+   classify(getInput());
+ }
+}
+function serializable(){return {format:'CNN-Digit-Lab-v1',size:16,architecture:{filters:4,convKernel:3,pool:2,classes:10},model,extraData,epochsDone,createdAt:new Date().toISOString()}}
+function applyPayload(obj){if(!obj||obj.format!=='CNN-Digit-Lab-v1'||!obj.model||!Array.isArray(obj.model.W))throw new Error('Format file tidak cocok.');model=obj.model;extraData=Array.isArray(obj.extraData)?obj.extraData:[];epochsDone=obj.epochsDone||model.epochs||0;trained=epochsDone>0;$('trainedEpochs').textContent=epochsDone;$('trainCount').textContent=buildDataset(0).length;$('modelStatus').textContent=trained?'Terlatih':'Dimuat';$('exampleCount').textContent=`Contoh tambahan: ${extraData.length}`;$('saveStatus').textContent='Model berhasil dimuat.';classify(getInput());}
+$('predictBtn').addEventListener('click',()=>classify(getInput()));$('clearBtn').addEventListener('click',clearGrid);
+$('addExample').addEventListener('click',()=>{if(!gridData.some(v=>v>0)){alert('Gambar angka terlebih dahulu.');return}const y=Number($('label').value);extraData.push({x:getInput(),y});$('exampleCount').textContent=`Contoh tambahan: ${extraData.length}`;$('trainCount').textContent=buildDataset(0).length;log(`Contoh angka ${y} ditambahkan.`);});
+$('pretrainBtn').addEventListener('click',()=>train(true));$('trainBtn').addEventListener('click',()=>train(false));$('stopBtn').addEventListener('click',()=>{stopRequested=true;$('trainStatus').textContent='Menghentikan training…'});
+$('saveBtn').addEventListener('click',()=>{try{localStorage.setItem('cnnDigitLabModel',JSON.stringify(serializable()));$('saveStatus').textContent='Model tersimpan di localStorage browser ini.';log('Model disimpan di browser.')}catch(e){$('saveStatus').textContent='Gagal menyimpan: '+e.message}});
+$('loadBtn').addEventListener('click',()=>{try{const s=localStorage.getItem('cnnDigitLabModel');if(!s){$('saveStatus').textContent='Belum ada model tersimpan di browser ini.';return}applyPayload(JSON.parse(s));log('Model dimuat dari browser.')}catch(e){$('saveStatus').textContent='Gagal memuat: '+e.message}});
+$('exportBtn').addEventListener('click',()=>{if(!model){alert('Latih model terlebih dahulu.');return}const blob=new Blob([JSON.stringify(serializable())],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='cnn-digit-model.json';a.click();URL.revokeObjectURL(a.href);$('saveStatus').textContent='File cnn-digit-model.json diekspor.'});
+$('importFile').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{applyPayload(JSON.parse(await f.text()));log('Model diimpor dari '+f.name)}catch(err){alert('Tidak dapat mengimpor file: '+err.message)}e.target.value=''});
+
+function runFormulaDemo(){
+ const out=$('formulaOutput'); if(!model){out.textContent='Model belum dilatih. Jalankan pretraining terlebih dahulu untuk menampilkan hasil nyata.';return}
+ const x=getInput(), feats=extract(x), probs=forward(x).p;
+ const maxIdx=probs.indexOf(Math.max(...probs));
+ const lines=[];
+ lines.push('INPUT: matriks X berukuran 16×16 (256 nilai piksel)');
+ lines.push('KONVOLUSI: z(i,j)=Σ X(i+u,j+v)·K(u,v)+b; kernel 3×3, lalu ReLU(z)=max(0,z).');
+ lines.push('MAX POOLING: p(i,j)=max(empat nilai pada jendela 2×2).');
+ lines.push(`FITUR: ${feats.length} nilai setelah 4 filter konvolusi + pooling.`);
+ lines.push('DENSE: z_k = Σ_i w_ki f_i + b_k.');
+ lines.push('SOFTMAX: P(k)=exp(z_k)/Σ_j exp(z_j).');
+ lines.push('PROBABILITAS: '+probs.map((v,i)=>`${i}:${(v*100).toFixed(1)}%`).join(' | '));
+ lines.push(`PREDIKSI: ${maxIdx} (probabilitas ${(probs[maxIdx]*100).toFixed(2)}%).`);
+ lines.push('TRAINING: δ_k = P(k) − target_k; w_ki ← w_ki − η·δ_k·f_i; b_k ← b_k − η·δ_k.');
+ out.textContent=lines.join('\n');console.log('[CNN Digit Lab] Rumus prediksi\n'+lines.join('\n'));
+}
+function neuronCalc(){
+ const x1=+$('nX1').value,x2=+$('nX2').value,w1=+$('nW1').value,w2=+$('nW2').value,b=+$('nBias').value,act=$('nAct').value;
+ const z=x1*w1+x2*w2+b;let y,formula;
+ if(act==='relu'){y=Math.max(0,z);formula='ReLU(z) = max(0, z)'}
+ else if(act==='sigmoid'){y=1/(1+Math.exp(-z));formula='σ(z) = 1 / (1 + e⁻ᶻ)'}
+ else if(act==='tanh'){y=Math.tanh(z);formula='tanh(z) = (eᶻ − e⁻ᶻ) / (eᶻ + e⁻ᶻ)'}
+ else{y=z;formula='Linear(z) = z'}
+ const fmt=n=>Number(n).toFixed(2);
+ for(const [id,val] of [['nX1v',x1],['nX2v',x2],['nW1v',w1],['nW2v',w2],['nBiasv',b]])$(id).textContent=fmt(val);
+ $('neuronFormula').textContent=`z = (${fmt(x1)} × ${fmt(w1)}) + (${fmt(x2)} × ${fmt(w2)}) + ${fmt(b)}`;
+ $('neuronZ').textContent=fmt(z);$('neuronOutput').textContent=fmt(y);$('activationFormula').textContent=formula;
+ $('svgX1').textContent=`x₁=${fmt(x1)}`;$('svgX2').textContent=`x₂=${fmt(x2)}`;$('svgW1').textContent=`w₁=${fmt(w1)}`;$('svgW2').textContent=`w₂=${fmt(w2)}`;$('svgBias').textContent=`bias=${fmt(b)}`;$('svgZ').textContent=`z=${fmt(z)}`;$('svgOut').textContent=fmt(y);
+ const neuron=document.querySelector('#neuronSvg circle:nth-of-type(3)');neuron.setAttribute('fill',y>=0?'#173b36':'#432b35');
+}
+$('formulaBtn').addEventListener('click',runFormulaDemo);
+$('consoleBtn').addEventListener('click',()=>{console.log('CNN Digit Lab rumus: conv → ReLU → max pooling → dense → softmax; training memakai cross-entropy dan gradient descent.');$('formulaOutput').textContent='Ringkasan rumus dikirim ke Developer Tools → Console.'});
+['nX1','nX2','nW1','nW2','nBias','nAct'].forEach(id=>$(id).addEventListener('input',neuronCalc));
+neuronCalc();
+
+createGrid();
+let hasSavedModel=false;
+try{const saved=localStorage.getItem('cnnDigitLabModel');if(saved){applyPayload(JSON.parse(saved));hasSavedModel=true;$('saveStatus').textContent='Model tersimpan ditemukan dan dimuat otomatis.'}}catch(e){}
+if(!hasSavedModel){setTimeout(()=>train(true),250)}
+})();
+</script>
+</body>
+</html>
